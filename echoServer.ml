@@ -21,7 +21,8 @@ let establish_server service port =
     let (s, caller) = Unix.accept s_descr in
     match Unix.fork() with
       (* Unix.fork() returns 0 to the child process *)
-      0 -> let inchan = Unix.in_channel_of_descr s
+      0 -> if Unix.fork () <> 0 then exit 0;
+	   let inchan = Unix.in_channel_of_descr s
 	   and outchan = Unix.out_channel_of_descr s in
 	   service inchan outchan;
 	   close_in inchan;
