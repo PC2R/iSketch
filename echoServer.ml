@@ -18,20 +18,28 @@ let establish_server service port =
   print_endline ("Server listening on port " ^ string_of_int port);
   Unix.listen s_descr 2;
   while true do
-    let (s, caller) = Unix.accept s_descr in
-    match Unix.fork() with
-      (* Unix.fork() returns 0 to the child process *)
-      0 -> if Unix.fork () <> 0 then exit 0;
-	   let inchan = Unix.in_channel_of_descr s
-	   and outchan = Unix.out_channel_of_descr s in
-	   service inchan outchan;
-	   close_in inchan;
-	   close_out outchan;
-	   exit 0;
-      (* parent *)
-      | pid -> Unix.close s;
-	       ignore (Unix.waitpid [] pid);
-  done;;
+    try
+      let (s, caller) = Unix.accept s_descr in
+      match Unix.fork() with
+	(* Unix.fork() returns 0 to the child process *)
+	0 -> if Unix.fork () <> 0 then
+	       begin
+		 exit 0;
+	       end
+	     else
+	       print_endline "Client connected";
+	     let inchan = Unix.in_channel_of_descr s
+	     and outchan = Unix.out_channel_of_descr s in
+	     service inchan outchan;
+	     close_in inchan;
+	     close_out outchan;
+	     exit 0;
+	(* parent *)
+	| pid -> Unix.close s;
+		 ignore (Unix.waitpid [] pid);
+    with End_of_file -> print_endline "Client disconnected"
+  done
+
 
 let echo_service in_channel out_channel =
   try while (true) do
