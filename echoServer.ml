@@ -1,5 +1,4 @@
 (* Echo Server *)
-(* compilation : $ ocamlc -o echoServer unix.cma echoServer.ml *)
 (* running the client-server : $ ./echoServer port *)
 (* starting the client : $ telnet localhost port *)
 
@@ -42,6 +41,8 @@ let establish_server service port =
 
 
 let echo_service in_channel out_channel =
+  output_string out_channel "Press enter to quit the client\n";
+  flush out_channel;
   try while (true) do
 	let line = input_line in_channel in
 	(* \013 = enter to exit the client *)
@@ -51,11 +52,10 @@ let echo_service in_channel out_channel =
 	  output_string out_channel (line^"\n");
 	flush out_channel
       done
-  with Exit -> flush stdout;
-	       Printf.printf "End of service\n";
+  with Exit -> print_endline "End of service";
 	       exit 0;;
-			     
-let main () = 
+	
+let main_echoServer () = 
   if Array.length Sys.argv != 2 then
     Printf.eprintf "Usage : echoServer port\n"
   else try
@@ -66,5 +66,5 @@ let main () =
       Failure("int_of_string") ->
       Printf.eprintf "echoServer : bad port number\n";;
 
-main ();;
+main_echoServer ();;
     
