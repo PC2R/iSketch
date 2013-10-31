@@ -70,26 +70,6 @@ let test in_channel out_channel =
 	       flush out_channel
       done
   with Exit -> exit 0;;
-(*    let l = Str.split (Str.regexp "[/]") command in
-    begin
-      output_string out_channel command;
-      flush out_channel;
-      match List.nth l 0 with
-      (* 8 = size of "CONNECT/" *)
-	    "CONNECT" -> let name = String.sub command 8 (String.length command - 8) in
-			 if (Hashtbl.mem !players name) then
-			   print_endline (name ^ " is already taken by another player, try another one")
-			 else
-			   begin
-			     print_endline (name ^ " added successfuly to the hashtable");
-			     Hashtbl.add !players name 0;
-			   end
-    (* 5 = size of "EXIT/" *)
-	  | "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
-		      Hashtbl.remove !players name;
-		      print_endline (name ^ "removed successfuly from the hashtable");
-	  | _ -> print_endline "error";
-    end*)
     
 let main =
   begin
