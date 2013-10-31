@@ -30,9 +30,6 @@ let establish_server service port =
 	       print_endline "Client connected";
 	     let inchan = Unix.in_channel_of_descr s
 	     and outchan = Unix.out_channel_of_descr s in
-	     print_endline "?";
-	     output_string outchan "coucou CLara";
-	     flush outchan;
 	     service inchan outchan;
 	     close_in inchan;
 	     close_out outchan;
@@ -44,12 +41,35 @@ let establish_server service port =
   done
 
 let test in_channel out_channel =
-  output_string out_channel "a";
+  output_string out_channel "Enter a command CONNECT/user/ or EXIT/user/ :\n";
   flush out_channel;
-  while (true) do
-    let command = input_line in_channel in
-    output_string out_channel command;
-    flush out_channel;
+  try while (true) do
+	let command = input_line in_channel in
+	let l = Str.split (Str.regexp "[/]") command in
+	match List.nth l 0 with
+	  "CONNECT" -> let name = String.sub command 8 (String.length command - 8) in
+		       if (Hashtbl.mem !players name) then
+			 output_string out_channel (name ^ " is already taken by another player, try another one\n")
+		       else
+			 begin
+			   output_string out_channel (name ^ " added successfuly to the hashtable\n");
+			   Hashtbl.add !players name 0
+			 end;
+		       flush out_channel;
+	(* 5 = size of "EXIT/" *)
+	| "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
+		    if (Hashtbl.mem !players name) then
+		      begin
+			Hashtbl.remove !players name;
+			output_string out_channel (name ^ "removed successfuly from the hashtable\n");
+		      end
+		    else
+		      output_string out_channel (name ^ "is not in the hashtable, it cannot be removed\n");
+		    flush out_channel
+	| _ -> output_string out_channel (command^" is not CONNECT or EXIT\n");
+	       flush out_channel
+      done
+  with Exit -> exit 0;;
 (*    let l = Str.split (Str.regexp "[/]") command in
     begin
       output_string out_channel command;
@@ -70,7 +90,6 @@ let test in_channel out_channel =
 		      print_endline (name ^ "removed successfuly from the hashtable");
 	  | _ -> print_endline "error";
     end*)
-  done
     
 let main =
   begin
