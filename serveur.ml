@@ -30,6 +30,9 @@ let establish_server service port =
 	       print_endline "Client connected";
 	     let inchan = Unix.in_channel_of_descr s
 	     and outchan = Unix.out_channel_of_descr s in
+	     print_endline "?";
+	     output_string outchan "coucou CLara";
+	     flush outchan;
 	     service inchan outchan;
 	     close_in inchan;
 	     close_out outchan;

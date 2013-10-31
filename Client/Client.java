@@ -27,22 +27,20 @@ public class Client {
 			while (true)
 			{
 				System.out.flush();
+				System.out.println("est-ce que je suis là ?");
 				line = "";
 				c = (char) System.in.read();
+				System.out.println("est-ce que je suis là ??");
 				while (c != '\n')
 				{
 					line = line + c;
 					c = (char) System.in.read();
-				}
-				canalEcriture.println();
+				 }
+				canalEcriture.println(line);
 				canalEcriture.flush();
-			line = canalLecture.readLine();
-				if (line == null)
-				{
-					System.out.println("Connexion terminée");
-					break;
-				}
-				System.out.println("!" + line);
+				System.out.println("attente");
+				line = canalLecture.readLine();
+				System.out.println("s : " + line);
 			}
 		}
 		catch (IOException e)
