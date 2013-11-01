@@ -23,8 +23,6 @@ public class Client {
 			PrintStream canalEcriture = new PrintStream(s.getOutputStream());
 			System.out.println("Connexion établie : " + s.getInetAddress() + " port : " + s.getPort());
 			String line = new String();
-			line = canalLecture.readLine();
-			System.out.println(line);
 			char c;
 			while (true)
 			{
@@ -36,10 +34,10 @@ public class Client {
 				    line = line + c;
 				    c = (char) System.in.read();
 				 }
-				canalEcriture.println(line);
+				canalEcriture.println(line); // sending command to the server
 				canalEcriture.flush();
-				line = canalLecture.readLine();
-				System.out.println(line); // answer of the server
+				line = canalLecture.readLine(); // receiving answer from the server
+				System.out.println(line);
 			}
 		}
 		catch (IOException e)
