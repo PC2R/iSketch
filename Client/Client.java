@@ -39,7 +39,7 @@ public class Client {
 				canalEcriture.println(line);
 				canalEcriture.flush();
 				line = canalLecture.readLine();
-				System.out.println("s : " + line);
+				System.out.println(line); // answer of the server
 			}
 		}
 		catch (IOException e)

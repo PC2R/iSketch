@@ -52,7 +52,7 @@ let test in_channel out_channel =
 			 output_string out_channel (name ^ " is already taken by another player, try another one\n")
 		       else
 			 begin
-			   output_string out_channel (name ^ " added successfuly to the hashtable\n");
+			   output_string out_channel ("CONNECTED/" ^ name ^ "\n");
 			   Hashtbl.add !players name 0
 			 end;
 		       flush out_channel;
@@ -61,7 +61,7 @@ let test in_channel out_channel =
 		    if (Hashtbl.mem !players name) then
 		      begin
 			Hashtbl.remove !players name;
-			output_string out_channel (name ^ "removed successfuly from the hashtable\n");
+			output_string out_channel ("EXITED/" ^ name ^ "\n");
 		      end
 		    else
 		      output_string out_channel (name ^ "is not in the hashtable, it cannot be removed\n");
@@ -81,15 +81,5 @@ let main =
     in let usage_msg = "Options availables for iSketch server :"
        in Arg.parse speclist print_endline usage_msg;
   end;
-  establish_server test !port;;
-  (*print_endline (string_of_int (Hashtbl.length (!players)));
-  test "CONNECT/gandalf/";
-  test "CONNECT/saroumane/";
-  test "CONNECT/avec\\backslash/"; (* avec\backslash *)
-  test "CONNECT/avec\\/slash/"; (* avec/slash *)
-  test "CONNECT/saroumane/";
-  test "EXIT/gandalf/";
-  test "EXIT/saroumane/";
-  print_endline (string_of_int (Hashtbl.length (!players)));;*)
-  
+  establish_server test !port;;  
 let () = main
