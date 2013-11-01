@@ -2,10 +2,13 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.lang.*;
 
 public class Client {
 
-	protected static final int PORT = 2013;
+	protected static int PORT = 2013;
+	protected static String user = "pc2r";
+	protected static String adress = "127.0.0.1";
 
 	public static int getNbMotString(String str)
 	{
@@ -49,18 +52,32 @@ public class Client {
 		return tab;
 	}
 
+	private static boolean setOptions(String[] args)
+	{
+		if (args.length != 0 && args.length != 2 && args.length != 4 )
+		{
+			System.out.println("Bad options, wanted :\n\t-port : set the port\n\t-user : set the user name\n");
+			return false;
+		}
+		for (int i = 0; i < args.length - 1; i++)
+		{
+			if (args[i] == "-port")
+				PORT = Integer.decode(args[i + 1]);
+			if (args[i] == "-user")
+				user = args[i + 1];	
+		}
+		return true;
+	}
+
 	@SuppressWarnings("deprecation")
 	public static void main(String[] args)
 	{
 		Socket s = null;
-		if (args.length != 1)
-		{
-			System.err.println("Usage : ./java Client 127.0.0.1");
+		if (!setOptions(args))
 			System.exit(1);
-		}
 		try
 		{
-			s = new Socket(args[0], PORT);
+			s = new Socket(adress, PORT);
 			System.out.println("Socket successfuly created");
 			DataInputStream canalLecture = new DataInputStream(s.getInputStream());
 			PrintStream canalEcriture = new PrintStream(s.getOutputStream());
