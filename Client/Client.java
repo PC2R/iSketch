@@ -4,7 +4,50 @@ import java.io.PrintStream;
 import java.net.Socket;
 
 public class Client {
+
 	protected static final int PORT = 2013;
+
+	public static int getNbMotString(String str)
+	{
+		int result = 1;
+		for(int i = 0; i < str.length(); i++)
+		{
+			if ( str.charAt(i) == '/' && str.charAt(i - 1) != '\\')
+				result = result + 1;
+			if ( str.charAt(i) == '/' && i == str.length() - 1)
+				result = result - 1;
+		}
+		return result;
+	}
+
+	public static String[] parse(String str)
+	{
+		int size = getNbMotString(str);
+		int i = 0;
+		int j = 0;
+		String word = new String();
+		String[] tab = new String[size];
+
+		word = "";
+		while (i < str.length())
+		{
+			if ( str.charAt(i) == '/' && str.charAt(i - 1) != '\\')
+			{
+				tab[j] = word;
+				word = "";
+				j++;
+			}
+			else if ( i == str.length() - 1)
+			{
+				word = word + str.charAt(i);
+				tab[j] = word;
+			}
+			else
+				word = word + str.charAt(i);
+			i++;
+		}
+		return tab;
+	}
 
 	@SuppressWarnings("deprecation")
 	public static void main(String[] args)
@@ -21,7 +64,7 @@ public class Client {
 			System.out.println("Socket successfuly created");
 			DataInputStream canalLecture = new DataInputStream(s.getInputStream());
 			PrintStream canalEcriture = new PrintStream(s.getOutputStream());
-			System.out.println("Connexion établie : " + s.getInetAddress() + " port : " + s.getPort());
+			System.out.println("Connexion found : " + s.getInetAddress() + " port : " + s.getPort());
 			String line = new String();
 			char c;
 			while (true)
