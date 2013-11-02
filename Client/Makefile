@@ -5,11 +5,16 @@ OBJ=	Client.class \
 	MainWindow.class \
 	Test.class
 NAME=	Client
+TEST=	Test
 
 all:
 	javac $(SRC)
 
 $(NAME): all
+	java $(NAME)
+
+$(TEST): all
+	java $(TEST)
 
 clean:
 	rm -f $(OBJ)
