@@ -1,7 +1,9 @@
 SRC=	Client.java \
-	MainWindow.java
+	MainWindow.java \
+	Test.java
 OBJ=	Client.class \
-	MainWindow.class
+	MainWindow.class \
+	Test.class
 NAME=	Client
 
 all:
