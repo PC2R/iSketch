@@ -72,50 +72,49 @@ public class Client {
 	@SuppressWarnings("deprecation")
 	public static void main(String[] args)
 	{
-	    try {
-		address = InetAddress.getLocalHost();
-	    } catch (UnknownHostException e) {
-		e.printStackTrace();
-	    }
-	    Socket s = null;
-	    if (!setOptions(args))
+		try 
+			address = InetAddress.getLocalHost();
+		catch (UnknownHostException e) 
+			e.printStackTrace();
+		Socket s = null;
+		if (!setOptions(args))
 		System.exit(1);
-	    try
+		try
 		{
-		    s = new Socket (address, PORT);
-		    System.out.println("Socket successfuly created");
-		    DataInputStream canalLecture = new DataInputStream(s.getInputStream());
-		    PrintStream canalEcriture = new PrintStream(s.getOutputStream());
-		    System.out.println("Connexion found : " + s.getInetAddress() + " port : " + s.getPort());
-		    String line = new String();
+			s = new Socket (address, PORT);
+			System.out.println("Socket successfuly created");
+			DataInputStream canalLecture = new DataInputStream(s.getInputStream());
+			PrintStream canalEcriture = new PrintStream(s.getOutputStream());
+			System.out.println("Connexion found : " + s.getInetAddress() + " port : " + s.getPort());
+			String line = new String();
 			char c;
 			while (true)
-			    {
+			{
 				System.out.flush();
 				line = "";
 				c = (char) System.in.read();
 				while (c != '\n')
-				    {
+				{
 					line = line + c;
 					c = (char) System.in.read();
-				    }
+				}
 				canalEcriture.println(line); // sending command to the server
 				canalEcriture.flush();
 				line = canalLecture.readLine(); // receiving answer from the server
 				System.out.println(line);
-			    }
+			}
 		}
-	    catch (IOException e)
+		catch (IOException e)
 		{
 		    System.err.println(e);
 		}
 		finally
-		    {
+		{
 			try 
-			    {
+			{
 				if (s != null)
 				    s.close();
-			    }
+			}
 			catch(IOException e2) {}
 		}
 	}
