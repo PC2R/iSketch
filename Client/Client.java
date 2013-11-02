@@ -72,10 +72,14 @@ public class Client {
 	@SuppressWarnings("deprecation")
 	public static void main(String[] args)
 	{
-		try 
+		try
+		    {
 			address = InetAddress.getLocalHost();
-		catch (UnknownHostException e) 
+		
+		    }
+		catch (UnknownHostException e) {
 			e.printStackTrace();
+		}
 		Socket s = null;
 		if (!setOptions(args))
 		System.exit(1);
