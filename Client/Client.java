@@ -73,11 +73,11 @@ public class Client {
 	public static void main(String[] args)
 	{
 		try
-		    {
+		{
 			address = InetAddress.getLocalHost();
-		
-		    }
-		catch (UnknownHostException e) {
+		}
+		catch (UnknownHostException e) 
+		{
 			e.printStackTrace();
 		}
 		Socket s = null;

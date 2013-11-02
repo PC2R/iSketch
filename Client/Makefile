@@ -1,6 +1,8 @@
-SRC=Client.java
-OBJ=Client.class
-NAME=Client
+SRC=	Client.java \
+	MainWindow.java
+OBJ=	Client.class \
+	MainWindow.class
+NAME=	Client
 
 all:
 	javac $(SRC)
