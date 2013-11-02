@@ -2,11 +2,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.TextArea;
 
 import javax.swing.*;
-import javax.swing.GroupLayout.Alignment;
-
 
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame {
