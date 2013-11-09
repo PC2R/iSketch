@@ -1,9 +1,9 @@
 let max_players = ref 4
+let players_connected = let c = ref 0 in (fun () -> incr c; !c);;
 let timeout = ref 30
 let port = ref 2013
 let players = ref ((Hashtbl.create !max_players) : (string, int) Hashtbl.t)
-
-let gen_num = let c = ref 0 in (fun () -> incr c; !c);;
+let verbose_mode = ref false
 
 let my_input_line file_descr =
   let s = " " and r = ref "" in
@@ -14,28 +14,24 @@ let my_input_line file_descr =
 
 exception Fin;;
 
-class connexion sd (sa : Unix.sockaddr) b =
+class connexion sd (sa : Unix.sockaddr) =
 	object (self)
 	  
 	  val s_descr = sd
 	  val s_addr = sa
 	  val mutable number = 0
-	  val mutable debug = b
-	  
-	  method set_debug b =
-	    debug <- b
 	  
 	  initializer
-	    number <- gen_num();
-	    if debug then
-	      print_endline ("Connexion number " ^ string_of_int number ^ " has been created\n");
+	    number <- players_connected();
+	    if (!verbose_mode) then
+	      print_endline ("Connexion number " ^ string_of_int number ^ " has been created.");
 	    
 	  method start () = 
 	    Thread.create (fun x -> self#run x ; self#stop x) ()
 	  
 	  method stop () =
-	    if debug then 
-	      print_endline ("Connexion number " ^ string_of_int number ^ " has been lost\n");
+	    if (!verbose_mode) then 
+	      print_endline ("Connexion number " ^ string_of_int number ^ " has been lost.");
 	    Unix.close s_descr
 	  
 	  method run () =
@@ -83,21 +79,28 @@ class server port n =
 	    Unix.setsockopt s_descr Unix.SO_REUSEADDR true;
 	    Unix.bind s_descr sock_addr;
 	    Unix.listen s_descr nb_pending;
+	    if (!verbose_mode) then
+	      begin
+		print_endline ("Verbose mode activated");
+		print_endline ("Server successfuly started with parameters : " ^ string_of_int !max_players ^ " maximum players and " ^ string_of_int !timeout ^ " seconds of timeout.");
+		print_endline ("Server is waiting for players connections on port " ^ string_of_int port ^ ".");
+	      end;
 	    while true do
 	      let (service_sock, client_sock_addr) =
 		Unix.accept s_descr
 	      in s#treat service_sock client_sock_addr
 	    done
 	  method treat service_sock client_sock_addr =
-	    ignore ((new connexion service_sock client_sock_addr true)#start())
+	    ignore ((new connexion service_sock client_sock_addr)#start())
 	end;;
 
 let main () =
   begin
     let speclist =
-      [("-max", Arg.Set_int max_players, "Sets maximum number of players (default : 4)");
-       ("-timeout", Arg.Set_int timeout, "Sets the length of the timeout (in seconds) when the word is found (default : 30)");
-       ("-port", Arg.Set_int port, "Sets the listening port for the server (default : 2013)");
+      [("-max", Arg.Set_int max_players, " Sets maximum number of players (default : 4)");
+       ("-timeout", Arg.Set_int timeout, " Sets the length of the timeout (in seconds) when the word is found (default : 30)");
+       ("-port", Arg.Set_int port, " Sets the listening port for the server (default : 2013)");
+       ("-v", Arg.Set verbose_mode, " Enables verbose mode");
       ]
     in let usage_msg = "Options availables for iSketch server :"
        in Arg.parse speclist print_endline usage_msg;
