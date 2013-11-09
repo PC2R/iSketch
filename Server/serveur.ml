@@ -1,5 +1,6 @@
 let max_players = ref 4
-let players_connected = let c = ref 0 in (fun () -> incr c; !c);;
+let number_connections = let c = ref 0 in (fun () -> incr c; !c);;
+let players_connected = ref 0
 let timeout = ref 30
 let port = ref 2013
 let players = ref ((Hashtbl.create !max_players) : (string, int) Hashtbl.t)
@@ -14,25 +15,40 @@ let my_input_line file_descr =
 
 exception Fin;;
 
-class connexion sd (sa : Unix.sockaddr) =
+class connexion sd (sa : Unix.sockaddr) waiting_player =
 	object (self)
 	  
 	  val s_descr = sd
 	  val s_addr = sa
 	  val mutable number = 0
+	  val mutable is_waiting = false
 	  
 	  initializer
-	    number <- players_connected();
+	    number <- number_connections();
 	    if (!verbose_mode) then
 	      print_endline ("Connexion number " ^ string_of_int number ^ " has been created.");
-	    
+	    is_waiting <- waiting_player;
+	    if not is_waiting then
+	      incr players_connected
+	      
 	  method start () = 
-	    Thread.create (fun x -> self#run x ; self#stop x) ()
-	  
+	    Thread.create (fun x ->
+			   if not is_waiting then
+			     begin
+			       self#run x;
+			       self#stop x
+			     end
+			   else
+			     begin
+			       self#stop x
+			     end
+			  ) ();
+	    
 	  method stop () =
-	    if (!verbose_mode) then 
+	    Unix.close s_descr;
+	    decr (players_connected);
+	    if (!verbose_mode) then
 	      print_endline ("Connexion number " ^ string_of_int number ^ " has been lost.");
-	    Unix.close s_descr
 	  
 	  method run () =
 	    try
@@ -88,10 +104,14 @@ class server port n =
 	    while true do
 	      let (service_sock, client_sock_addr) =
 		Unix.accept s_descr
-	      in s#treat service_sock client_sock_addr
+	      in
+	      if (!players_connected != !max_players) then
+		s#treat service_sock client_sock_addr false
+	      else
+		s#treat service_sock client_sock_addr true
 	    done
-	  method treat service_sock client_sock_addr =
-	    ignore ((new connexion service_sock client_sock_addr)#start())
+	  method treat service_sock client_sock_addr waiting_player =
+	    ignore ((new connexion service_sock client_sock_addr waiting_player)#start())
 	end;;
 
 let main () =
