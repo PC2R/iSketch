@@ -6,14 +6,17 @@ let timeout = ref 30
 let port = ref 2013
 let players_points = ref ((Hashtbl.create !max_players) : (string, int) Hashtbl.t)
 let verbose_mode = ref false
+
+(* Dictionary characteristics *)
 let dictionary_filename = ref ""
-let dictionary_words = ref
+let dictionary_words = ref (Array.make 0 "")
+let dictionary_size = ref 0
 
 (* Round parameters *)
 let accept_players = ref true
 let is_started = ref false
 let drawer = ref 0
-let word = ref
+let word = ref ""
 
 let my_input_line file_descr =
   let s = " " and r = ref "" in
@@ -22,7 +25,8 @@ let my_input_line file_descr =
   done;
   !r;;
 
-let dictionary_size file =
+(* This function computes how many lines has the file given in parameter *)
+let compute_size file =
   let n = ref 0 and in_channel = open_in file in
   let rec loop () = ignore (input_line in_channel); incr n; loop () in
   try loop () with End_of_file -> close_in in_channel; !n;;
@@ -109,8 +113,7 @@ object (self)
 	       ignore (Unix.write s_descr result 0 (String.length result));
       done;
     with
-      exn -> print_string (Printexc.to_string exn);
-	     print_newline()
+      exn -> print_string (Printexc.to_string exn);			  
 end;;
   
 class server port n =
@@ -154,6 +157,22 @@ object(s)
     drawer := (Random.int (!max_players + 1)) + 1;
     if (!verbose_mode) then
       print_endline ("Player n°" ^ string_of_int !drawer ^ " is the drawer.");
+    dictionary_size := compute_size !dictionary_filename;
+    dictionary_words := Array.append !dictionary_words (Array.make !dictionary_size "");
+    begin
+      let in_channel = open_in !dictionary_filename and i = ref 0 in
+      let rec loop () =
+	Array.set !dictionary_words !i (input_line in_channel);
+	incr i;
+	loop ()
+      in
+      try
+	loop ()
+      with End_of_file -> close_in in_channel
+    end;
+    word := !dictionary_words.((Random.int (!dictionary_size)));
+    if (!verbose_mode) then
+      print_endline ("The drawer needs to draw the word \"" ^ !word ^ "\"");
 end;;
   
 let main () =
