@@ -6,6 +6,7 @@ How to start the iSketch client server ?
 1 - Compilation
 
 Server : cd Server && make
+
 Client : cd Client && make
 
 2 - Execution
