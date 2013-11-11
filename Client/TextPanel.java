@@ -1,6 +1,8 @@
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -9,12 +11,13 @@ import javax.swing.JTextField;
 /* Zone qui permet d'écrire et d'envoyer des messages */
 
 @SuppressWarnings("serial")
-public class TextPanel extends JPanel{
+public class TextPanel extends JPanel implements ActionListener{
 
 	private JTextField textField = new JTextField();
 	private JButton btnSend = new JButton("Send");
+	private MainWindow parent;
 
-	TextPanel(int wWidth, int wHeight)
+	TextPanel(int wWidth, int wHeight, MainWindow w)
 	{
 		this.setLayout(new FlowLayout(FlowLayout.CENTER));
 
@@ -25,11 +28,24 @@ public class TextPanel extends JPanel{
 
 		btnSend.setPreferredSize(new Dimension(wWidth / 6, 30));
 		btnSend.setForeground(Color.black);
+		btnSend.addActionListener(this);
+		
+		this.parent = w;
 
 		this.add(textField);
 		this.add(btnSend);
 		this.setLayout(new FlowLayout(FlowLayout.CENTER));
 		this.setBackground(Color.white);
 		this.setPreferredSize(new Dimension(wWidth / 2, wHeight / 5));
+		this.setMinimumSize(new Dimension(wWidth / 2, wHeight / 5));
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (!this.textField.getText().isEmpty())
+		{
+			this.parent.sendProposition(this.textField.getText());
+			this.textField.setText("");
+		}
 	}
 }

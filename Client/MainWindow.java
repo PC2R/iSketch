@@ -2,6 +2,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.*;
 
@@ -16,7 +18,7 @@ public class MainWindow extends JFrame {
 	private JPanel westPanel = new JPanel(null);
 	private JPanel globalPanel = new JPanel(null);
 	
-	private TextPanel textP = new TextPanel(wWidth, wHeight);
+	private TextPanel textP = new TextPanel(wWidth, wHeight, this);
 	private MessagesPanel messP = new MessagesPanel(wWidth, wHeight);
 
 	public MainWindow()
@@ -40,6 +42,11 @@ public class MainWindow extends JFrame {
 		
 		this.getContentPane().add(globalPanel);
 		this.setVisible(true);
+	}
+	
+	public void sendProposition(String prop)
+	{
+		this.messP.newProp(prop);
 	}
 
 }
