@@ -1,5 +1,7 @@
-SRC		=	Client.java			\
-			MainWindow.java		\
+SRC		=	Client.java \
+			MainWindow.java \
+			MessagesPanel.java \
+			TextPanel.java \
 			Test.java
 
 OBJ		=	$(SRC:.java=.class)
@@ -7,9 +9,9 @@ OBJ		=	$(SRC:.java=.class)
 %.class	: %.java
 		javac $<
 
-all		: $(OBJ)
+all	: $(OBJ)
 
 clean	:
 	rm -f $(OBJ)
 
-re		:	clean all
+re	:	clean all
