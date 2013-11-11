@@ -7,16 +7,39 @@ let port = ref 2013
 let players_points = ref ((Hashtbl.create !max_players) : (string, int) Hashtbl.t)
 let verbose_mode = ref false
 
+let m = Mutex.create ()
+let c = Condition.create ()
+
 (* Dictionary characteristics *)
 let dictionary_filename = ref ""
 let dictionary_words = ref (Array.make 0 "")
 let dictionary_size = ref 0
 
 (* Round parameters *)
+let round = ref 0
 let accept_players = ref true
 let is_started = ref false
-let drawer = ref 0
 let word = ref ""
+let word_is_found = ref false
+let running_order = ref (Array.make 0 "")
+let players_roles = ref ((Hashtbl.create !max_players) : (string, string) Hashtbl.t)
+
+let add_player name = 
+  if (!players_connected != !max_players) then
+    begin
+      Hashtbl.add !players_points name 0;
+      Array.set !running_order !players_connected name;
+      incr players_connected;
+      if (!players_connected = !max_players) then
+	Condition.signal c;
+      Mutex.unlock m;
+      true
+    end
+  else
+    begin
+      Mutex.unlock m;
+      false
+    end
 
 let my_input_line file_descr =
   let s = " " and r = ref "" in
@@ -31,53 +54,36 @@ let compute_size file =
   let rec loop () = ignore (input_line in_channel); incr n; loop () in
   try loop () with End_of_file -> close_in in_channel; !n;;
 
-exception Fin;;
+exception Fin
+exception Maximum_players_reached
 
-class connection sd (sa : Unix.sockaddr) waiting_player =
+class player sd (sa : Unix.sockaddr) =
 object (self)
 	 
   val s_descr = sd
   val s_addr = sa
   val mutable pseudo = ""
   val mutable number = 0
-  val mutable is_waiting = false
 			     
   initializer
-    is_waiting <- waiting_player;
-    if not is_waiting then
-      begin
-	if (!verbose_mode) then
-	  begin
-	    incr players_connected;
-	    number <- !players_connected;
-	    print_endline ("Player n°" ^ string_of_int number ^ " has joined the game.");
-	  end
-      end
-    else
-      if (!verbose_mode) then
-	print_endline ("A player tried to join the game but maximum players capacity was reached.")
-		      
+    if (!verbose_mode) then
+      print_endline ("Someone has just open a connection on the server.");
+
   method start () =
     Thread.create (fun x ->
-		   if not is_waiting then
-		     begin
-		       self#run x;
-		       self#stop x
-		     end
-		   else
-		     begin
-		       self#stop x
-		     end
+		   self#run x;
+		   self#stop x
 		  ) ();
     
   method stop () =
-    if not is_waiting then
+    if (pseudo != "") then
       begin
-	decr(players_connected);
+	decr players_connected;
 	if (!verbose_mode) then
-	  print_endline ("Player n°" ^ string_of_int number ^ " has left the game.");
+	  print_endline (pseudo ^ "has left the game.");
       end;
-    Unix.close s_descr		
+    Unix.close s_descr
+	     
 	       
   method run () =
     try
@@ -86,93 +92,111 @@ object (self)
 	let l = Str.split (Str.regexp "[/]") command in
 	match List.nth l 0 with
 	  "CONNECT" -> let name = String.sub command 8 (String.length command - 8) in
+		       Mutex.lock m;
 		       if (Hashtbl.mem !players_points name) then
-			 let result = name ^ " is already taken by a player, try another one\n" in
-			 ignore (Unix.write s_descr result 0 (String.length result));
-		       else
 			 begin
-			   pseudo <- name;
-			   let result = "CONNECTED/" ^ name ^ "\n" in
+			   let result = "CONNECTION_REFUSED/" ^ name ^ "name_already_taken\n" in
 			   ignore (Unix.write s_descr result 0 (String.length result));
-			   Hashtbl.add !players_points name 0
-			 end;
+			   Mutex.unlock m
+			 end			   
+		       else
+			 if (add_player name) then
+			   begin
+			     let result = "CONNECTED/" ^ name ^ "\n" in
+			     ignore (Unix.write s_descr result 0 (String.length result));
+			     pseudo <- name;
+			     print_endline (name ^ " has just joined the game. " ^ string_of_int (!max_players - !players_connected) ^ " player(s) missing before starting the game.");
+			   end
+			 else
+			   begin
+			     let result = "CONNECTION_REFUSED/" ^ name ^ "maximum_capacity_reached\n" in
+			     ignore (Unix.write s_descr result 0 (String.length result));
+			     raise Maximum_players_reached
+			   end;
 	| "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
 		    if (Hashtbl.mem !players_points name) then
 		      begin
 			let result = "EXITED/" ^ name ^ "\n" in
 			ignore (Unix.write s_descr result 0 (String.length result));
-			Hashtbl.remove !players_points name
+			Hashtbl.remove !players_points name;
 		      end
 		    else
 		      let result = name ^ "is not in the hashtable, it cannot be removed\n" in
 		      ignore (Unix.write s_descr result 0 (String.length result));
-	| "GUESS" -> let word = String.sub command 6 (String.length command - 6) in
-		     let result = "GUESSED/" ^ word ^ pseudo ^ "\n" in
+	| "GUESS" -> let guessed_word = String.sub command 6 (String.length command - 6) in
+		     let result = "GUESSED/" ^ guessed_word ^ pseudo ^ "\n" in
 		     ignore (Unix.write s_descr result 0 (String.length result));
 	| _ -> let result = command ^ " is unknown (try CONNECT/user/ or EXIT/user/)\n" in
 	       ignore (Unix.write s_descr result 0 (String.length result));
       done;
     with
-      exn -> print_string (Printexc.to_string exn);			  
+      Maximum_players_reached -> if (!verbose_mode) then
+				   print_endline ("A player tried to join the game but maximum players capacity was reached.");
+      | exn -> print_string (Printexc.to_string exn ^ "\n");			  
 end;;
   
 class server port n =
 object(s)
+	
   val port_num = port
   val nb_pending = n
   val s_descr = Unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
-  method start () =
-    let host = Unix.gethostbyname (Unix.gethostname()) in
-    let h_addr = host.Unix.h_addr_list.(0) in
-    let sock_addr = Unix.ADDR_INET (h_addr, port_num) in
-    Unix.setsockopt s_descr Unix.SO_REUSEADDR true;
-    Unix.bind s_descr sock_addr;
-    Unix.listen s_descr nb_pending;
-    if (!verbose_mode) then
-      begin
-	print_endline ("Server successfuly started with parameters : " ^ string_of_int !max_players
-		       ^ " maximum players and " ^ string_of_int !timeout ^ " seconds of timeout.");
-	print_endline ("Server is waiting for players connections on port " ^ string_of_int port ^ ".");
-      end;
-    while true do
-      if (!players_connected = !max_players) & (!is_started != true) then
+
+  initializer
+  let host = Unix.gethostbyname (Unix.gethostname()) in
+      let h_addr = host.Unix.h_addr_list.(0) in
+      let sock_addr = Unix.ADDR_INET (h_addr, port_num) in
+      Unix.setsockopt s_descr Unix.SO_REUSEADDR true;
+      Unix.bind s_descr sock_addr;
+      Unix.listen s_descr nb_pending;
+      if (!verbose_mode) then
 	begin
-	  accept_players := false;
-	  s#start_game
+	  print_endline ("Server successfuly started with parameters : " ^ string_of_int !max_players
+			 ^ " maximum players and " ^ string_of_int !timeout ^ " seconds of timeout.");
+	  print_endline ("Server is waiting for players connections on port " ^ string_of_int port ^ ".");
 	end;
+      running_order := Array.append !running_order (Array.make !max_players "");
+      dictionary_size := compute_size !dictionary_filename;
+      dictionary_words := Array.append !dictionary_words (Array.make !dictionary_size "");
+      begin
+	let in_channel = open_in !dictionary_filename and i = ref 0 in
+	let rec loop () =
+	  Array.set !dictionary_words !i (input_line in_channel);
+	  incr i;
+	  loop ()
+	in
+	try
+	  loop ()
+	with End_of_file -> close_in in_channel
+      end;
+      
+  method start () =
+    ignore (s#start_game ());
+    while (true) do
       let (service_sock, client_sock_addr) =
-	Unix.accept s_descr
-      in
-      if (!players_connected != !max_players) & (!accept_players = true) then
-	s#treat service_sock client_sock_addr false
-      else
-	begin
-	  s#treat service_sock client_sock_addr true;
-	end
+	Unix.accept s_descr in
+      s#treat service_sock client_sock_addr;
+    done;
+    
+  method treat service_sock client_sock_addr =
+    ignore ((new player service_sock client_sock_addr)#start())    
+
+  method start_game () =
+    Thread.create (fun x -> s#p x) ();
+
+  method p () =
+    Condition.wait c m;
+    while (!round < !max_players) do
+      if (!verbose_mode) then
+	print_endline ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");
+      if (!verbose_mode) then
+	print_endline (Array.get !running_order !round ^ " is the drawer");
+      word := !dictionary_words.((Random.int (!dictionary_size)));
+      if (!verbose_mode) then
+	print_endline ("The drawer needs to draw the word \"" ^ !word ^ "\"");
+      incr round;
     done
-  method treat service_sock client_sock_addr waiting_player =
-    ignore ((new connection service_sock client_sock_addr waiting_player)#start())
-  method start_game =
-    is_started := true;
-    drawer := (Random.int (!max_players + 1)) + 1;
-    if (!verbose_mode) then
-      print_endline ("Player n°" ^ string_of_int !drawer ^ " is the drawer.");
-    dictionary_size := compute_size !dictionary_filename;
-    dictionary_words := Array.append !dictionary_words (Array.make !dictionary_size "");
-    begin
-      let in_channel = open_in !dictionary_filename and i = ref 0 in
-      let rec loop () =
-	Array.set !dictionary_words !i (input_line in_channel);
-	incr i;
-	loop ()
-      in
-      try
-	loop ()
-      with End_of_file -> close_in in_channel
-    end;
-    word := !dictionary_words.((Random.int (!dictionary_size)));
-    if (!verbose_mode) then
-      print_endline ("The drawer needs to draw the word \"" ^ !word ^ "\"");
+      
 end;;
   
 let main () =
