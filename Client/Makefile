@@ -1,25 +1,15 @@
-SRC=	Client.java \
-	MainWindow.java \
-	Test.java
-OBJ=	Client.class \
-	MainWindow.class \
-	Test.class
-NAME=	Client
-TEST=	Test
+SRC		=	Client.java			\
+			MainWindow.java		\
+			Test.java
 
-all:
-	javac $(SRC)
+OBJ		=	$(SRC:.java=.class)
 
-$(NAME): all
-	java $(NAME)
+%.class	: %.java
+		javac $<
 
-$(TEST): all
-	java $(TEST)
+all		: $(OBJ)
 
-clean:
+clean	:
 	rm -f $(OBJ)
 
-fclean: clean
-	rm -f $(NAME)
-
-re: fclean all 
+re		:	clean all
