@@ -11,7 +11,7 @@ let m = Mutex.create ()
 let c = Condition.create ()
 
 (* Dictionary characteristics *)
-let dictionary_filename = ref ""
+let dictionary_filename = ref "dictionary"
 let dictionary_words = ref (Array.make 0 "")
 let dictionary_size = ref 0
 
