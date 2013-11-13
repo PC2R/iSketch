@@ -171,7 +171,7 @@ object(s)
       end;
       
   method start () =
-    ignore (s#start_game ());
+    ignore (s#init_game ());
     while (true) do
       let (service_sock, client_sock_addr) =
 	Unix.accept s_descr in
@@ -181,10 +181,10 @@ object(s)
   method treat service_sock client_sock_addr =
     ignore ((new player service_sock client_sock_addr)#start())    
 
-  method start_game () =
-    Thread.create (fun x -> s#p x) ();
+  method init_game () =
+    Thread.create (fun x -> s#start_rounds x) ();
 
-  method p () =
+  method start_rounds () =
     Condition.wait c m;
     while (!round < !max_players) do
       if (!verbose_mode) then
@@ -192,6 +192,7 @@ object(s)
       if (!verbose_mode) then
 	print_endline (Array.get !running_order !round ^ " is the drawer");
       word := !dictionary_words.((Random.int (!dictionary_size)));
+      
       if (!verbose_mode) then
 	print_endline ("The drawer needs to draw the word \"" ^ !word ^ "\"");
       incr round;
