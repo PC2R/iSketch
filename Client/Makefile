@@ -11,16 +11,18 @@ DIR		=	./class
 
 NAME		=	Client
 
-%.class	: %.java
-		javac $<
+%.class	: %.java classP
+		javac $< -d $(DIR)
 
 all	: $(OBJ)
 
-$(NAME)	: all
-	cd $(DIR)
-	java $(NAME)
+$(NAME)	:
+	java -classpath $(DIR) $(NAME)
+
+classP	:
+	mkdir -p $(DIR)
 
 clean	:
-	rm -f $(OBJ)
+	rm -fr $(DIR)
 
 re	:	clean all
