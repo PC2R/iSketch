@@ -15,8 +15,8 @@ public class Messenger {
 	
 	public boolean connectionUser(String usr)
 	{
-		System.out.println("CONNECT/" + usr);
-		writeStream.println("CONNECT/" + usr);
+		System.out.println("CONNECT/" + usr + "/");
+		writeStream.println("CONNECT/" + usr + "/");
 		String answer = new String();
 		try
 		{
@@ -27,24 +27,24 @@ public class Messenger {
 		{
 			e.printStackTrace();
 		}
-		if (answer.equals("CONNECTED/"+usr))
+		if (answer.equals("CONNECTED/"+ usr + "/"))
 			return true;
 		else
 			return false;
 	}
 	
-	public String[] beginRound()
+	public String beginRound()
 	{
-		String[] res = new String[2];
+		String res = new String();
 		String line = new String();
 		try
 		{
-			line = readStream.readLine();
-			System.out.println(line);
+		    line = readStream.readLine();
+		    System.out.println(line);
 		}
 		catch (IOException e) 
 		{
-			e.printStackTrace();
+		    e.printStackTrace();
 		}
 		return res;
 	}

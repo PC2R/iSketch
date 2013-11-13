@@ -6,7 +6,7 @@ import java.lang.*;
 
 public class Client {
 
-	protected static int PORT = 2013;
+	protected static int PORT;
 	protected static InetAddress address;
 	private static String user = new String();
 	private String role;
@@ -16,19 +16,40 @@ public class Client {
 	{
 		if (args.length != 0 && args.length != 2 && args.length != 4 )
 		{
-			System.out.println("Bad options, wanted :\n\t-port : set the port\n\t-user : set the user name\n");
-			return false;
+		    System.out.println("Bad options, wanted :\n\t-port : set the port\n\t-user : set the user name\n");
+		    return false;
 		}
-		for (int i = 0; i < args.length - 1; i++)
+		if (args.length == 0)
 		{
-			if (args[i] == "-port")
-				PORT = Integer.decode(args[i + 1]);
-			if (args[i].equals("-user"))
-				user = args[i + 1];	
+		    PORT = 2013;
+		    user = "pc2r";
 		}
-		return true;
+		else if (args.length == 2)
+		{
+		    if (args[0].equals("-port"))
+			{
+			    PORT = Integer.decode(args[1]);
+			    user = "pc2r";
+			}
+			if (args[0].equals("-user"))
+			{
+			    user = args[1];
+			    PORT = 2013;
+			}
+		}
+		else
+		{
+			 for (int i = 0; i < args.length - 1; i++)
+			{
+				 if (args[i].equals("-port"))
+					PORT = Integer.decode(args[i + 1]);
+				if (args[i].equals("-user"))
+					user = args[i + 1];
+			}
+		}
+	return true;
 	}
-
+    
 	@SuppressWarnings("deprecation")
 	public static void main(String[] args)
 	{
@@ -43,14 +64,11 @@ public class Client {
 		Socket s = null;
 		if (!setOptions(args))
 			System.exit(1);
-		if ( user.isEmpty())
-			user = "pc2r";
 		try
 		{
-			/* Cannot use this constructor but it should be
-			 ** s = new Socket (address, PORT);
-			 */
-			s = new Socket("localhost", PORT);
+			//Cannot use this constructor but it should be
+			s = new Socket (address, PORT);
+			//s = new Socket("localhost", PORT);
 
 			System.out.println("Socket successfuly created");
 			DataInputStream dis = new DataInputStream(s.getInputStream());
