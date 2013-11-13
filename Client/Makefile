@@ -1,5 +1,6 @@
 SRC		=	Client.java \
 			MainWindow.java \
+			Messenger.java \
 			MessagesPanel.java \
 			TextPanel.java \
 			Test.java

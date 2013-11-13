@@ -6,51 +6,11 @@ import java.lang.*;
 
 public class Client {
 
-    protected static int PORT = 2013;
-    protected static String user = "pc2r";
-    protected static InetAddress address;
-
-	public static int getNbMotString(String str)
-	{
-		int result = 1;
-		for(int i = 0; i < str.length(); i++)
-		{
-			if ( str.charAt(i) == '/' && str.charAt(i - 1) != '\\')
-				result = result + 1;
-			if ( str.charAt(i) == '/' && i == str.length() - 1)
-				result = result - 1;
-		}
-		return result;
-	}
-
-	public static String[] parse(String str)
-	{
-		int size = getNbMotString(str);
-		int i = 0;
-		int j = 0;
-		String word = new String();
-		String[] tab = new String[size];
-
-		word = "";
-		while (i < str.length())
-		{
-			if ( str.charAt(i) == '/' && str.charAt(i - 1) != '\\')
-			{
-				tab[j] = word;
-				word = "";
-				j++;
-			}
-			else if ( i == str.length() - 1)
-			{
-				word = word + str.charAt(i);
-				tab[j] = word;
-			}
-			else
-				word = word + str.charAt(i);
-			i++;
-		}
-		return tab;
-	}
+	protected static int PORT = 2013;
+	protected static InetAddress address;
+	private static String user = new String();
+	private String role;
+	private String word;
 
 	private static boolean setOptions(String[] args)
 	{
@@ -63,7 +23,7 @@ public class Client {
 		{
 			if (args[i] == "-port")
 				PORT = Integer.decode(args[i + 1]);
-			if (args[i] == "-user")
+			if (args[i].equals("-user"))
 				user = args[i + 1];	
 		}
 		return true;
@@ -82,42 +42,39 @@ public class Client {
 		}
 		Socket s = null;
 		if (!setOptions(args))
-		System.exit(1);
+			System.exit(1);
+		if ( user.isEmpty())
+			user = "pc2r";
 		try
 		{
-			s = new Socket (address, PORT);
+			/* Cannot use this constructor but it should be
+			 ** s = new Socket (address, PORT);
+			 */
+			s = new Socket("localhost", PORT);
+
 			System.out.println("Socket successfuly created");
-			DataInputStream canalLecture = new DataInputStream(s.getInputStream());
-			PrintStream canalEcriture = new PrintStream(s.getOutputStream());
-			System.out.println("Connexion found : " + s.getInetAddress() + " port : " + s.getPort());
-			String line = new String();
-			char c;
+			DataInputStream dis = new DataInputStream(s.getInputStream());
+			PrintStream ps = new PrintStream(s.getOutputStream());
+			System.out.println("Connexion found : " + s.getInetAddress() + "\nport : " + s.getPort());
+			Messenger msg = new Messenger(dis, ps);
 			while (true)
 			{
-				System.out.flush();
-				line = "";
-				c = (char) System.in.read();
-				while (c != '\n')
+				if(msg.connectionUser(user))
 				{
-					line = line + c;
-					c = (char) System.in.read();
+					msg.beginRound();
 				}
-				canalEcriture.println(line); // sending command to the server
-				canalEcriture.flush();
-				line = canalLecture.readLine(); // receiving answer from the server
-				System.out.println(line);
 			}
 		}
 		catch (IOException e)
 		{
-		    System.err.println(e);
+			System.err.println(e);
 		}
 		finally
 		{
 			try 
 			{
 				if (s != null)
-				    s.close();
+					s.close();
 			}
 			catch(IOException e2) {}
 		}
