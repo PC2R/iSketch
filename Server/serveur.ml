@@ -8,7 +8,8 @@ let players_points = ref ((Hashtbl.create !max_players) : (string, int) Hashtbl.
 let verbose_mode = ref false
 
 let m = Mutex.create ()
-let c = Condition.create ()
+let condition_players = Condition.create ()
+let condition_word = Condition.create ()
 
 (* Dictionary characteristics *)
 let dictionary_filename = ref "dictionary"
@@ -24,14 +25,15 @@ let word_is_found = ref false
 let running_order = ref (Array.make 0 "")
 let players_roles = ref ((Hashtbl.create !max_players) : (string, string) Hashtbl.t)
 
-let add_player name = 
+let add_player player name = 
   if (!players_connected != !max_players) then
     begin
       Hashtbl.add !players_points name 0;
       Array.set !running_order !players_connected name;
+      player#set_number_and_pseudo players_connected name;
       incr players_connected;
       if (!players_connected = !max_players) then
-	Condition.signal c;
+	Condition.signal condition_players;
       Mutex.unlock m;
       true
     end
@@ -71,7 +73,8 @@ object (self)
 
   method start () =
     Thread.create (fun x ->
-		   self#run x;
+		   self#connection_player x;
+		   self#send_roles x;
 		   self#stop x
 		  ) ();
     
@@ -80,14 +83,12 @@ object (self)
       begin
 	decr players_connected;
 	if (!verbose_mode) then
-	  print_endline (pseudo ^ "has left the game.");
+	  print_endline (pseudo ^ " has left the game.");
       end;
     Unix.close s_descr
-	     
-	       
-  method run () =
+
+  method connection_player () =
     try
-      while true do
 	let command = my_input_line s_descr in
 	let l = Str.split (Str.regexp "[/]") command in
 	match List.nth l 0 with
@@ -95,25 +96,61 @@ object (self)
 		       Mutex.lock m;
 		       if (Hashtbl.mem !players_points name) then
 			 begin
-			   let result = "CONNECTION_REFUSED/" ^ name ^ "name_already_taken\n" in
+			   let result = "CONNECTION_REFUSED/" ^ name ^ "name_already_taken/\n" in
 			   ignore (Unix.write s_descr result 0 (String.length result));
 			   Mutex.unlock m
 			 end			   
 		       else
-			 if (add_player name) then
+			 if (add_player self name) then
 			   begin
 			     let result = "CONNECTED/" ^ name ^ "\n" in
 			     ignore (Unix.write s_descr result 0 (String.length result));
-			     pseudo <- name;
-			     print_endline (name ^ " has just joined the game. " ^ string_of_int (!max_players - !players_connected) ^ " player(s) missing before starting the game.");
+			     print_endline (name ^ " (n°" ^ (string_of_int number) ^ ") has just joined the game. " ^ string_of_int (!max_players - !players_connected) ^ " player(s) missing before starting the game.");
 			   end
 			 else
 			   begin
-			     let result = "CONNECTION_REFUSED/" ^ name ^ "maximum_capacity_reached\n" in
+			     let result = "CONNECTION_REFUSED/" ^ name ^ "maximum_capacity_reached/\n" in
 			     ignore (Unix.write s_descr result 0 (String.length result));
 			     raise Maximum_players_reached
 			   end;
-	| "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
+	| _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
+	       ignore (Unix.write s_descr result 0 (String.length result));
+
+    with
+      Maximum_players_reached -> if (!verbose_mode) then
+				   print_endline ("A player tried to join the game but maximum players capacity was reached.");
+      | exn -> print_string (Printexc.to_string exn ^ "\n");
+
+  method set_number_and_pseudo n p =
+    number <- !n;
+    pseudo <- p;
+
+  method get_number = number
+
+  method get_pseudo = pseudo
+	       
+  method send_roles () =
+    if (!verbose_mode) then
+      print_endline "The server is waiting for the word";
+    Condition.wait condition_word m;
+    if (!round = number) then
+      begin
+	let result = "NEW_ROUND/drawer/" ^ !word ^ "/\n" in
+	ignore (Unix.write s_descr result 0 (String.length result))
+      end
+    else
+      begin
+	let result = "NEW_ROUND/finder/" ^ !word ^ "/\n" in
+	ignore (Unix.write s_descr result 0 (String.length result))
+      end;
+      	       
+  method run () =
+    try
+      while true do
+	let command = my_input_line s_descr in
+	let l = Str.split (Str.regexp "[/]") command in
+	match List.nth l 0 with
+	  	| "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
 		    if (Hashtbl.mem !players_points name) then
 		      begin
 			let result = "EXITED/" ^ name ^ "\n" in
@@ -185,16 +222,20 @@ object(s)
     Thread.create (fun x -> s#start_rounds x) ();
 
   method start_rounds () =
-    Condition.wait c m;
+    if (!verbose_mode) then
+      print_endline "The server is waiting for players.";
+    Condition.wait condition_players m;
+    if (!verbose_mode) then
+      print_endline "All players are now connected, let the game begin !";
     while (!round < !max_players) do
       if (!verbose_mode) then
 	print_endline ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");
       if (!verbose_mode) then
-	print_endline (Array.get !running_order !round ^ " is the drawer");
-      word := !dictionary_words.((Random.int (!dictionary_size)));
-      
+	print_endline (Array.get !running_order !round ^ " is the drawer.");
+      word := !dictionary_words.((Random.int (!dictionary_size))); 
+      Condition.broadcast condition_word;
       if (!verbose_mode) then
-	print_endline ("The drawer needs to draw the word \"" ^ !word ^ "\"");
+	print_endline ("The drawer needs to draw the word \"" ^ !word ^ "\".");
       incr round;
     done
       
