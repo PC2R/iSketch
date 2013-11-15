@@ -1,5 +1,7 @@
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.*;
 import java.lang.*;
@@ -50,7 +52,6 @@ public class Client {
 	return true;
 	}
     
-	@SuppressWarnings("deprecation")
 	public static void main(String[] args)
 	{
 		try
@@ -71,7 +72,7 @@ public class Client {
 			//s = new Socket("localhost", PORT);
 
 			System.out.println("Socket successfuly created");
-			DataInputStream dis = new DataInputStream(s.getInputStream());
+			BufferedReader dis = new BufferedReader(new InputStreamReader(s.getInputStream()));
 			PrintStream ps = new PrintStream(s.getOutputStream());
 			System.out.println("Connexion found : " + s.getInetAddress() + "\nport : " + s.getPort());
 			Messenger msg = new Messenger(dis, ps);

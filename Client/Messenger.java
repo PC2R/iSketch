@@ -1,13 +1,14 @@
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
 public class Messenger {
 	
-	private DataInputStream readStream;
 	private PrintStream writeStream;
+	BufferedReader readStream;
 	
-	Messenger(DataInputStream dis, PrintStream ps)
+	Messenger(BufferedReader dis, PrintStream ps)
 	{
 		this.readStream = dis;
 		this.writeStream = ps;
@@ -15,13 +16,13 @@ public class Messenger {
 	
 	public boolean connectionUser(String usr)
 	{
-		System.out.println("CONNECT/" + usr + "/");
+		System.out.println("C->S : CONNECT/" + usr + "/");
 		writeStream.println("CONNECT/" + usr + "/");
 		String answer = new String();
 		try
 		{
 			answer = readStream.readLine();
-			System.out.println(answer);
+			System.out.println("S->C : " + answer);
 		}
 		catch (IOException e) 
 		{
