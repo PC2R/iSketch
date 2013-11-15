@@ -1,3 +1,18 @@
+(*
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>
+ *)
+
 (* Game parameters *)
 let max_players = ref 4
 (*let incr_counter = let c = ref 0 in (fun () -> incr c; !c);;*)
@@ -7,9 +22,13 @@ let port = ref 2013
 let players_points = ref ((Hashtbl.create !max_players) : (string, int) Hashtbl.t)
 let verbose_mode = ref false
 
+let mutex_players = Mutex.create ()
 let m = Mutex.create ()
 let condition_players = Condition.create ()
+
+let mutex_word = Mutex.create ()
 let condition_word = Condition.create ()
+let word_found = Condition.create ()
 
 (* Dictionary characteristics *)
 let dictionary_filename = ref "dictionary"
@@ -33,23 +52,26 @@ let add_player player name =
       player#set_number_and_pseudo players_connected name;
       incr players_connected;
       if (!players_connected = !max_players) then
-	Condition.signal condition_players;
-      Mutex.unlock m;
+	begin
+	  Condition.signal condition_players;
+	  Mutex.unlock m;
+	end;
+      Mutex.unlock mutex_players;
       true
     end
   else
     begin
-      Mutex.unlock m;
+      Mutex.unlock mutex_players;
       false
-    end
-
+    end;;
+    
 let my_input_line file_descr =
   let s = " " and r = ref "" in
   while (Unix.read file_descr s 0 1 > 0) && s.[0] <> '\n' do
     r := !r ^ s
   done;
   !r;;
-
+  
 (* This function computes how many lines has the file given in parameter *)
 let compute_size file =
   let n = ref 0 and in_channel = open_in file in
@@ -74,7 +96,7 @@ object (self)
   method start () =
     Thread.create (fun x ->
 		   self#connection_player x;
-		   self#send_roles x;
+		   self#send_roles_and_word x;
 		   self#stop x
 		  ) ();
     
@@ -93,12 +115,12 @@ object (self)
 	let l = Str.split (Str.regexp "[/]") command in
 	match List.nth l 0 with
 	  "CONNECT" -> let name = String.sub command 8 (String.length command - 8) in
-		       Mutex.lock m;
+		       Mutex.lock mutex_players;
 		       if (Hashtbl.mem !players_points name) then
 			 begin
 			   let result = "CONNECTION_REFUSED/" ^ name ^ "name_already_taken/\n" in
 			   ignore (Unix.write s_descr result 0 (String.length result));
-			   Mutex.unlock m
+			   Mutex.unlock mutex_players
 			 end			   
 		       else
 			 if (add_player self name) then
@@ -125,24 +147,26 @@ object (self)
     number <- !n;
     pseudo <- p;
 
-  method get_number = number
-
-  method get_pseudo = pseudo
-	       
-  method send_roles () =
-    if (!verbose_mode) then
-      print_endline "The server is waiting for the word";
-    Condition.wait condition_word m;
-    if (!round = number) then
-      begin
-	let result = "NEW_ROUND/drawer/" ^ !word ^ "/\n" in
-	ignore (Unix.write s_descr result 0 (String.length result))
-      end
-    else
-      begin
-	let result = "NEW_ROUND/finder/" ^ !word ^ "/\n" in
-	ignore (Unix.write s_descr result 0 (String.length result))
-      end;
+  method send_roles_and_word () =
+    for i = 0 to (!max_players - 1) do
+      if (!verbose_mode) then
+	print_endline "The server is waiting for the word";
+      Condition.wait condition_word m;
+      if (!round = number) then
+	begin
+	  let result = "NEW_ROUND/drawer/" ^ !word ^ "/\n" in
+	  ignore (Unix.write s_descr result 0 (String.length result));
+	  if (!verbose_mode) then
+	    print_endline ("The word " ^ !word ^ " has been sent to " ^ pseudo ^ ".");
+	end
+      else
+	begin
+	  let result = "NEW_ROUND/finder/\n" in
+	  ignore (Unix.write s_descr result 0 (String.length result));
+	  if (!verbose_mode) then
+	    print_endline (pseudo ^ "is a finder.");
+	end;
+    done
       	       
   method run () =
     try
@@ -209,7 +233,7 @@ object(s)
       
   method start () =
     ignore (s#init_game ());
-    while (true) do
+     while (true) do
       let (service_sock, client_sock_addr) =
 	Unix.accept s_descr in
       s#treat service_sock client_sock_addr;
@@ -224,6 +248,7 @@ object(s)
   method start_rounds () =
     if (!verbose_mode) then
       print_endline "The server is waiting for players.";
+    Mutex.lock m;
     Condition.wait condition_players m;
     if (!verbose_mode) then
       print_endline "All players are now connected, let the game begin !";
@@ -234,8 +259,11 @@ object(s)
 	print_endline (Array.get !running_order !round ^ " is the drawer.");
       word := !dictionary_words.((Random.int (!dictionary_size))); 
       Condition.broadcast condition_word;
+      Mutex.unlock m;
       if (!verbose_mode) then
 	print_endline ("The drawer needs to draw the word \"" ^ !word ^ "\".");
+      Mutex.lock mutex_word;
+      Condition.wait word_found m;
       incr round;
     done
       
