@@ -68,8 +68,8 @@ public class Client {
 		try
 		{
 			//Cannot use this constructor but it should be
-			s = new Socket (address, PORT);
-			//s = new Socket("localhost", PORT);
+			//s = new Socket (address, PORT);
+			s = new Socket("localhost", PORT);
 
 			System.out.println("Socket successfuly created");
 			//DataInputStream dis = new DataInputStream(s.getInputStream());
@@ -77,18 +77,21 @@ public class Client {
 			PrintStream ps = new PrintStream(s.getOutputStream());
 			System.out.println("Connexion found : " + s.getInetAddress() + "\nport : " + s.getPort());
 			Messenger msg = new Messenger(dis, ps);
-			while (true)
+			if(msg.connectionUser(user))
 			{
-				if(msg.connectionUser(user))
+				while (true)
 				{
 					round = msg.beginRound();
 					if ( !round.isEmpty())
 					{
 						role = 0;
 						word = round;
+						msg.waitEndRound();
 					}
 					else
+					{
 						role = 1;
+					}
 				}
 			}
 		}

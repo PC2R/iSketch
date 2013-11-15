@@ -41,12 +41,12 @@ public class Messenger {
 		try
 		{
 			System.out.println("Attente du debut du round");
-		    line = readStream.readLine();
-		    System.out.println("S->C : " + line);
+			line = readStream.readLine();
+			System.out.println("S->C : " + line);
 		}
 		catch (IOException e) 
 		{
-		    e.printStackTrace();
+			e.printStackTrace();
 		}
 		tab = parse(line);
 		if (tab[0].equals("NEW_ROUND"))
@@ -65,6 +65,30 @@ public class Messenger {
 		else
 			res = new String();
 		return res;
+	}
+
+	public void waitEndRound()
+	{
+		String res;
+		String line = new String();
+		String[] tab;
+		try
+		{
+			System.out.println("Le dessinateur dessine jusqu'a la fin du round");
+			line = readStream.readLine();
+			System.out.println("S->C : " + line);
+			tab = parse(line);
+			while (!tab[0].equals("END_ROUND"))
+			{
+				line = readStream.readLine();
+				System.out.println("S->C : " + line);
+				tab = parse(line);
+			}
+		}
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public static int getNbMotString(String str)
