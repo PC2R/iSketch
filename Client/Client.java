@@ -1,18 +1,14 @@
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.*;
-import java.lang.*;
 
 public class Client {
 
 	protected static int PORT;
 	protected static InetAddress address;
 	private static String user = new String();
-	private String role;
-	private String word;
 
 	private static boolean setOptions(String[] args)
 	{
@@ -54,6 +50,10 @@ public class Client {
     
 	public static void main(String[] args)
 	{
+		String round = new String();
+		String word;
+		int role; // 0 drawer - 1 finder
+		
 		try
 		{
 			address = InetAddress.getLocalHost();
@@ -72,6 +72,7 @@ public class Client {
 			//s = new Socket("localhost", PORT);
 
 			System.out.println("Socket successfuly created");
+			//DataInputStream dis = new DataInputStream(s.getInputStream());
 			BufferedReader dis = new BufferedReader(new InputStreamReader(s.getInputStream()));
 			PrintStream ps = new PrintStream(s.getOutputStream());
 			System.out.println("Connexion found : " + s.getInetAddress() + "\nport : " + s.getPort());
@@ -80,7 +81,14 @@ public class Client {
 			{
 				if(msg.connectionUser(user))
 				{
-					msg.beginRound();
+					round = msg.beginRound();
+					if ( !round.isEmpty())
+					{
+						role = 0;
+						word = round;
+					}
+					else
+						role = 1;
 				}
 			}
 		}
@@ -91,7 +99,7 @@ public class Client {
 		finally
 		{
 			try 
-			{
+	 		{
 				if (s != null)
 					s.close();
 			}
