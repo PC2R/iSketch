@@ -15,4 +15,4 @@ First, start the server with :
 $ ./serveur (+ options)
 
 Then, start as many clients as you want with :
-$ ./java Client
+$ ./run.sh -port p -user usr
