@@ -9,8 +9,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *)
 
 (* Game parameters *)
@@ -30,6 +30,10 @@ let mutex_word = Mutex.create ()
 let condition_word = Condition.create ()
 let word_found = Condition.create ()
 
+let mutex_proposition = Mutex.create ()
+let new_proposition = Condition.create ()
+let proposition = ref ""
+
 (* Dictionary characteristics *)
 let dictionary_filename = ref "dictionary"
 let dictionary_words = ref (Array.make 0 "")
@@ -41,6 +45,7 @@ let accept_players = ref true
 let is_started = ref false
 let word = ref ""
 let word_is_found = ref false
+
 let running_order = ref (Array.make 0 "")
 let players_roles = ref ((Hashtbl.create !max_players) : (string, string) Hashtbl.t)
 
@@ -64,7 +69,7 @@ let add_player player name =
       Mutex.unlock mutex_players;
       false
     end;;
-    
+
 let my_input_line file_descr =
   let s = " " and r = ref "" in
   while (Unix.read file_descr s 0 1 > 0) && s.[0] <> '\n' do
@@ -94,11 +99,16 @@ object (self)
       print_endline ("Someone has just open a connection on the server.");
 
   method start () =
-    Thread.create (fun x ->
-		   self#connection_player x;
-		   self#send_roles_and_word x;
-		   self#stop x
-		  ) ();
+    ignore (Thread.create (fun x ->
+			   self#connection_player x;
+			   self#send_roles_and_word x;
+			   self#wait_player_proposition x;
+			   self#stop x
+			  ) ());
+    ignore (Thread.create (fun x ->
+			   self#send_propositions x;
+			  ) ());
+    
     
   method stop () =
     if (pseudo != "") then
@@ -111,17 +121,17 @@ object (self)
 
   method connection_player () =
     try
-	let command = my_input_line s_descr in
-	let l = Str.split (Str.regexp "[/]") command in
-	match List.nth l 0 with
-	  "CONNECT" -> let name = String.sub command 8 (String.length command - 8) in
-		       Mutex.lock mutex_players;
-		       if (Hashtbl.mem !players_points name) then
-			 begin
-			   let result = "CONNECTION_REFUSED/" ^ name ^ "name_already_taken/\n" in
-			   ignore (Unix.write s_descr result 0 (String.length result));
-			   Mutex.unlock mutex_players
-			 end			   
+      let command = my_input_line s_descr in
+      let l = Str.split (Str.regexp "[/]") command in
+      match List.nth l 0 with
+	"CONNECT" -> let name = String.sub command 8 (String.length command - 8) in
+		     Mutex.lock mutex_players;
+		     if (Hashtbl.mem !players_points name) then
+		       begin
+			 let result = "CONNECTION_REFUSED/" ^ name ^ "name_already_taken/\n" in
+			 ignore (Unix.write s_descr result 0 (String.length result));
+			 Mutex.unlock mutex_players
+		       end			   
 		       else
 			 if (add_player self name) then
 			   begin
@@ -135,37 +145,55 @@ object (self)
 			     ignore (Unix.write s_descr result 0 (String.length result));
 			     raise Maximum_players_reached
 			   end;
-	| _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
-	       ignore (Unix.write s_descr result 0 (String.length result));
-
+      | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
+	     ignore (Unix.write s_descr result 0 (String.length result));
+	     
     with
       Maximum_players_reached -> if (!verbose_mode) then
 				   print_endline ("A player tried to join the game but maximum players capacity was reached.");
       | exn -> print_string (Printexc.to_string exn ^ "\n");
-
+	       
   method set_number_and_pseudo n p =
     number <- !n;
     pseudo <- p;
 
   method send_roles_and_word () =
-    for i = 0 to (!max_players - 1) do
-      if (!verbose_mode) then
-	print_endline "The server is waiting for the word";
-      Condition.wait condition_word m;
-      if (!round = number) then
-	begin
-	  let result = "NEW_ROUND/drawer/" ^ !word ^ "/\n" in
-	  ignore (Unix.write s_descr result 0 (String.length result));
-	  if (!verbose_mode) then
-	    print_endline ("The word " ^ !word ^ " has been sent to " ^ pseudo ^ ".");
-	end
-      else
-	begin
-	  let result = "NEW_ROUND/finder/\n" in
-	  ignore (Unix.write s_descr result 0 (String.length result));
-	  if (!verbose_mode) then
-	    print_endline (pseudo ^ "is a finder.");
-	end;
+    Condition.wait condition_word m;
+    if (!round = number) then
+      begin
+	let result = "NEW_ROUND/drawer/" ^ !word ^ "/\n" in
+	ignore (Unix.write s_descr result 0 (String.length result));
+	if (!verbose_mode) then
+	  print_endline ("The word " ^ !word ^ " has been sent to " ^ pseudo ^ ".");
+      end
+    else
+      begin
+	let result = "NEW_ROUND/finder/\n" in
+	ignore (Unix.write s_descr result 0 (String.length result));
+	if (!verbose_mode) then
+	  print_endline (pseudo ^ "is a finder.");
+      end;
+
+  method wait_player_proposition () =
+    try
+      while true do
+	let command = my_input_line s_descr in
+	let l = Str.split (Str.regexp "[/]") command in
+	match List.nth l 0 with
+	| "GUESS" -> let guessed_word = String.sub command 6 (String.length command - 6) in
+		     Mutex.lock mutex_proposition;
+		     proposition := guessed_word ^ "/" ^ pseudo;
+		     Condition.broadcast new_proposition;
+	| _ -> let result = command ^ " is unknown (try CONNECT/user/ or EXIT/user/)\n" in
+	       ignore (Unix.write s_descr result 0 (String.length result));
+      done;
+    with exn -> print_string (Printexc.to_string exn ^ "\n");
+		
+  method send_propositions () =
+    while (true) do
+      Condition.wait new_proposition mutex_proposition;
+      let result = "GUESSED/" ^ !proposition ^ "\n" in
+      ignore (Unix.write s_descr result 0 (String.length result));
     done
       	       
   method run () =
@@ -257,9 +285,8 @@ object(s)
 	print_endline ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");
       if (!verbose_mode) then
 	print_endline (Array.get !running_order !round ^ " is the drawer.");
-      word := !dictionary_words.((Random.int (!dictionary_size))); 
+      word := !dictionary_words.((Random.int (!dictionary_size)));
       Condition.broadcast condition_word;
-      Mutex.unlock m;
       if (!verbose_mode) then
 	print_endline ("The drawer needs to draw the word \"" ^ !word ^ "\".");
       Mutex.lock mutex_word;
