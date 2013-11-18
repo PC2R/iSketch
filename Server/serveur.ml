@@ -56,12 +56,6 @@ let add_player player name =
       Array.set !running_order !players_connected name;
       player#set_number_and_pseudo players_connected name;
       incr players_connected;
-      if (!players_connected = !max_players) then
-	begin
-	  Condition.signal condition_players;
-	  Mutex.unlock m;
-	end;
-      Mutex.unlock mutex_players;
       true
     end
   else
@@ -102,13 +96,14 @@ object (self)
     ignore (Thread.create (fun x ->
 			   self#connection_player x;
 			   self#send_roles_and_word x;
-			   self#wait_player_proposition x;
 			   self#stop x
 			  ) ());
     ignore (Thread.create (fun x ->
-			   self#send_propositions x;
+			   self#wait_drawing_proposition x;
 			  ) ());
-    
+    ignore (Thread.create (fun x ->
+			   self#wait_word_proposition x;
+			  ) ());
     
   method stop () =
     if (pseudo != "") then
@@ -116,15 +111,19 @@ object (self)
 	decr players_connected;
 	if (!verbose_mode) then
 	  print_endline (pseudo ^ " has left the game.");
-      end;
-    Unix.close s_descr
+      end
+    else
+      print_endline ("Server had to kicked out a player because maximum capacity was reached.");
+    Unix.close s_descr;
+    Thread.exit ();
+	       
 
   method connection_player () =
     try
       let command = my_input_line s_descr in
       let l = Str.split (Str.regexp "[/]") command in
       match List.nth l 0 with
-	"CONNECT" -> let name = String.sub command 8 (String.length command - 8) in
+      | "CONNECT" -> let name = String.sub command 8 (String.length command - 8) in
 		     Mutex.lock mutex_players;
 		     if (Hashtbl.mem !players_points name) then
 		       begin
@@ -132,19 +131,33 @@ object (self)
 			 ignore (Unix.write s_descr result 0 (String.length result));
 			 Mutex.unlock mutex_players
 		       end			   
-		       else
-			 if (add_player self name) then
-			   begin
-			     let result = "CONNECTED/" ^ name ^ "\n" in
-			     ignore (Unix.write s_descr result 0 (String.length result));
-			     print_endline (name ^ " (n°" ^ (string_of_int number) ^ ") has just joined the game. " ^ string_of_int (!max_players - !players_connected) ^ " player(s) missing before starting the game.");
+		     else
+		       if (add_player self name) then
+			 begin
+			   let result = "CONNECTED/" ^ name ^ "\n" in
+			   ignore (Unix.write s_descr result 0 (String.length result));
+			   print_endline (name ^ " (n°" ^ (string_of_int number) ^ ") has just joined the game. " ^ string_of_int (!max_players - !players_connected) ^ " player(s) missing before starting the game.");
 			   end
-			 else
-			   begin
-			     let result = "CONNECTION_REFUSED/" ^ name ^ "maximum_capacity_reached/\n" in
-			     ignore (Unix.write s_descr result 0 (String.length result));
-			     raise Maximum_players_reached
-			   end;
+		       else
+			 begin
+			   let result = "CONNECTION_REFUSED/" ^ name ^ "maximum_capacity_reached/\n" in
+			   ignore (Unix.write s_descr result 0 (String.length result));
+			   raise Maximum_players_reached
+			 end;
+		     if (!players_connected = !max_players) then
+		       begin
+			 Mutex.unlock mutex_players;
+			 Condition.signal condition_players;
+			 Mutex.unlock m;			 
+			 Condition.wait condition_word m;
+			 print_endline ("passe !" ^ string_of_int (number));
+		       end
+		     else
+		       begin
+			 Mutex.unlock mutex_players;
+			 Condition.wait condition_word m;
+			 print_endline ("passe !" ^ string_of_int (number))
+		       end
       | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
 	     ignore (Unix.write s_descr result 0 (String.length result));
 	     
@@ -158,7 +171,7 @@ object (self)
     pseudo <- p;
 
   method send_roles_and_word () =
-    Condition.wait condition_word m;
+    print_endline (string_of_int (number) ^ " : round = " ^ string_of_int (!round));
     if (!round = number) then
       begin
 	let result = "NEW_ROUND/drawer/" ^ !word ^ "/\n" in
@@ -174,8 +187,9 @@ object (self)
 	  print_endline (pseudo ^ "is a finder.");
       end;
 
-  method wait_player_proposition () =
-    try
+  method wait_word_proposition () =
+    print_endline "i waited for proposition";
+(*    try
       while true do
 	let command = my_input_line s_descr in
 	let l = Str.split (Str.regexp "[/]") command in
@@ -184,44 +198,20 @@ object (self)
 		     Mutex.lock mutex_proposition;
 		     proposition := guessed_word ^ "/" ^ pseudo;
 		     Condition.broadcast new_proposition;
-	| _ -> let result = command ^ " is unknown (try CONNECT/user/ or EXIT/user/)\n" in
+	| _ -> let result = command ^ " is unknown (try GUESS/word/)\n" in
 	       ignore (Unix.write s_descr result 0 (String.length result));
       done;
-    with exn -> print_string (Printexc.to_string exn ^ "\n");
+    with exn -> print_string (Printexc.to_string exn ^ "\n");*)
 		
-  method send_propositions () =
+  (*method send_propositions () =
     while (true) do
       Condition.wait new_proposition mutex_proposition;
       let result = "GUESSED/" ^ !proposition ^ "\n" in
       ignore (Unix.write s_descr result 0 (String.length result));
-    done
-      	       
-  method run () =
-    try
-      while true do
-	let command = my_input_line s_descr in
-	let l = Str.split (Str.regexp "[/]") command in
-	match List.nth l 0 with
-	  	| "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
-		    if (Hashtbl.mem !players_points name) then
-		      begin
-			let result = "EXITED/" ^ name ^ "\n" in
-			ignore (Unix.write s_descr result 0 (String.length result));
-			Hashtbl.remove !players_points name;
-		      end
-		    else
-		      let result = name ^ "is not in the hashtable, it cannot be removed\n" in
-		      ignore (Unix.write s_descr result 0 (String.length result));
-	| "GUESS" -> let guessed_word = String.sub command 6 (String.length command - 6) in
-		     let result = "GUESSED/" ^ guessed_word ^ pseudo ^ "\n" in
-		     ignore (Unix.write s_descr result 0 (String.length result));
-	| _ -> let result = command ^ " is unknown (try CONNECT/user/ or EXIT/user/)\n" in
-	       ignore (Unix.write s_descr result 0 (String.length result));
-      done;
-    with
-      Maximum_players_reached -> if (!verbose_mode) then
-				   print_endline ("A player tried to join the game but maximum players capacity was reached.");
-      | exn -> print_string (Printexc.to_string exn ^ "\n");			  
+    done*)
+		
+  method wait_drawing_proposition () =
+    print_endline "i waited for drawing";
 end;;
   
 class server port n =
