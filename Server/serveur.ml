@@ -23,7 +23,9 @@ let players_points = ref ((Hashtbl.create !max_players) : (string, int) Hashtbl.
 let verbose_mode = ref false
 
 let mutex_players = Mutex.create ()
-let m = Mutex.create ()
+let m1 = Mutex.create ()
+let m2 = Mutex.create ()
+let m3 = Mutex.create ()
 let condition_players = Condition.create ()
 
 let mutex_word = Mutex.create ()
@@ -60,7 +62,6 @@ let add_player player name =
     end
   else
     begin
-      Mutex.unlock mutex_players;
       false
     end;;
 
@@ -137,25 +138,33 @@ object (self)
 			   let result = "CONNECTED/" ^ name ^ "\n" in
 			   ignore (Unix.write s_descr result 0 (String.length result));
 			   print_endline (name ^ " (n°" ^ (string_of_int number) ^ ") has just joined the game. " ^ string_of_int (!max_players - !players_connected) ^ " player(s) missing before starting the game.");
-			   end
+			 end
 		       else
 			 begin
 			   let result = "CONNECTION_REFUSED/" ^ name ^ "maximum_capacity_reached/\n" in
 			   ignore (Unix.write s_descr result 0 (String.length result));
+			   Mutex.unlock mutex_players;
 			   raise Maximum_players_reached
 			 end;
 		     if (!players_connected = !max_players) then
 		       begin
 			 Mutex.unlock mutex_players;
+
 			 Condition.signal condition_players;
-			 Mutex.unlock m;			 
-			 Condition.wait condition_word m;
+			 Mutex.unlock m1;
+			 
+			 Mutex.lock m2;
+			 Condition.wait condition_word m2;
+
 			 print_endline ("passe !" ^ string_of_int (number));
 		       end
 		     else
 		       begin
 			 Mutex.unlock mutex_players;
-			 Condition.wait condition_word m;
+
+			 Mutex.lock m2;
+			 Condition.wait condition_word m2;
+
 			 print_endline ("passe !" ^ string_of_int (number))
 		       end
       | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
@@ -266,8 +275,8 @@ object(s)
   method start_rounds () =
     if (!verbose_mode) then
       print_endline "The server is waiting for players.";
-    Mutex.lock m;
-    Condition.wait condition_players m;
+    Mutex.lock m1;
+    Condition.wait condition_players m1;
     if (!verbose_mode) then
       print_endline "All players are now connected, let the game begin !";
     while (!round < !max_players) do
@@ -277,10 +286,11 @@ object(s)
 	print_endline (Array.get !running_order !round ^ " is the drawer.");
       word := !dictionary_words.((Random.int (!dictionary_size)));
       Condition.broadcast condition_word;
+      Mutex.unlock m2;
       if (!verbose_mode) then
 	print_endline ("The drawer needs to draw the word \"" ^ !word ^ "\".");
       Mutex.lock mutex_word;
-      Condition.wait word_found m;
+      Condition.wait word_found m3;
       incr round;
     done
       
