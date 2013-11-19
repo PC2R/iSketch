@@ -149,23 +149,16 @@ object (self)
 		     if (!players_connected = !max_players) then
 		       begin
 			 Mutex.unlock mutex_players;
-
 			 Condition.signal condition_players;
 			 Mutex.unlock m1;
-			 
-			 Mutex.lock m2;
 			 Condition.wait condition_word m2;
-
-			 print_endline ("passe !" ^ string_of_int (number));
+			 Mutex.unlock m2;
 		       end
 		     else
 		       begin
 			 Mutex.unlock mutex_players;
-
-			 Mutex.lock m2;
 			 Condition.wait condition_word m2;
-
-			 print_endline ("passe !" ^ string_of_int (number))
+			 Mutex.unlock m2;
 		       end
       | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
 	     ignore (Unix.write s_descr result 0 (String.length result));
@@ -180,7 +173,6 @@ object (self)
     pseudo <- p;
 
   method send_roles_and_word () =
-    print_endline (string_of_int (number) ^ " : round = " ^ string_of_int (!round));
     if (!round = number) then
       begin
 	let result = "NEW_ROUND/drawer/" ^ !word ^ "/\n" in
@@ -195,10 +187,12 @@ object (self)
 	if (!verbose_mode) then
 	  print_endline (pseudo ^ "is a finder.");
       end;
+    
 
   method wait_word_proposition () =
-    print_endline "i waited for proposition";
-(*    try
+    print_endline ("waiting word proposition...");
+(*
+    try
       while true do
 	let command = my_input_line s_descr in
 	let l = Str.split (Str.regexp "[/]") command in
@@ -220,7 +214,7 @@ object (self)
     done*)
 		
   method wait_drawing_proposition () =
-    print_endline "i waited for drawing";
+    print_endline ("waiting drawing proposition...");
 end;;
   
 class server port n =
@@ -285,6 +279,8 @@ object(s)
       if (!verbose_mode) then
 	print_endline (Array.get !running_order !round ^ " is the drawer.");
       word := !dictionary_words.((Random.int (!dictionary_size)));
+      Thread.delay 1.;
+      Mutex.lock m2;
       Condition.broadcast condition_word;
       Mutex.unlock m2;
       if (!verbose_mode) then
