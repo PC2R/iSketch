@@ -97,14 +97,12 @@ object (self)
     ignore (Thread.create (fun x ->
 			   self#connection_player x;
 			   self#send_roles_and_word x;
+			   self#wait_word_proposition x;
 			   self#stop x
 			  ) ());
-    ignore (Thread.create (fun x ->
+    (*ignore (Thread.create (fun x ->
 			   self#wait_drawing_proposition x;
-			  ) ());
-    ignore (Thread.create (fun x ->
-			   self#wait_word_proposition x;
-			  ) ());
+			  ) ());*)
     
   method stop () =
     if (pseudo != "") then
@@ -187,11 +185,8 @@ object (self)
 	if (!verbose_mode) then
 	  print_endline (pseudo ^ "is a finder.");
       end;
-    
 
   method wait_word_proposition () =
-    print_endline ("waiting word proposition...");
-(*
     try
       while true do
 	let command = my_input_line s_descr in
@@ -201,17 +196,20 @@ object (self)
 		     Mutex.lock mutex_proposition;
 		     proposition := guessed_word ^ "/" ^ pseudo;
 		     Condition.broadcast new_proposition;
+		     Mutex.unlock mutex_proposition;
 	| _ -> let result = command ^ " is unknown (try GUESS/word/)\n" in
 	       ignore (Unix.write s_descr result 0 (String.length result));
       done;
-    with exn -> print_string (Printexc.to_string exn ^ "\n");*)
+    with exn -> print_string (Printexc.to_string exn ^ "\n");
 		
-  (*method send_propositions () =
+  method send_propositions () =
     while (true) do
       Condition.wait new_proposition mutex_proposition;
       let result = "GUESSED/" ^ !proposition ^ "\n" in
       ignore (Unix.write s_descr result 0 (String.length result));
-    done*)
+      proposition := "";
+      Mutex.unlock mutex_proposition;
+    done
 		
   method wait_drawing_proposition () =
     print_endline ("waiting drawing proposition...");
