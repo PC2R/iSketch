@@ -218,7 +218,7 @@ object (self)
     done
 		
   method wait_drawing_proposition () =
-    print_endline "waiting for drawing proposition..."
+    print_endline ("waiting drawing proposition...");
 end;;
   
 class server port n =
