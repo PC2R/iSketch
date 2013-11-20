@@ -1,2 +1,2 @@
-val port : int ref
-(** port comment *)
+(** comment max_players *)
+val max_players : int ref
