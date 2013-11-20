@@ -20,8 +20,6 @@
 
 (* Game parameters *)
 
-(** Test comment *)
-
 let max_players = ref 4
 (*let incr_counter = let c = ref 0 in (fun () -> incr c; !c);;*)
 let players_connected = ref 0
