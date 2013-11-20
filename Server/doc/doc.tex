@@ -62,12 +62,22 @@ TCP/IP socket
 val s_descr : Unix.file_descr
 \end{ocamldoccode}
 \index{s-underscoredescr@\verb`s_descr`}
+\begin{ocamldocdescription}
+Creates a Thread for the game
+
+
+\end{ocamldocdescription}
 
 
 \label{method:Server.server.init-underscoregame}\begin{ocamldoccode}
 method init_game : unit -> Thread.t
 \end{ocamldoccode}
 \index{init-underscoregame@\verb`init_game`}
+\begin{ocamldocdescription}
+Waits for potential players connections
+
+
+\end{ocamldocdescription}
 
 
 \label{method:Server.server.start}\begin{ocamldoccode}
@@ -80,12 +90,6 @@ method start : unit -> unit
 method start_rounds : unit -> unit
 \end{ocamldoccode}
 \index{start-underscorerounds@\verb`start_rounds`}
-
-
-\label{method:Server.server.treat}\begin{ocamldoccode}
-method treat : Unix.file_descr -> Unix.sockaddr -> unit
-\end{ocamldoccode}
-\index{treat@\verb`treat`}
 \end{ocamldocobjectend}
 
 

@@ -13,9 +13,9 @@ object
   val nb_pending : int
   (** TCP/IP socket *)
   val s_descr : Unix.file_descr
-
+  (** Creates a Thread for the game *)
   method init_game : unit -> Thread.t
+  (** Waits for potential players connections *)
   method start : unit -> unit
   method start_rounds : unit -> unit
-  method treat : Unix.file_descr -> Unix.sockaddr -> unit
 end
