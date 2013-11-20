@@ -5,12 +5,19 @@ import java.io.PrintStream;
 public class Messenger {
 	
 	private PrintStream writeStream;
-	BufferedReader readStream;
+	private BufferedReader readStream;
+	
+	private ThreadSender tSender;
+	private ThreadListener tListener;
+	private Message msgToServer = new Message();
+	private Message msgFromServer = new Message();
 	
 	Messenger(BufferedReader dis, PrintStream ps)
 	{
 		this.readStream = dis;
 		this.writeStream = ps;
+		tSender = new ThreadSender(writeStream, msgToServer);
+		tListener = new ThreadListener(readStream, msgFromServer);
 	}
 	
 	public boolean connectionUser(String usr)
@@ -90,7 +97,25 @@ public class Messenger {
 			e.printStackTrace();
 		}
 	}
+	
+	public void startThread()
+	{
+		System.out.println("Lancement de threads");
+		Thread tl = new Thread(tListener);
+		Thread ts = new Thread(tSender);
+		tl.start();
+		ts.start();
+	}
 
+	public String wordProposition(String word)
+	{
+		System.out.println("Proposition du mot : " + word);
+		msgToServer.setMsg("GUESS/" + word + "/");
+		return msgFromServer.getMsg();
+	}
+	
+	/* STATIC METHODES */
+	
 	public static int getNbMotString(String str)
 	{
 		int result = 1;

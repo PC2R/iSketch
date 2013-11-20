@@ -1,8 +1,11 @@
-SRC		=	Client.java \
-			MainWindow.java \
-			Messenger.java \
-			MessagesPanel.java \
-			TextPanel.java \
+SRC		=	Message.java		\
+			Client.java		\
+			MainWindow.java		\
+			Messenger.java		\
+			ThreadListener.java	\
+			ThreadSender.java	\
+			MessagesPanel.java	\
+			TextPanel.java		\
 			Test.java
 
 OBJ		=	$(SRC:.java=.class)

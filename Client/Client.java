@@ -84,15 +84,23 @@ public class Client {
 					round = msg.beginRound();
 					if ( !round.isEmpty())
 					{
-						role = 0;
+						role = 0; // drawer 
 						word = round;
 						msg.waitEndRound();
 					}
 					else
 					{
-						role = 1;
+						role = 1; // finder
+						msg.startThread();
+						msg.wordProposition("MOT");
 					}
 				}
+			}
+			else
+			{
+				System.out.println("Connection au jeu refusée");
+				if (s != null)
+					s.close();
 			}
 		}
 		catch (IOException e)
