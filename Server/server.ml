@@ -258,15 +258,12 @@ object(s)
       
   method start () =
     ignore (s#init_game ());
-     while (true) do
+    while (true) do
       let (service_sock, client_sock_addr) =
 	Unix.accept s_descr in
-      s#treat service_sock client_sock_addr;
+      ignore((new player service_sock client_sock_addr)#start());
     done;
     
-  method treat service_sock client_sock_addr =
-    ignore ((new player service_sock client_sock_addr)#start())    
-
   method init_game () =
     Thread.create (fun x -> s#start_rounds x) ();
 

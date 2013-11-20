@@ -1,1 +1,1 @@
-\contentsline {section}{\numberline {1}Module {\tt {Server}} : comment max\_players}{1}
+\contentsline {section}{\numberline {1}Module {\tt {Server}} : The server side from the iSketch game}{1}
