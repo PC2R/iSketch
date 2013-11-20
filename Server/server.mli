@@ -1,9 +1,13 @@
-(** The server side from the iSketch game *)
+(** Documentation for the server side from the iSketch game 
+ @author Theo Lebourg
+*)
 
 (** Maximum number of players able to play during one game *)
 val max_players : int ref
 
-(** This class sets up the server *)
+(** This class sets up the server
+ @param port listening port number
+*)
 class server :
 int ->
 int ->
@@ -19,3 +23,4 @@ object
   method start : unit -> unit
   method start_rounds : unit -> unit
 end
+
