@@ -10,12 +10,12 @@ SOURCES = server.ml
 INTERFACE = server.mli
 
 EXEC = server
-LIBS = $(WITHUNIX) $(WITHSTR)
+LIBS = $(WITHUNIX) $(WITHSTR) $(WITHTHREADS)
 
 all:
-	$(CAMLC) -c $(INTERFACE)
-	$(CAMLC) -o $(EXEC) $(LIBS) $(WITHTHREADS) $(CUSTOM) $(SOURCES)
-	$(CAMLDOC) -v -latex $(INTERFACE) -o doc/doc.tex
+	$(CAMLC) $(LIBS) -c $(INTERFACE)
+	$(CAMLC) -o $(EXEC) $(LIBS) $(WITHTHREADS) $(SOURCES)
+	$(CAMLDOC) -I +threads -v -latex $(INTERFACE) -o doc/doc.tex
 
 clean:
 	rm -f $(EXEC) *.cm[io] *~

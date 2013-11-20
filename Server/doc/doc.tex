@@ -6,7 +6,7 @@
 \usepackage{ocamldoc}
 \begin{document}
 \tableofcontents
-\section{Module {\tt{Server}} : comment max\_players}
+\section{Module {\tt{Server}} : The server side from the iSketch game}
 \label{module:Server}\index{Server@\verb`Server`}
 
 
@@ -20,6 +20,80 @@
 val max_players : int Pervasives.ref
 \end{ocamldoccode}
 \index{max-underscoreplayers@\verb`max_players`}
+\begin{ocamldocdescription}
+Maximum number of players able to play during one game
+
+
+\end{ocamldocdescription}
+
+
+
+
+\begin{ocamldoccode}
+{\tt{class server : }}{\tt{int -> int -> }}\end{ocamldoccode}
+\label{class:Server.server}\index{server@\verb`server`}
+
+\begin{ocamldocobjectend}
+
+
+\label{val:Server.server.port-underscorenum}\begin{ocamldoccode}
+val port_num : int
+\end{ocamldoccode}
+\index{port-underscorenum@\verb`port_num`}
+\begin{ocamldocdescription}
+Listening port number of the server
+
+
+\end{ocamldocdescription}
+
+
+\label{val:Server.server.nb-underscorepending}\begin{ocamldoccode}
+val nb_pending : int
+\end{ocamldoccode}
+\index{nb-underscorepending@\verb`nb_pending`}
+\begin{ocamldocdescription}
+TCP/IP socket
+
+
+\end{ocamldocdescription}
+
+
+\label{val:Server.server.s-underscoredescr}\begin{ocamldoccode}
+val s_descr : Unix.file_descr
+\end{ocamldoccode}
+\index{s-underscoredescr@\verb`s_descr`}
+
+
+\label{method:Server.server.init-underscoregame}\begin{ocamldoccode}
+method init_game : unit -> Thread.t
+\end{ocamldoccode}
+\index{init-underscoregame@\verb`init_game`}
+
+
+\label{method:Server.server.start}\begin{ocamldoccode}
+method start : unit -> unit
+\end{ocamldoccode}
+\index{start@\verb`start`}
+
+
+\label{method:Server.server.start-underscorerounds}\begin{ocamldoccode}
+method start_rounds : unit -> unit
+\end{ocamldoccode}
+\index{start-underscorerounds@\verb`start_rounds`}
+
+
+\label{method:Server.server.treat}\begin{ocamldoccode}
+method treat : Unix.file_descr -> Unix.sockaddr -> unit
+\end{ocamldoccode}
+\index{treat@\verb`treat`}
+\end{ocamldocobjectend}
+
+
+\begin{ocamldocdescription}
+This class sets up the server
+
+
+\end{ocamldocdescription}
 
 
 \end{document}
