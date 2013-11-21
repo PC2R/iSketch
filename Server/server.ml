@@ -239,7 +239,8 @@ object(s)
 	begin
 	  print_endline ("Server successfuly started with parameters : " ^ string_of_int !max_players
 			 ^ " maximum players and " ^ string_of_int !timeout ^ " seconds of timeout.");
-	  print_endline ("Server is waiting for players connections on port " ^ string_of_int port ^ ".");
+	  print_endline ("Server is waiting for players connections on port " ^ string_of_int port
+			 ^ " and host/address " ^ Unix.gethostname() ^ "/" ^ Unix.string_of_inet_addr h_addr ^ ".");
 	end;
       running_order := Array.append !running_order (Array.make !max_players "");
       dictionary_size := compute_size !dictionary_filename;
