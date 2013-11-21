@@ -202,6 +202,7 @@ object (self)
 	match List.nth l 0 with
 	| "GUESS" -> let guessed_word = String.sub command 6 (String.length command - 6) in
 		     Mutex.lock mutex_proposition;
+		     if (!proposition != "") then proposition := "";
 		     proposition := guessed_word ^ "" ^ pseudo;
 		     Condition.broadcast new_proposition;
 		     Mutex.unlock mutex_proposition;
@@ -211,14 +212,14 @@ object (self)
     with exn -> print_string (Printexc.to_string exn ^ "\n");
 		
   method send_propositions () =
+    print_endline (pseudo ^ "is waiting for word propositions.");
     while (true) do
       Condition.wait new_proposition mutex_proposition;
       let result = "GUESSED/" ^ !proposition ^ "\n" in
       ignore (Unix.write s_descr result 0 (String.length result));
-      proposition := "";
       Mutex.unlock mutex_proposition;
     done
-		
+      
   method wait_drawing_proposition () =
     print_endline ("waiting drawing proposition...");
 end;;
