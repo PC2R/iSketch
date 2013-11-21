@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=pdflatex 2012.10.29)  20 NOV 2013 16:18
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=pdflatex 2012.10.29)  21 NOV 2013 18:21
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -64,36 +64,35 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 7.
 LaTeX Font Info:    ... okay on input line 7.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 7.
 LaTeX Font Info:    ... okay on input line 7.
- (./doc.toc)
+ (./doc.toc
+LaTeX Font Info:    Try loading font information for T1+cmtt on input line 1.
+ (/usr/share/texlive/texmf-dist/tex/latex/base/t1cmtt.fd
+File: t1cmtt.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+))
 \tf@toc=\write3
 \openout3 = `doc.toc'.
 
-LaTeX Font Info:    Try loading font information for T1+cmtt on input line 9.
- (/usr/share/texlive/texmf-dist/tex/latex/base/t1cmtt.fd
-File: t1cmtt.fd 1999/05/25 v2.5h Standard LaTeX font definitions
-) [1
+ [1
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./doc.aux)
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
- ) 
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] (./doc.aux) ) 
 Here is how much of TeX's memory you used:
- 615 strings out of 495030
- 7146 string characters out of 3180760
- 50404 words of memory out of 3000000
- 3859 multiletter control sequences out of 15000+200000
- 6879 words of font info for 20 fonts, out of 3000000 for 9000
+ 630 strings out of 495030
+ 7802 string characters out of 3180760
+ 52404 words of memory out of 3000000
+ 3873 multiletter control sequences out of 15000+200000
+ 7662 words of font info for 21 fonts, out of 3000000 for 9000
  14 hyphenation exceptions out of 8191
- 21i,4n,20p,205b,178s stack positions out of 5000i,500n,10000p,200000b,50000s
- </home/theo/.texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1095.600pk> </home/th
-eo/.texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1095.600pk> </home/theo/.texmf-va
-r/fonts/pk/ljfour/jknappen/ec/ectt1440.600pk> </home/theo/.texmf-var/fonts/pk/l
-jfour/jknappen/ec/ecbx1440.600pk>
-Output written on doc.pdf (1 page, 27358 bytes).
+ 21i,4n,20p,274b,298s stack positions out of 5000i,500n,10000p,200000b,50000s
+ </home/t
+heo/.texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1095.600pk> </home/theo/.texmf-v
+ar/fonts/pk/ljfour/jknappen/ec/ectt1440.600pk> </home/theo/.texmf-var/fonts/pk/
+ljfour/jknappen/ec/ectt1095.600pk> </home/theo/.texmf-var/fonts/pk/ljfour/jknap
+pen/ec/ecbx1095.600pk> </home/theo/.texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1
+440.600pk>
+Output written on doc.pdf (2 pages, 37027 bytes).
 PDF statistics:
- 113 PDF objects out of 1000 (max. 8388607)
- 20 compressed objects within 1 object stream
+ 150 PDF objects out of 1000 (max. 8388607)
+ 26 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -1,1 +1,1 @@
-\contentsline {section}{\numberline {1}Module {\tt {Server}} : The server side from the iSketch game}{1}
+\contentsline {section}{\numberline {1}Module {\tt {Server}} : Documentation for the server side from the iSketch game}{1}

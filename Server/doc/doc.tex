@@ -6,9 +6,11 @@
 \usepackage{ocamldoc}
 \begin{document}
 \tableofcontents
-\section{Module {\tt{Server}} : The server side from the iSketch game}
+\section{Module {\tt{Server}} : Documentation for the server side from the iSketch game}
 \label{module:Server}\index{Server@\verb`Server`}
 
+
+{\bf Author(s): }Theo Lebourg
 
 
 
@@ -95,6 +97,101 @@ method start_rounds : unit -> unit
 
 \begin{ocamldocdescription}
 This class sets up the server
+
+
+\end{ocamldocdescription}
+
+
+
+
+\begin{ocamldoccode}
+{\tt{class player : }}{\tt{Unix.file\_descr -> Unix.sockaddr -> }}\end{ocamldoccode}
+\label{class:Server.player}\index{player@\verb`player`}
+
+\begin{ocamldocobjectend}
+
+
+\label{val:Server.player.s-underscoredescr}\begin{ocamldoccode}
+val s_descr : Unix.file_descr
+\end{ocamldoccode}
+\index{s-underscoredescr@\verb`s_descr`}
+
+
+\label{val:Server.player.s-underscoreaddr}\begin{ocamldoccode}
+val s_addr : Unix.sockaddr
+\end{ocamldoccode}
+\index{s-underscoreaddr@\verb`s_addr`}
+
+
+\label{val:Server.player.pseudo}\begin{ocamldoccode}
+val mutable pseudo : string
+\end{ocamldoccode}
+\index{pseudo@\verb`pseudo`}
+
+
+\label{val:Server.player.number}\begin{ocamldoccode}
+val mutable number : int
+\end{ocamldoccode}
+\index{number@\verb`number`}
+
+
+\label{method:Server.player.start}\begin{ocamldoccode}
+method start : unit -> unit
+\end{ocamldoccode}
+\index{start@\verb`start`}
+
+
+\label{method:Server.player.stop}\begin{ocamldoccode}
+method stop : unit -> unit
+\end{ocamldoccode}
+\index{stop@\verb`stop`}
+
+
+\label{method:Server.player.connection-underscoreplayer}\begin{ocamldoccode}
+method connection_player : unit -> unit
+\end{ocamldoccode}
+\index{connection-underscoreplayer@\verb`connection_player`}
+
+
+\label{method:Server.player.set-underscorenumber-underscoreand-underscorepseudo}\begin{ocamldoccode}
+method set_number_and_pseudo : int Pervasives.ref -> string -> unit
+\end{ocamldoccode}
+\index{set-underscorenumber-underscoreand-underscorepseudo@\verb`set_number_and_pseudo`}
+
+
+\label{method:Server.player.send-underscoreroles-underscoreand-underscoreword}\begin{ocamldoccode}
+method send_roles_and_word : unit -> unit
+\end{ocamldoccode}
+\index{send-underscoreroles-underscoreand-underscoreword@\verb`send_roles_and_word`}
+
+
+\label{method:Server.player.wait-underscoreword-underscoreproposition}\begin{ocamldoccode}
+method wait_word_proposition : unit -> unit
+\end{ocamldoccode}
+\index{wait-underscoreword-underscoreproposition@\verb`wait_word_proposition`}
+
+
+\label{method:Server.player.send-underscoreword-underscoreproposition}\begin{ocamldoccode}
+method send_word_proposition : unit -> unit
+\end{ocamldoccode}
+\index{send-underscoreword-underscoreproposition@\verb`send_word_proposition`}
+
+
+\label{method:Server.player.wait-underscoredrawing-underscoreproposition}\begin{ocamldoccode}
+method wait_drawing_proposition : unit -> unit
+\end{ocamldoccode}
+\index{wait-underscoredrawing-underscoreproposition@\verb`wait_drawing_proposition`}
+
+
+\label{method:Server.player.send-underscoredrawing-underscoreproposition}\begin{ocamldoccode}
+method send_drawing_proposition : unit -> unit
+\end{ocamldoccode}
+\index{send-underscoredrawing-underscoreproposition@\verb`send_drawing_proposition`}
+\end{ocamldocobjectend}
+
+
+\begin{ocamldocdescription}
+This class sets up one player
 
 
 \end{ocamldocdescription}
