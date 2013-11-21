@@ -166,12 +166,11 @@ object (self)
 		       end
       | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
 	     ignore (Unix.write s_descr result 0 (String.length result));
-	     
     with
-      Maximum_players_reached -> if (!verbose_mode) then
-				   print_endline ("A player tried to join the game but maximum players capacity was reached.");
-      | exn -> print_string (Printexc.to_string exn ^ "\n");
-	       
+    | Maximum_players_reached -> if (!verbose_mode) then
+				   print_endline ("A player tried to join the game but maximum players capacity was reached.")
+    | exn -> print_string (Printexc.to_string exn ^ "\n");
+			  
   method set_number_and_pseudo n p =
     number <- !n;
     pseudo <- p;
@@ -193,6 +192,9 @@ object (self)
       end;
 
   method wait_word_proposition () =
+    ignore (Thread.create (fun x ->
+			   self#send_propositions x
+			  ) ());
     try
       while true do
 	let command = my_input_line s_descr in
@@ -200,7 +202,7 @@ object (self)
 	match List.nth l 0 with
 	| "GUESS" -> let guessed_word = String.sub command 6 (String.length command - 6) in
 		     Mutex.lock mutex_proposition;
-		     proposition := guessed_word ^ "/" ^ pseudo;
+		     proposition := guessed_word ^ "" ^ pseudo;
 		     Condition.broadcast new_proposition;
 		     Mutex.unlock mutex_proposition;
 	| _ -> let result = command ^ " is unknown (try GUESS/word/)\n" in
@@ -237,7 +239,7 @@ object(s)
       Unix.listen s_descr nb_pending;
       if (!verbose_mode) then
 	begin
-	  print_endline ("Server successfuly started with parameters : " ^ string_of_int !max_players
+	  print_endline ("Server successfully started with parameters : " ^ string_of_int !max_players
 			 ^ " maximum players and " ^ string_of_int !timeout ^ " seconds of timeout.");
 	  print_endline ("Server is waiting for players connections on port " ^ string_of_int port
 			 ^ " and host/address " ^ Unix.gethostname() ^ "/" ^ Unix.string_of_inet_addr h_addr ^ ".");
