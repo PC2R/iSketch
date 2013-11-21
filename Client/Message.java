@@ -1,10 +1,11 @@
+import java.util.ArrayList;
+
 public class Message {
 
 	String msg = new String();
 	
 	public Message()
 	{
-		super();
 	}
 	
 	public String getMsg()

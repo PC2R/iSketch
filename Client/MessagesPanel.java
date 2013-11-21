@@ -4,7 +4,10 @@ import java.awt.FlowLayout;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.xml.ws.handler.MessageContext.Scope;
 
 /* Zone d'affichage de la liste des joueurs et des différents messages envoyés */
 
@@ -17,6 +20,8 @@ public class MessagesPanel extends JPanel {
 	private JTextArea textListJoueur = new JTextArea();
 	private JTextArea textMsg = new JTextArea();
 	
+	private JScrollPane jScroll;
+	
 	MessagesPanel(int wWidth, int wHeight)
 	{
 		textListJoueur.setPreferredSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
@@ -25,6 +30,8 @@ public class MessagesPanel extends JPanel {
 		textListJoueur.setText("Liste des joueurs : \n");
 		textListJoueur.setEditable(false);
 		textListJoueur.setBackground(Color.lightGray);
+		
+		jScroll = new JScrollPane(textMsg, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		
 		textMsg.setPreferredSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
 		textMsg.setMaximumSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
@@ -54,6 +61,11 @@ public class MessagesPanel extends JPanel {
 	{
 		this.textMsg.append(msg);
 		this.textMsg.append("\n");
+	}
+	
+	public void newProp(String name, String msg)
+	{
+		this.textMsg.append(name + " : " + msg);
 	}
 
 }
