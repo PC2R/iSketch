@@ -16,6 +16,7 @@
 (*
  * Bugs to fixed / Notes for after : 
  * - if -max = 1
+ * - two guess/word from two different players
  *)
 
 (* Game parameters *)
@@ -53,6 +54,13 @@ let accept_players = ref true
 let is_started = ref false
 let word = ref ""
 let word_is_found = ref false
+
+(* Drawing characteristics *)
+let rgb = ref ""
+let size = ref ""
+let line = ref ""
+let new_drawing_proposition = Condition.create ()
+let mutex_drawing = Mutex.create ()
 
 let running_order = ref (Array.make 0 "")
 let players_roles = ref ((Hashtbl.create !max_players) : (string, string) Hashtbl.t)
@@ -193,7 +201,7 @@ object (self)
 
   method wait_word_proposition () =
     ignore (Thread.create (fun x ->
-			   self#send_propositions x
+			   self#send_word_proposition x
 			  ) ());
     try
       while true do
@@ -206,12 +214,12 @@ object (self)
 		     proposition := guessed_word ^ "" ^ pseudo;
 		     Condition.broadcast new_proposition;
 		     Mutex.unlock mutex_proposition;
-	| _ -> let result = command ^ " is unknown (try GUESS/word/)\n" in
+	| _ -> let result = command ^ " is unknown (try GUESS/word/).\n" in
 	       ignore (Unix.write s_descr result 0 (String.length result));
       done;
-    with exn -> print_string (Printexc.to_string exn ^ "\n");
+    with exn -> print_string (Printexc.to_string exn ^ " in wait_word_proposition method.\n");
 		
-  method send_propositions () =
+  method send_word_proposition () =
     print_endline (pseudo ^ "is waiting for word propositions.");
     while (true) do
       Condition.wait new_proposition mutex_proposition;
@@ -221,7 +229,38 @@ object (self)
     done
       
   method wait_drawing_proposition () =
-    print_endline ("waiting drawing proposition...");
+    ignore (Thread.create (fun x ->
+			   self#send_drawing_proposition x
+			  ) ());
+    try
+      while (true) do
+	let command = my_input_line s_descr in
+	let l = Str.split (Str.regexp "[/]") command in
+	match List.nth l 0 with
+	| "SET_COLOR" -> let new_color = String.sub command 10 (String.length command - 10) in
+			 rgb := new_color;
+	| "SET_SIZE" -> let new_size = String.sub command 9 (String.length command - 9) in
+			size := new_size;
+	| "SET_LINE" -> let new_line = String.sub command 9 (String.length command - 9) in
+			Mutex.lock mutex_drawing;
+			line := new_line;
+			Condition.broadcast new_drawing_proposition;
+			Mutex.unlock mutex_drawing;
+	| _ -> let result = command ^ "is unknown (try SET_COLOR/r/g/b/ or SET_SIZE/s/ or SET_LINE/x1/y1/x2/y2/).\n" in
+	       ignore (Unix.write s_descr result 0 (String.length result));
+      done;
+    with exn -> print_string (Printexc.to_string exn ^ " in wait_drawing_proposition method.\n")
+
+  method send_drawing_proposition () =
+    print_endline (pseudo ^ "is waiting for drawing propositions.");
+    while (true) do
+      Condition.wait new_drawing_proposition mutex_drawing;
+      let result = "LINE/" ^ !line ^ "" ^ !rgb ^ "" ^ !size ^ "\n" in
+      ignore (Unix.write s_descr result 0 (String.length result));
+      Mutex.unlock mutex_drawing;
+    done
+      
+		  
 end;;
   
 class server port n =
@@ -279,8 +318,11 @@ object(s)
     if (!verbose_mode) then
       print_endline "All players are now connected, let the game begin !";
     while (!round < !max_players) do
+      rgb := "0/0/0/";
+      size := "1/";
       if (!verbose_mode) then
 	print_endline ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");
+      print_endline "By default, color is set to black (r = 0, g = 0 and b = 0) and size is set to 1.";
       if (!verbose_mode) then
 	print_endline (Array.get !running_order !round ^ " is the drawer.");
       word := !dictionary_words.((Random.int (!dictionary_size)));
