@@ -5,11 +5,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.*;
 
-<<<<<<< HEAD
 public class Client extends Thread{
-=======
-public class Client extends Thread {
->>>>>>> dc93f445c6de3c7b7f7ee979af057b82895ba1de
 
 	protected static int PORT;
 	protected static InetAddress address;
@@ -116,20 +112,10 @@ public class Client extends Thread {
 					msg.wordProposition("MOT2");
 					try 
 					{
-<<<<<<< HEAD
 						sleep(1000);
 					} catch (InterruptedException e) 
 					{
 						e.printStackTrace();
-=======
-						role = 1; // finder
-						msg.wordProposition("MOT");
-						try { sleep (1000); }
-						catch (InterruptedException e) {}
-						msg.wordProposition("MOT1");
-						msg.wordProposition("MOT2");
-						
->>>>>>> dc93f445c6de3c7b7f7ee979af057b82895ba1de
 					}
 					msg.wordProposition("MOT3");
 					//break;
