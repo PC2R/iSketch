@@ -104,7 +104,7 @@ object (self)
   val s_addr = sa
   val mutable pseudo = ""
   val mutable number = 0
-			     
+			 
   initializer
     if (!verbose_mode) then
       print_endline ("Someone has just open a connection on the server.");
@@ -116,7 +116,7 @@ object (self)
 			   self#wait_word_proposition x;
 			   self#stop x
 			  ) ());
-    (*ignore (Thread.create (fun x ->
+  (*ignore (Thread.create (fun x ->
 			   self#wait_drawing_proposition x;
 			  ) ());*)
     
@@ -131,7 +131,7 @@ object (self)
       print_endline ("Server had to kicked out a player because maximum capacity was reached.");
     Unix.close s_descr;
     Thread.exit ();
-	       
+    
 
   method connection_player () =
     try
@@ -180,7 +180,7 @@ object (self)
     | Maximum_players_reached -> if (!verbose_mode) then
 				   print_endline ("A player tried to join the game but maximum players capacity was reached.")
     | exn -> print_string (Printexc.to_string exn ^ "\n");
-			  
+	     
   method set_number_and_pseudo n p =
     number <- !n;
     pseudo <- p;
@@ -216,6 +216,8 @@ object (self)
 		     Mutex.lock mutex_proposition;
 		     if (!proposition != "") then proposition := "";
 		     proposition := guessed_word ^ "" ^ pseudo;
+		     if (!verbose_mode) then
+		       print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " proposed the word " ^ (List.nth l 1) ^ ".");
 		     Condition.broadcast new_proposition;
 		     Mutex.unlock mutex_proposition;
 	| _ -> let result = command ^ " is unknown (try GUESS/word/).\n" in
@@ -229,6 +231,10 @@ object (self)
       Condition.wait new_proposition mutex_proposition;
       let result = "GUESSED/" ^ !proposition ^ "\n" in
       ignore (Unix.write s_descr result 0 (String.length result));
+      if (!verbose_mode) then
+	print_endline ("The server has sent the word " ^ (List.nth (Str.split (Str.regexp "[/]") result) 1)
+		       ^ " (proposed by " ^ (List.nth (Str.split (Str.regexp "[/]") result) 2) ^ ") to "
+		       ^ (String.sub pseudo 0 (String.length pseudo - 1)) ^ ".");
       Mutex.unlock mutex_proposition;
     done
       
@@ -264,7 +270,7 @@ object (self)
       Mutex.unlock mutex_drawing;
     done
       
-		  
+      
 end;;
   
 class server port n =
