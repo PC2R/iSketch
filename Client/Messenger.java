@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -42,6 +43,32 @@ public class Messenger {
 			return false;
 	}
 
+	public void getPlayers()
+	{
+		String[] tab;
+		String line = new String();
+		int i;
+		
+		try
+		{
+			System.out.println("Attente de la liste des joueurs");
+			line = readStream.readLine();
+			System.out.println("S->C : " + line);
+		}
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+		tab = parse(line);
+		if (tab[0].equals("SCORE_ROUND"))
+		{
+			for (i = 1; i < tab.length - 1; i = i + 2)
+			{
+				this.addPlayer(tab[i], tab[i + 1]);
+			}
+		}
+	}
+	
 	public String beginRound()
 	{
 		String res;
@@ -87,17 +114,13 @@ public class Messenger {
 		tSender.start();
 	}
 
-	public void wordProposition(String word)
+	public void closeWindow()
 	{
-		synchronized (msgToServer)
-		{
-			System.out.println("Proposition du mot : " + word);
-			msgToServer.setMsg("GUESS/" + word + "/");	
-		}
+		mWindow.dispose();
 	}
 
-
 	/* COMMAND */
+	
 	public synchronized void interpretCommand()
 	{
 		String tab[] = parse(msgFromServer.getMsg());
@@ -114,9 +137,24 @@ public class Messenger {
 		else
 			System.out.println("Commande inconnue : " + tab[0]);
 	}
+	
+	public void wordProposition(String word)
+	{
+		synchronized (msgToServer)
+		{
+			System.out.println("Proposition du mot : " + word);
+			msgToServer.setMsg("GUESS/" + word + "/");
+			msgToServer.notifyAll();
+		}
+	}
 
+	public void addPlayer(String name, String score)
+	{
+		mWindow.addPlayer(name, score);
+	}
+	
 	/* STATIC METHODES */
-
+	
 	public static int getNbMotString(String str)
 	{
 		int result = 1;

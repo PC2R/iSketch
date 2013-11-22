@@ -1,3 +1,4 @@
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -57,6 +58,14 @@ public class MessagesPanel extends JPanel {
 		this.add(msgPanel);
 	}
 	
+	public void addPlayer(String name, String score)
+	{
+		this.textListJoueur.append(name);
+		this.textListJoueur.append("\t\t\t");
+		this.textListJoueur.append(score);
+		this.textListJoueur.append("\n");
+	}
+	
 	public void newProp(String msg)
 	{
 		this.textMsg.append(msg);
@@ -66,6 +75,32 @@ public class MessagesPanel extends JPanel {
 	public void newProp(String name, String msg)
 	{
 		this.textMsg.append(name + " : " + msg);
+		this.textMsg.append("\n");
 	}
 
+	public void wordFound(String name)
+	{
+		textMsg.append("le mot a été trouvé par ");
+		textMsg.append(name);
+		textMsg.append("!\n");
+	}
+
+	public void wordFoundTimeOut(String time)
+	{
+		textMsg.append("Il vous reste ");
+		textMsg.append(time);
+		textMsg.append(" secondes pour trouver le mot\n");
+	}
+	
+	public void scoreout(String[] tab)
+	{
+		int i;
+		
+		textListJoueur.removeAll();
+		for (i = 1; i < tab.length - 1 ; i = i + 2)
+		{
+			textListJoueur.append(tab[i] + "\t\t\t" + tab[i + 1]);
+			textListJoueur.append("\n");
+		}
+	}
 }

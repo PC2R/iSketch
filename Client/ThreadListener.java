@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.IOException;
 
@@ -27,6 +28,7 @@ public class ThreadListener extends Thread
 			}
 			catch (IOException e) 
 			{
+				System.out.println("Probleme dans le ThreadListener");
 				e.printStackTrace();
 			}
 			if (line == null)

@@ -1,3 +1,4 @@
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -44,6 +45,11 @@ public class MainWindow extends JFrame {
 		this.setVisible(true);
 	}
 	
+	public void addPlayer(String name, String score)
+	{
+		this.messP.addPlayer(name, score);
+	}
+	
 	public void sendProposition(String prop)
 	{
 		this.messP.newProp(prop);
@@ -59,16 +65,19 @@ public class MainWindow extends JFrame {
 	public void wordFound(String[] tab)
 	{
 		System.out.println("Le mot a été trouvé par " + tab[1]);
+		messP.wordFound(tab[1]);
 	}
 	
 	public void wordFoundTimeOut(String[] tab)
 	{
-		System.out.println("Temps impartis écoulé!");
+		System.out.println("Il vous reste " + tab[1] + " secondes pour trouver le mot");
+		messP.wordFoundTimeOut(tab[1]);
 	}
 	
 	public void scoreOut(String[] tab)
 	{
 		System.out.println("Voici les scores");
+		messP.scoreout(tab);
 	}
 	
 	public void endRound(String[] tab)

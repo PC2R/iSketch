@@ -1,10 +1,11 @@
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.*;
 
-public class Client {
+public class Client extends Thread{
 
 	protected static int PORT;
 	protected static InetAddress address;
@@ -14,46 +15,47 @@ public class Client {
 	{
 		if (args.length != 0 && args.length != 2 && args.length != 4 )
 		{
-		    System.out.println("Bad options, wanted :\n\t-port : set the port\n\t-user : set the user name\n");
-		    return false;
+			System.out.println("Bad options, wanted :\n\t-port : set the port\n\t-user : set the user name\n");
+			return false;
 		}
 		if (args.length == 0)
 		{
-		    PORT = 2013;
-		    user = "pc2r";
+			PORT = 2013;
+			user = "pc2r";
 		}
 		else if (args.length == 2)
 		{
-		    if (args[0].equals("-port"))
+			if (args[0].equals("-port"))
 			{
-			    PORT = Integer.decode(args[1]);
-			    user = "pc2r";
+				PORT = Integer.decode(args[1]);
+				user = "pc2r";
 			}
 			if (args[0].equals("-user"))
 			{
-			    user = args[1];
-			    PORT = 2013;
+				user = args[1];
+				PORT = 2013;
 			}
 		}
 		else
 		{
-			 for (int i = 0; i < args.length - 1; i++)
+			for (int i = 0; i < args.length - 1; i++)
 			{
-				 if (args[i].equals("-port"))
+				if (args[i].equals("-port"))
 					PORT = Integer.decode(args[i + 1]);
 				if (args[i].equals("-user"))
 					user = args[i + 1];
 			}
 		}
-	return true;
+		return true;
 	}
-    
+
 	public static void main(String[] args)
 	{
 		String round = new String();
 		String word;
+		Messenger msg;
 		int role; // 0 drawer - 1 finder
-		
+
 		try
 		{
 			address = InetAddress.getLocalHost();
@@ -75,45 +77,69 @@ public class Client {
 			BufferedReader dis = new BufferedReader(new InputStreamReader(s.getInputStream()));
 			PrintStream ps = new PrintStream(s.getOutputStream());
 			System.out.println("Connexion found : " + s.getInetAddress() + "\nport : " + s.getPort());
-			Messenger msg = new Messenger(dis, ps);
+			msg = new Messenger(dis, ps);
 			if(msg.connectionUser(user))
 			{
-				while (true)
+				//while (true)
+				//{
+				msg.getPlayers();
+				round = msg.beginRound();
+				msg.startThread();
+				try 
 				{
-					round = msg.beginRound();
-					msg.startThread();
-					if ( !round.isEmpty())
-					{
-						role = 0; // drawer 
-						word = round;
-						msg.waitEndRound();
-					}
-					else
-					{
-						role = 1; // finder
-						msg.wordProposition("MOT");
-					}
+					sleep(1000);
+				} catch (InterruptedException e) 
+				{
+					e.printStackTrace();
 				}
+				if ( !round.isEmpty())
+				{
+					role = 0; // drawer 
+					word = round;
+					msg.waitEndRound();
+				}
+				else
+				{
+					role = 1; // finder
+					msg.wordProposition("MOT1");
+					try 
+					{
+						sleep(1000);
+					} catch (InterruptedException e) 
+					{
+						e.printStackTrace();
+					}
+					msg.wordProposition("MOT2");
+					try 
+					{
+						sleep(1000);
+					} catch (InterruptedException e) 
+					{
+						e.printStackTrace();
+					}
+					msg.wordProposition("MOT3");
+					//break;
+				}
+				//}
 			}
 			else
 			{
 				System.out.println("Connection au jeu refusée");
 				if (s != null)
-					s.close();
+					try 
+				{
+						s.close();
+				} 
+				catch (IOException e) 
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		catch (IOException e)
 		{
 			System.err.println(e);
-		}
-		finally
-		{
-			try 
-	 		{
-				if (s != null)
-					s.close();
-			}
-			catch(IOException e2) {}
 		}
 	}
 }

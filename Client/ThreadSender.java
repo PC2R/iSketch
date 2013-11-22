@@ -1,3 +1,4 @@
+
 import java.io.PrintStream;
 
 public class ThreadSender extends Thread 
@@ -16,7 +17,7 @@ public class ThreadSender extends Thread
 		while (true)
 		{
 			System.out.println("Thread pret à envoyer");
-			while (msg.getMsg().isEmpty()) 
+			/*while (msg.getMsg().isEmpty()) 
 			{ 
 				try 
 				{
@@ -29,6 +30,18 @@ public class ThreadSender extends Thread
 				wStream.println(msg.getMsg());
 				System.out.println("C->S : " + msg.getMsg());
 				msg.setMsg("");
+			}*/
+			synchronized (msg)
+			{
+				try 
+				{
+					msg.wait();
+				} 
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				wStream.println(msg.getMsg());
+				System.out.println("C->S : " + msg.getMsg());
 			}
 		}
 	}
