@@ -1,16 +1,18 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 
-public class ThreadListener implements Runnable
+public class ThreadListener extends Thread
 {
 
 	private BufferedReader buff;
 	private Message msg;
+	private Messenger msn;
 	
-	public ThreadListener(BufferedReader bf, Message var) 
+	public ThreadListener(BufferedReader bf, Message var, Messenger messeng) 
 	{
 		this.buff = bf;
 		this.msg = var;
+		this.msn = messeng;
 	}
 	
 	public void run()
@@ -27,11 +29,14 @@ public class ThreadListener implements Runnable
 			{
 				e.printStackTrace();
 			}
+			if (line == null)
+				break;
 			synchronized (msg)
 			{
 				System.out.println("S->C : " + line);
-				msg.setMsg(line); 
+				msg.setMsg(line);
 			}
+			msn.interpretCommand();
 		}
 	}
 

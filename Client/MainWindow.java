@@ -49,4 +49,32 @@ public class MainWindow extends JFrame {
 		this.messP.newProp(prop);
 	}
 
+	public void guessed(String[] tab)
+	{
+		System.out.println("Le mot " + tab[1] + " a été proposé par " + tab[2]);
+		this.messP.newProp(tab[2], tab[1]);
+		
+	}
+	
+	public void wordFound(String[] tab)
+	{
+		System.out.println("Le mot a été trouvé par " + tab[1]);
+	}
+	
+	public void wordFoundTimeOut(String[] tab)
+	{
+		System.out.println("Temps impartis écoulé!");
+	}
+	
+	public void scoreOut(String[] tab)
+	{
+		System.out.println("Voici les scores");
+	}
+	
+	public void endRound(String[] tab)
+	{
+		System.out.println("Le round est terminé");
+		System.out.println("Le gagnant est " + tab[1]);
+		System.out.println("Le mot à trouver était " + tab[2]);
+	}
 }

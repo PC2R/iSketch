@@ -72,7 +72,6 @@ public class Client {
 			//s = new Socket("localhost", PORT);
 
 			System.out.println("Socket successfuly created");
-			//DataInputStream dis = new DataInputStream(s.getInputStream());
 			BufferedReader dis = new BufferedReader(new InputStreamReader(s.getInputStream()));
 			PrintStream ps = new PrintStream(s.getOutputStream());
 			System.out.println("Connexion found : " + s.getInetAddress() + "\nport : " + s.getPort());
@@ -82,6 +81,7 @@ public class Client {
 				while (true)
 				{
 					round = msg.beginRound();
+					msg.startThread();
 					if ( !round.isEmpty())
 					{
 						role = 0; // drawer 
@@ -91,7 +91,6 @@ public class Client {
 					else
 					{
 						role = 1; // finder
-						msg.startThread();
 						msg.wordProposition("MOT");
 					}
 				}

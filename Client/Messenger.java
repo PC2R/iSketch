@@ -3,23 +3,25 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 public class Messenger {
-	
+
 	private PrintStream writeStream;
 	private BufferedReader readStream;
-	
+
 	private ThreadSender tSender;
 	private ThreadListener tListener;
 	private Message msgToServer = new Message();
 	private Message msgFromServer = new Message();
-	
+
+	private MainWindow mWindow = new MainWindow(); 
+
 	Messenger(BufferedReader dis, PrintStream ps)
 	{
 		this.readStream = dis;
 		this.writeStream = ps;
 		tSender = new ThreadSender(writeStream, msgToServer);
-		tListener = new ThreadListener(readStream, msgFromServer);
+		tListener = new ThreadListener(readStream, msgFromServer, this);
 	}
-	
+
 	public boolean connectionUser(String usr)
 	{
 		System.out.println("C->S : CONNECT/" + usr + "/");
@@ -39,7 +41,7 @@ public class Messenger {
 		else
 			return false;
 	}
-	
+
 	public String beginRound()
 	{
 		String res;
@@ -76,46 +78,45 @@ public class Messenger {
 
 	public void waitEndRound()
 	{
-		String res;
-		String line = new String();
-		String[] tab;
-		try
-		{
-			System.out.println("Le dessinateur dessine jusqu'a la fin du round");
-			line = readStream.readLine();
-			System.out.println("S->C : " + line);
-			tab = parse(line);
-			while (!tab[0].equals("END_ROUND"))
-			{
-				line = readStream.readLine();
-				System.out.println("S->C : " + line);
-				tab = parse(line);
-			}
-		}
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
 	}
-	
+
 	public void startThread()
 	{
 		System.out.println("Lancement de threads");
-		Thread tl = new Thread(tListener);
-		Thread ts = new Thread(tSender);
-		tl.start();
-		ts.start();
+		tListener.start();
+		tSender.start();
 	}
 
-	public String wordProposition(String word)
+	public void wordProposition(String word)
 	{
-		System.out.println("Proposition du mot : " + word);
-		msgToServer.setMsg("GUESS/" + word + "/");
-		return msgFromServer.getMsg();
+		synchronized (msgToServer)
+		{
+			System.out.println("Proposition du mot : " + word);
+			msgToServer.setMsg("GUESS/" + word + "/");	
+		}
 	}
-	
+
+
+	/* COMMAND */
+	public synchronized void interpretCommand()
+	{
+		String tab[] = parse(msgFromServer.getMsg());
+		if (tab[0].equals("GUESSED"))
+			mWindow.guessed(tab);
+		else if (tab[0].equals("WORD_FOUND"))
+			mWindow.wordFound(tab);
+		else if (tab[0].equals("WORD_FOUND_TIME_OUT"))
+			mWindow.wordFoundTimeOut(tab);
+		else if (tab[0].equals("SCORE_OUT"))
+			mWindow.scoreOut(tab);
+		else if (tab[0].equals("END_ROUND"))
+			mWindow.endRound(tab);
+		else
+			System.out.println("Commande inconnue : " + tab[0]);
+	}
+
 	/* STATIC METHODES */
-	
+
 	public static int getNbMotString(String str)
 	{
 		int result = 1;
