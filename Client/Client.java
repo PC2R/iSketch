@@ -4,7 +4,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.*;
 
-public class Client {
+public class Client extends Thread {
 
 	protected static int PORT;
 	protected static InetAddress address;
@@ -92,6 +92,11 @@ public class Client {
 					{
 						role = 1; // finder
 						msg.wordProposition("MOT");
+						try { sleep (1000); }
+						catch (InterruptedException e) {}
+						msg.wordProposition("MOT1");
+						msg.wordProposition("MOT2");
+						
 					}
 				}
 			}

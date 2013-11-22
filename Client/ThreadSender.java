@@ -17,12 +17,9 @@ public class ThreadSender extends Thread
 		{
 			System.out.println("Thread pret à envoyer");
 			while (msg.getMsg().isEmpty()) 
-			{ 
-				try 
-				{
-					sleep(1000);
-				}
-				catch (InterruptedException e) { }
+			{
+			    try {sleep (1000);}
+			    catch (InterruptedException e){}
 			}
 			synchronized (msg)
 			{
