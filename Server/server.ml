@@ -17,6 +17,7 @@
  * Bugs to fixed / Notes for after : 
  * - if -max = 1
  * - two guess/word from two different players
+ * - remove pseudo from hashtable
  *)
 
 (* Game parameters *)
@@ -27,6 +28,7 @@ let players_connected = ref 0
 let timeout = ref 30
 let port = ref 2013
 let players_points = ref ((Hashtbl.create !max_players) : (string, int) Hashtbl.t)
+let score_round_string = ref ""
 let verbose_mode = ref false
 
 let mutex_players = Mutex.create ()
@@ -184,6 +186,8 @@ object (self)
     pseudo <- p;
 
   method send_roles_and_word () =
+    let score_round = "SCORE_ROUND/" ^ !score_round_string in
+    ignore (Unix.write s_descr score_round 0 (String.length score_round));
     if (!round = number) then
       begin
 	let result = "NEW_ROUND/drawer/" ^ !word ^ "/\n" in
@@ -317,6 +321,12 @@ object(s)
     Condition.wait condition_players m1;
     if (!verbose_mode) then
       print_endline "All players are now connected, let the game begin !";
+    let i = ref 0 in
+    while (!i < Array.length !running_order) do
+      score_round_string := !score_round_string ^ !running_order.(!i) ^ "0/";
+      i := !i + 1;
+    done;
+    score_round_string := !score_round_string ^ "\n";
     while (!round < !max_players) do
       rgb := "0/0/0/";
       size := "1/";
