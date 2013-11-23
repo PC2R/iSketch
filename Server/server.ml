@@ -125,7 +125,7 @@ object (self)
       begin
 	decr players_connected;
 	if (!verbose_mode) then
-	  print_endline (pseudo ^ " has left the game.");
+	  print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " has left the game.");
       end
     else
       print_endline ("Server had to kicked out a player because maximum capacity was reached.");
@@ -151,7 +151,10 @@ object (self)
 			 begin
 			   let result = "CONNECTED/" ^ name ^ "\n" in
 			   ignore (Unix.write s_descr result 0 (String.length result));
-			   print_endline (name ^ " (n°" ^ (string_of_int number) ^ ") has just joined the game. " ^ string_of_int (!max_players - !players_connected) ^ " player(s) missing before starting the game.");
+			   if (!verbose_mode) then
+			   print_endline ((String.sub name 0 (String.length name - 1)) ^ " (n°" ^ (string_of_int number)
+					  ^ ") has just joined the game. " ^ string_of_int (!max_players - !players_connected)
+					  ^ " player(s) missing before starting the game.");
 			 end
 		       else
 			 begin
@@ -193,14 +196,14 @@ object (self)
 	let result = "NEW_ROUND/drawer/" ^ !word ^ "/\n" in
 	ignore (Unix.write s_descr result 0 (String.length result));
 	if (!verbose_mode) then
-	  print_endline ("The word " ^ !word ^ " has been sent to " ^ pseudo ^ ".");
+	  print_endline ("The word " ^ !word ^ " has been sent to " ^ (String.sub pseudo 0 (String.length pseudo - 1)) ^ ".");
       end
     else
       begin
 	let result = "NEW_ROUND/finder/\n" in
 	ignore (Unix.write s_descr result 0 (String.length result));
 	if (!verbose_mode) then
-	  print_endline (pseudo ^ "is a finder.");
+	  print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " is a finder.");
       end;
 
   method wait_word_proposition () =
@@ -226,7 +229,8 @@ object (self)
     with exn -> print_string (Printexc.to_string exn ^ " in wait_word_proposition method.\n");
 		
   method send_word_proposition () =
-    print_endline (pseudo ^ "is waiting for word propositions.");
+    if (!verbose_mode) then
+      print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " is waiting for word propositions.");
     while (true) do
       Condition.wait new_proposition mutex_proposition;
       let result = "GUESSED/" ^ !proposition ^ "\n" in
@@ -340,7 +344,7 @@ object(s)
 	print_endline ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");
       print_endline "By default, color is set to black (r = 0, g = 0 and b = 0) and size is set to 1.";
       if (!verbose_mode) then
-	print_endline (Array.get !running_order !round ^ " is the drawer.");
+	print_endline ((String.sub (Array.get !running_order !round) 0 (String.length (Array.get !running_order !round) - 1)) ^ " is the drawer.");
       word := !dictionary_words.((Random.int (!dictionary_size)));
       Thread.delay 1.;
       Mutex.lock m2;

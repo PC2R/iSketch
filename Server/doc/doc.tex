@@ -121,42 +121,77 @@ val s_descr : Unix.file_descr
 val s_addr : Unix.sockaddr
 \end{ocamldoccode}
 \index{s-underscoreaddr@\verb`s_addr`}
+\begin{ocamldocdescription}
+Pseudo of the player
+
+
+\end{ocamldocdescription}
 
 
 \label{val:Server.player.pseudo}\begin{ocamldoccode}
 val mutable pseudo : string
 \end{ocamldoccode}
 \index{pseudo@\verb`pseudo`}
+\begin{ocamldocdescription}
+Unique ID used to define the running order for the game
+
+
+\end{ocamldocdescription}
 
 
 \label{val:Server.player.number}\begin{ocamldoccode}
 val mutable number : int
 \end{ocamldoccode}
 \index{number@\verb`number`}
+\begin{ocamldocdescription}
+Creates a thread with all the functions needed by the player
+
+
+\end{ocamldocdescription}
 
 
 \label{method:Server.player.start}\begin{ocamldoccode}
 method start : unit -> unit
 \end{ocamldoccode}
 \index{start@\verb`start`}
+\begin{ocamldocdescription}
+Called when the player stops to play / quit the game
+
+
+\end{ocamldocdescription}
 
 
 \label{method:Server.player.stop}\begin{ocamldoccode}
 method stop : unit -> unit
 \end{ocamldoccode}
 \index{stop@\verb`stop`}
+\begin{ocamldocdescription}
+Method which adds one player to the game (if its pseudo is not used by another player)
+
+
+\end{ocamldocdescription}
 
 
 \label{method:Server.player.connection-underscoreplayer}\begin{ocamldoccode}
 method connection_player : unit -> unit
 \end{ocamldoccode}
 \index{connection-underscoreplayer@\verb`connection_player`}
+\begin{ocamldocdescription}
+Simple setter function to set number and pseudo variables
+
+
+\end{ocamldocdescription}
 
 
 \label{method:Server.player.set-underscorenumber-underscoreand-underscorepseudo}\begin{ocamldoccode}
 method set_number_and_pseudo : int Pervasives.ref -> string -> unit
 \end{ocamldoccode}
 \index{set-underscorenumber-underscoreand-underscorepseudo@\verb`set_number_and_pseudo`}
+\begin{ocamldocdescription}
+Called at the beginning of each round and send roles/word to find to the players
+
+
+\end{ocamldocdescription}
 
 
 \label{method:Server.player.send-underscoreroles-underscoreand-underscoreword}\begin{ocamldoccode}
