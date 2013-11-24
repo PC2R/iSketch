@@ -108,21 +108,13 @@ object (self)
   val s_addr = sa
   val mutable pseudo = ""
   val mutable number = 0
-			 
-  initializer
-    if (!verbose_mode) then
-      print_endline ("Someone has just open a connection on the server.");
 
   method start () =
     ignore (Thread.create (fun x ->
 			   self#connection_player x;
 			   self#send_roles_and_word x;
-			   self#wait_word_proposition x;
-			   self#stop x
+			   self#wait_functions x;
 			  ) ());
-  (*ignore (Thread.create (fun x ->
-			   self#wait_drawing_proposition x;
-			  ) ());*)
     
   method stop () =
     if (pseudo != "") then
@@ -135,7 +127,6 @@ object (self)
       print_endline ("Server had to kicked out a player because maximum capacity was reached.");
     Unix.close s_descr;
     Thread.exit ();
-    
 
   method connection_player () =
     try
@@ -210,6 +201,14 @@ object (self)
 	  print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " is a finder.");
       end;
 
+  method wait_functions () =
+    ignore (Thread.create (fun x ->
+			  self#wait_word_proposition x
+			  ) ());
+    ignore (Thread.create (fun x ->
+			   self#wait_drawing_proposition x
+			  )());
+
   method wait_word_proposition () =
     ignore (Thread.create (fun x ->
 			   self#send_word_proposition x
@@ -238,6 +237,21 @@ object (self)
 		     else
 		       Condition.broadcast new_proposition;
 		     Mutex.unlock mutex_proposition;
+	| "SET_COLOR" -> let new_color = String.sub command 10 (String.length command - 10) in
+			 rgb := new_color;
+			 if (!verbose_mode) then
+			   print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " changed the color of the line.");
+	| "SET_SIZE" -> let new_size = String.sub command 9 (String.length command - 9) in
+			size := new_size;
+			 if (!verbose_mode) then
+			   print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " changed the size of the line.");
+	| "SET_LINE" -> let new_line = String.sub command 9 (String.length command - 9) in
+			Mutex.lock mutex_drawing;
+			line := new_line;
+			 if (!verbose_mode) then
+			   print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " proposed a line.");
+			Condition.broadcast new_drawing_proposition;
+			Mutex.unlock mutex_drawing;
 	| _ -> let result = command ^ " is unknown (try GUESS/word/).\n" in
 	       ignore (Unix.write s_descr result 0 (String.length result));
       done;
@@ -272,24 +286,6 @@ object (self)
     ignore (Thread.create (fun x ->
 			   self#send_drawing_proposition x
 			  ) ());
-    try
-      while (true) do
-	let command = my_input_line s_descr in
-	let l = Str.split (Str.regexp "[/]") command in
-	match List.nth l 0 with
-	| "SET_COLOR" -> let new_color = String.sub command 10 (String.length command - 10) in
-			 rgb := new_color;
-	| "SET_SIZE" -> let new_size = String.sub command 9 (String.length command - 9) in
-			size := new_size;
-	| "SET_LINE" -> let new_line = String.sub command 9 (String.length command - 9) in
-			Mutex.lock mutex_drawing;
-			line := new_line;
-			Condition.broadcast new_drawing_proposition;
-			Mutex.unlock mutex_drawing;
-	| _ -> let result = command ^ "is unknown (try SET_COLOR/r/g/b/ or SET_SIZE/s/ or SET_LINE/x1/y1/x2/y2/).\n" in
-	       ignore (Unix.write s_descr result 0 (String.length result));
-      done;
-    with exn -> print_string (Printexc.to_string exn ^ " in wait_drawing_proposition method.\n")
 
   method send_drawing_proposition () =
     print_endline (pseudo ^ "is waiting for drawing propositions.");

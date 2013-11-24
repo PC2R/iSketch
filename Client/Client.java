@@ -101,6 +101,7 @@ public class Client extends Thread{
 				else
 				{
 					role = 1; // finder
+					/*
 					msg.wordProposition("MOT1");
 					try 
 					{
@@ -118,6 +119,7 @@ public class Client extends Thread{
 						e.printStackTrace();
 					}
 					msg.wordProposition("MOT3");
+					*/
 					//break;
 				}
 				//}

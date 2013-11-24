@@ -39,7 +39,17 @@ demandes de connexions et qui va créer un objet joueur à chaque
 nouvelle demande (nous verrons plus tard comment nous gérons le nombre
 limite de joueurs par partie).
 
-\bigskip 
+\bigskip Juste avant de commencer à accepter les demande de connexions
+des joueurs, on initialise quelques variables :
+\begin{itemize}
+\item Un tableau de taille le nombre de joueurs maximal pour une
+  partie et dont chaque case contiendra une string avec le
+  \textit{pseudo} du joueur ainsi que son nombre de \textit{points} au
+  cours du jeu sous la forme \textit{pseudo/points/}
+\item Un tableau contenant l’ensemble des mots présent dans le fichier
+  \textit{dictionnaire} donné par l’utilisateur et dans lequel on
+  tirera au hasard un mot à chaque tour
+\end{itemize}
 
 
 \section{Côté client}
