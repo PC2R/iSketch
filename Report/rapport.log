@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=pdflatex 2012.10.29)  24 NOV 2013 14:56
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=pdflatex 2012.10.29)  24 NOV 2013 18:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -464,11 +464,11 @@ File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./rapport.aux) ) 
 Here is how much of TeX's memory you used:
- 2759 strings out of 495030
- 37528 string characters out of 3180760
- 91577 words of memory out of 3000000
- 5893 multiletter control sequences out of 15000+200000
- 39842 words of font info for 35 fonts, out of 3000000 for 9000
+ 2763 strings out of 495030
+ 37577 string characters out of 3180760
+ 92577 words of memory out of 3000000
+ 5896 multiletter control sequences out of 15000+200000
+ 44105 words of font info for 36 fonts, out of 3000000 for 9000
  14 hyphenation exceptions out of 8191
  37i,6n,24p,233b,229s stack positions out of 5000i,500n,10000p,200000b,50000s
 {/usr/sha
@@ -476,11 +476,12 @@ re/texmf/fonts/enc/dvips/lm/lm-ec.enc}</usr/share/texmf/fonts/type1/public/lm/l
 mbx10.pfb></usr/share/texmf/fonts/type1/public/lm/lmbx12.pfb></usr/share/texmf/
 fonts/type1/public/lm/lmcsc10.pfb></usr/share/texmf/fonts/type1/public/lm/lmr10
 .pfb></usr/share/texmf/fonts/type1/public/lm/lmr12.pfb></usr/share/texmf/fonts/
-type1/public/lm/lmr17.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb>
-Output written on rapport.pdf (1 page, 163915 bytes).
+type1/public/lm/lmr17.pfb></usr/share/texmf/fonts/type1/public/lm/lmri10.pfb></
+usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb>
+Output written on rapport.pdf (1 page, 178874 bytes).
 PDF statistics:
- 37 PDF objects out of 1000 (max. 8388607)
- 26 compressed objects within 1 object stream
+ 41 PDF objects out of 1000 (max. 8388607)
+ 29 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

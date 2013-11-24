@@ -239,11 +239,17 @@ object (self)
 		     Mutex.unlock mutex_proposition;
 	| "SET_COLOR" -> let new_color = String.sub command 10 (String.length command - 10) in
 			 rgb := new_color;
+			 if (!verbose_mode) then
+			   print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " changed the color of the line.");
 	| "SET_SIZE" -> let new_size = String.sub command 9 (String.length command - 9) in
 			size := new_size;
+			 if (!verbose_mode) then
+			   print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " changed the size of the line.");
 	| "SET_LINE" -> let new_line = String.sub command 9 (String.length command - 9) in
 			Mutex.lock mutex_drawing;
 			line := new_line;
+			 if (!verbose_mode) then
+			   print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " proposed a line.");
 			Condition.broadcast new_drawing_proposition;
 			Mutex.unlock mutex_drawing;
 	| _ -> let result = command ^ " is unknown (try GUESS/word/).\n" in
