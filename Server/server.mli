@@ -34,15 +34,24 @@ Unix.sockaddr ->
 object
   val s_descr : Unix.file_descr
   val s_addr : Unix.sockaddr
+  (** Pseudo of the player *)
   val mutable pseudo : string
+  (** Unique ID used to define the running order for the game *)
   val mutable number : int
+  (** Creates a thread with all the functions needed by the player *)
   method start : unit -> unit
+  (** Called when the player stops to play / quit the game *)
   method stop : unit -> unit
+  (** Method which adds one player to the game (if its pseudo is not used by another player) *)
   method connection_player : unit -> unit
+  (** Simple setter function to set number and pseudo variables *)
   method set_number_and_pseudo : int ref -> string -> unit
+  (** Called at the beginning of each round and send roles/word to find to the players *)
   method send_roles_and_word : unit -> unit
   method wait_word_proposition : unit -> unit
   method send_word_proposition : unit -> unit
+  method send_word_found : unit -> unit
   method wait_drawing_proposition : unit -> unit
   method send_drawing_proposition : unit -> unit
 end
+

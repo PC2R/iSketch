@@ -45,6 +45,8 @@ let mutex_proposition = Mutex.create ()
 let new_proposition = Condition.create ()
 let proposition = ref ""
 
+let round_is_over = Condition.create ()
+
 (* Dictionary characteristics *)
 let dictionary_filename = ref "dictionary"
 let dictionary_words = ref (Array.make 0 "")
@@ -210,6 +212,9 @@ object (self)
     ignore (Thread.create (fun x ->
 			   self#send_word_proposition x
 			  ) ());
+    ignore (Thread.create (fun x ->
+			   self#send_word_found x
+			  ) ());
     try
       while true do
 	let command = my_input_line s_descr in
@@ -221,7 +226,10 @@ object (self)
 		     proposition := guessed_word ^ "" ^ pseudo;
 		     if (!verbose_mode) then
 		       print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " proposed the word " ^ (List.nth l 1) ^ ".");
-		     Condition.broadcast new_proposition;
+		     if (!word = (String.sub guessed_word 0 (String.length guessed_word - 1))) then
+			 Condition.broadcast word_found
+		     else
+		       Condition.broadcast new_proposition;
 		     Mutex.unlock mutex_proposition;
 	| _ -> let result = command ^ " is unknown (try GUESS/word/).\n" in
 	       ignore (Unix.write s_descr result 0 (String.length result));
@@ -241,6 +249,17 @@ object (self)
 		       ^ (String.sub pseudo 0 (String.length pseudo - 1)) ^ ".");
       Mutex.unlock mutex_proposition;
     done
+
+  method send_word_found () =
+    while (true) do
+      Condition.wait word_found mutex_proposition;
+      let result = "WORD_FOUND/" ^ (List.nth (Str.split (Str.regexp "[/]") !proposition) 1) ^ "/\n" in
+      ignore (Unix.write s_descr result 0 (String.length result));
+      if (!verbose_mode) then
+	print_endline ("The server has sent to " ^ (String.sub pseudo 0 (String.length pseudo - 1)) ^ " that the word has been found by " ^ (List.nth (Str.split (Str.regexp "[/]") result) 1) ^ "."); 
+      Mutex.unlock mutex_proposition;
+    done
+    
       
   method wait_drawing_proposition () =
     ignore (Thread.create (fun x ->
@@ -353,7 +372,7 @@ object(s)
       if (!verbose_mode) then
 	print_endline ("The drawer needs to draw the word \"" ^ !word ^ "\".");
       Mutex.lock mutex_word;
-      Condition.wait word_found m3;
+      Condition.wait round_is_over m3;
       incr round;
     done
       
