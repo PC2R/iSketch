@@ -54,5 +54,7 @@ object
   method send_word_found : unit -> unit
   method wait_drawing_proposition : unit -> unit
   method send_drawing_proposition : unit -> unit
+  method send_timeout : unit -> unit
+  method wait_timeout : unit -> unit
 end
 

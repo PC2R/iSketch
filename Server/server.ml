@@ -47,6 +47,9 @@ let proposition = ref ""
 
 let round_is_over = Condition.create ()
 
+let timeout_condition = Condition.create ()
+let mutex_timeout = Mutex.create ()
+
 (* Dictionary characteristics *)
 let dictionary_filename = ref "dictionary"
 let dictionary_words = ref (Array.make 0 "")
@@ -100,6 +103,9 @@ let compute_size file =
 
 exception Fin
 exception Maximum_players_reached
+exception Timeout
+
+let sigalrm_handler = Sys.Signal_handle (fun _ -> raise Timeout) ;;
 
 class player sd (sa : Unix.sockaddr) =
 object (self)
@@ -208,6 +214,9 @@ object (self)
     ignore (Thread.create (fun x ->
 			   self#wait_drawing_proposition x
 			  )());
+    ignore (Thread.create (fun x ->
+			   self#wait_timeout x
+			  ) ());
 
   method wait_word_proposition () =
     ignore (Thread.create (fun x ->
@@ -216,6 +225,7 @@ object (self)
     ignore (Thread.create (fun x ->
 			   self#send_word_found x
 			  ) ());
+
     try
       while true do
 	let command = my_input_line s_descr in
@@ -232,6 +242,9 @@ object (self)
 			 score_drawer := !score_drawer + 1;
 			 Array.set !running_order number (pseudo ^ string_of_int (!score_finder) ^ "/");
 			 score_finder := !score_finder - 1;
+			 ignore (Sys.signal Sys.sigalrm sigalrm_handler);
+			 ignore (Unix.alarm !timeout);
+			 print_endline ("The timeout has begun.");
 			 Condition.broadcast word_found;
 		       end
 		     else
@@ -255,8 +268,10 @@ object (self)
 	| _ -> let result = command ^ " is unknown (try GUESS/word/).\n" in
 	       ignore (Unix.write s_descr result 0 (String.length result));
       done;
-    with exn -> print_string (Printexc.to_string exn ^ " in wait_word_proposition method.\n");
-		
+    with
+    | exn -> print_string (Printexc.to_string exn ^ " in wait_word_proposition method.\n");
+    | Timeout -> print_endline ("Time's up !");
+		 
   method send_word_proposition () =
     if (!verbose_mode) then
       print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " is waiting for word propositions.");
@@ -288,14 +303,32 @@ object (self)
 			  ) ());
 
   method send_drawing_proposition () =
-    print_endline (pseudo ^ "is waiting for drawing propositions.");
+    print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " is waiting for drawing propositions.");
     while (true) do
       Condition.wait new_drawing_proposition mutex_drawing;
       let result = "LINE/" ^ !line ^ "" ^ !rgb ^ "" ^ !size ^ "\n" in
       ignore (Unix.write s_descr result 0 (String.length result));
+      if (!verbose_mode) then
+	print_endline ("The server has sent to " ^ (String.sub pseudo 0 (String.length pseudo - 1)) ^ " the new line.");
       Mutex.unlock mutex_drawing;
     done
-      
+
+  method wait_timeout () =
+    ignore (Thread.create (fun x ->
+			   self#send_timeout x
+			  ) ());
+
+  method send_timeout () =
+    print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " is waiting for timeout.");
+    while (true) do
+      Condition.wait timeout_condition mutex_timeout;
+      let result = "WORD_FOUND_TIMEOUT/" ^ (string_of_int !timeout) ^ "/\n" in
+      ignore (Unix.write s_descr result 0 (String.length result));
+      if (!verbose_mode) then
+	print_endline ("The server has sent to " ^ (String.sub pseudo 0 (String.length pseudo - 1)) ^ " that the timeout is " ^ (string_of_int !timeout) ^ " seconds.");
+      Mutex.unlock mutex_timeout;
+    done
+    
       
 end;;
   
