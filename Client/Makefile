@@ -5,7 +5,9 @@ SRC		=	Message.java		\
 			ThreadListener.java	\
 			ThreadSender.java	\
 			MessagesPanel.java	\
-			TextPanel.java
+			TextPanel.java		\
+			DrawMenu.java		\
+			DrawPanel.java
 
 OBJ		=	$(SRC:.java=.class)
 

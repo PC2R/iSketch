@@ -1,4 +1,3 @@
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -39,7 +38,7 @@ public class TextPanel extends JPanel implements ActionListener , KeyListener{
 		this.add(textField);
 		this.add(btnSend);
 		this.setLayout(new FlowLayout(FlowLayout.CENTER));
-		this.setBackground(Color.white);
+		this.setBackground(Color.DARK_GRAY);
 		this.setPreferredSize(new Dimension(wWidth / 2, wHeight / 5));
 		this.setMinimumSize(new Dimension(wWidth / 2, wHeight / 5));
 	}

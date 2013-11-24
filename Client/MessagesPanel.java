@@ -1,9 +1,10 @@
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 
 import javax.swing.BoxLayout;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
@@ -15,20 +16,29 @@ import javax.xml.ws.handler.MessageContext.Scope;
 @SuppressWarnings("serial")
 public class MessagesPanel extends JPanel {
 	
-	private JPanel msgPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-	private JPanel listJoueurPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+	private JPanel msgPanel = new JPanel(null);
+	private JPanel listJoueurPanel = new JPanel(null);
 	
 	private JTextArea textListJoueur = new JTextArea();
 	private JTextArea textMsg = new JTextArea();
+	
+	private JLabel titleListJoueur = new JLabel("Liste des joueurs");
+	private JLabel titleMsg = new JLabel("Propositions");
 	
 	private JScrollPane jScroll;
 	
 	MessagesPanel(int wWidth, int wHeight)
 	{
+		titleListJoueur.setForeground(Color.WHITE);
+		titleListJoueur.setFont(new Font("Arial", Font.BOLD, 16));
+		
+		titleMsg.setForeground(Color.WHITE);
+		titleMsg.setFont(new Font("Arial", Font.BOLD, 16));
+		
 		textListJoueur.setPreferredSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
 		textListJoueur.setMaximumSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
 		textListJoueur.setAlignmentY(TOP_ALIGNMENT);
-		textListJoueur.setText("Liste des joueurs : \n");
+		textListJoueur.setFont(new Font("Arial", Font.BOLD, 14));
 		textListJoueur.setEditable(false);
 		textListJoueur.setBackground(Color.lightGray);
 		
@@ -37,18 +47,22 @@ public class MessagesPanel extends JPanel {
 		textMsg.setPreferredSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
 		textMsg.setMaximumSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
 		textMsg.setAlignmentY(TOP_ALIGNMENT);
-		textMsg.setText("Propositions : \n");
+		textMsg.setFont(new Font("Arial", Font.BOLD, 14));
 		textMsg.setEditable(false);
 		textMsg.setBackground(Color.lightGray);
 		
-		msgPanel.setBackground(Color.white);
+		msgPanel.setBackground(Color.DARK_GRAY);
 		msgPanel.setPreferredSize(new Dimension(wWidth / 4, 4 * wHeight / 5));
 		msgPanel.setMaximumSize(new Dimension(wWidth / 4, 4 * wHeight / 5));
+		msgPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+		msgPanel.add(titleMsg);
 		msgPanel.add(textMsg);
 
-		listJoueurPanel.setBackground(Color.white);
+		listJoueurPanel.setBackground(Color.DARK_GRAY);
 		listJoueurPanel.setPreferredSize(new Dimension(wWidth / 4, 4 * wHeight / 5));
 		listJoueurPanel.setMaximumSize(new Dimension(wWidth / 4, 4 * wHeight / 5));
+		listJoueurPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+		listJoueurPanel.add(titleListJoueur);
 		listJoueurPanel.add(textListJoueur);
 		
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
@@ -61,7 +75,7 @@ public class MessagesPanel extends JPanel {
 	public void addPlayer(String name, String score)
 	{
 		this.textListJoueur.append(name);
-		this.textListJoueur.append("\t\t\t");
+		this.textListJoueur.append("\t");
 		this.textListJoueur.append(score);
 		this.textListJoueur.append("\n");
 	}

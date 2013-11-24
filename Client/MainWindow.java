@@ -1,4 +1,3 @@
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -15,13 +14,13 @@ public class MainWindow extends JFrame {
 	private static int wHeight = 600;
 	private static int wWidth = 1100;
 	
-	private JPanel drawPanel = new JPanel(null);
+	private DrawPanel drawPanel;
 	private JPanel westPanel = new JPanel(null);
 	private JPanel globalPanel = new JPanel(null);
 	
 	private TextPanel textP = new TextPanel(wWidth, wHeight, this);
 	private MessagesPanel messP = new MessagesPanel(wWidth, wHeight);
-
+	
 	private Messenger msn;
 
 	public MainWindow(Messenger msn)
@@ -31,8 +30,9 @@ public class MainWindow extends JFrame {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setLocationRelativeTo(null);
 		
+		drawPanel = new DrawPanel(wWidth / 2 - 10, wHeight - 10);
 		drawPanel.setBackground(Color.white);
-		drawPanel.setPreferredSize(new Dimension(wWidth / 2, wHeight));
+		drawPanel.setPreferredSize(new Dimension(wWidth / 2 - 10, wHeight - 10));
 		
 		westPanel.setLayout(new BoxLayout(westPanel, BoxLayout.PAGE_AXIS));
 		westPanel.setPreferredSize(new Dimension(wWidth / 2, wHeight));
@@ -45,7 +45,7 @@ public class MainWindow extends JFrame {
 		
 		this.getContentPane().add(globalPanel);
 		this.setVisible(true);
-
+		
 		this.msn = msn;
 	}
 	
@@ -56,7 +56,7 @@ public class MainWindow extends JFrame {
 	
 	public void sendProposition(String prop)
 	{
-		this.msn.wordProposition(prop);
+		msn.wordProposition(prop);
 	}
 
 	public void guessed(String[] tab)
