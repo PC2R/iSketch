@@ -13,7 +13,7 @@ public class Messenger {
 	private Message msgToServer = new Message();
 	private Message msgFromServer = new Message();
 
-	private MainWindow mWindow = new MainWindow(); 
+	private MainWindow mWindow = new MainWindow(this); 
 
 	Messenger(BufferedReader dis, PrintStream ps)
 	{
