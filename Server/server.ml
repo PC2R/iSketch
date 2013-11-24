@@ -319,14 +319,20 @@ object(s)
       Unix.listen s_descr nb_pending;
       if (!verbose_mode) then
 	begin
-	  print_endline ("Server successfully started with parameters : " ^ string_of_int !max_players
-			 ^ " maximum players and " ^ string_of_int !timeout ^ " seconds of timeout.");
-	  print_endline ("Server is waiting for players connections on port " ^ string_of_int port
-			 ^ " and host/address " ^ Unix.gethostname() ^ "/" ^ Unix.string_of_inet_addr h_addr ^ ".");
+	  print_endline ("Server successfully started with parameters : "
+			 ^ string_of_int !max_players
+			 ^ " maximum players and " ^ string_of_int !timeout
+			 ^ " seconds of timeout.");
+	  print_endline ("Server is waiting for players connections on port "
+			 ^ string_of_int port ^ " and host/address "
+			 ^ Unix.gethostname() ^ "/"
+			 ^ Unix.string_of_inet_addr h_addr ^ ".");
 	end;
-      running_order := Array.append !running_order (Array.make !max_players "");
+      running_order := Array.append !running_order
+				    (Array.make !max_players "");
       dictionary_size := compute_size !dictionary_filename;
-      dictionary_words := Array.append !dictionary_words (Array.make !dictionary_size "");
+      dictionary_words := Array.append !dictionary_words
+				       (Array.make !dictionary_size "");
       begin
 	let in_channel = open_in !dictionary_filename and i = ref 0 in
 	let rec loop () =

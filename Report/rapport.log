@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=pdflatex 2012.10.29)  22 NOV 2013 12:09
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=pdflatex 2012.10.29)  24 NOV 2013 14:56
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -456,26 +456,31 @@ LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <8> on input line 15.
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <6> on input line 15.
- [1
+LaTeX Font Info:    Try loading font information for T1+lmtt on input line 31.
+
+(/usr/share/texmf/tex/latex/lm/t1lmtt.fd
+File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
+) [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./rapport.aux) ) 
 Here is how much of TeX's memory you used:
- 2716 strings out of 495030
- 36876 string characters out of 3180760
- 90577 words of memory out of 3000000
- 5855 multiletter control sequences out of 15000+200000
- 33530 words of font info for 32 fonts, out of 3000000 for 9000
+ 2759 strings out of 495030
+ 37528 string characters out of 3180760
+ 91577 words of memory out of 3000000
+ 5893 multiletter control sequences out of 15000+200000
+ 39842 words of font info for 35 fonts, out of 3000000 for 9000
  14 hyphenation exceptions out of 8191
  37i,6n,24p,233b,229s stack positions out of 5000i,500n,10000p,200000b,50000s
 {/usr/sha
 re/texmf/fonts/enc/dvips/lm/lm-ec.enc}</usr/share/texmf/fonts/type1/public/lm/l
-mbx12.pfb></usr/share/texmf/fonts/type1/public/lm/lmcsc10.pfb></usr/share/texmf
-/fonts/type1/public/lm/lmr10.pfb></usr/share/texmf/fonts/type1/public/lm/lmr12.
-pfb></usr/share/texmf/fonts/type1/public/lm/lmr17.pfb>
-Output written on rapport.pdf (1 page, 117218 bytes).
+mbx10.pfb></usr/share/texmf/fonts/type1/public/lm/lmbx12.pfb></usr/share/texmf/
+fonts/type1/public/lm/lmcsc10.pfb></usr/share/texmf/fonts/type1/public/lm/lmr10
+.pfb></usr/share/texmf/fonts/type1/public/lm/lmr12.pfb></usr/share/texmf/fonts/
+type1/public/lm/lmr17.pfb></usr/share/texmf/fonts/type1/public/lm/lmtt10.pfb>
+Output written on rapport.pdf (1 page, 163915 bytes).
 PDF statistics:
- 29 PDF objects out of 1000 (max. 8388607)
- 20 compressed objects within 1 object stream
+ 37 PDF objects out of 1000 (max. 8388607)
+ 26 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
