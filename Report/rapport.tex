@@ -1,0 +1,47 @@
+\documentclass[a4paper, 11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[french]{babel}
+\usepackage{fullpage}
+\usepackage{graphicx}
+
+\title{Devoir de programmation PC2R : iSketch}
+\author{Clara \bsc{Muller} \& Théo \bsc{Lebourg}}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Côté serveur}
+Pour développer la partie serveur de iSketch, nous avons opté pour le
+langage OCaml. Nous allons dans un premier temps expliquer quels ont
+été nos choix pour organiser notre serveur avant de s’attarder un peu
+plus en détail sur le code.
+
+\subsection {Création du serveur}
+Lorsque l'on lance l’executable, la première étape du programme est la
+création du serveur (pour qu’il soit prêt à recevoir les connexions
+des futurs clients) ainsi que l’initialisation de variables qui seront
+utilisées une fois le jeu lancé.
+
+\bigskip La création de notre objet serveur reprend les étapes
+classiques vues en cours. On crée tout d’abord \textbf{une prise} à
+l’aide de l’appel système \verb+Unix.socket+ (en utilisant le domaine
+Internet, le flot d’octets et le protocole de communication par
+défaut), puis on récupère \textbf{une adresse dans le domaine
+  internet} (à l’aide de l’adresse Internet de la machine locale et
+d’un numéro de port défini par l’utilisateur) afin de pouvoir associer
+les deux. Ensuite, on rend la prise capable d’accepter les
+connexions. Enfin, on met en place une boucle infinie qui accepte les
+demandes de connexions et qui va créer un objet joueur à chaque
+nouvelle demande (nous verrons plus tard comment nous gérons le nombre
+limite de joueurs par partie).
+
+\bigskip 
+
+
+\section{Côté client}
+
+\end{document}

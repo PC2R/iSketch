@@ -58,6 +58,8 @@ let accept_players = ref true
 let is_started = ref false
 let word = ref ""
 let word_is_found = ref false
+let score_drawer = ref 0
+let score_finder = ref 0
 
 (* Drawing characteristics *)
 let rgb = ref ""
@@ -227,7 +229,12 @@ object (self)
 		     if (!verbose_mode) then
 		       print_endline ((String.sub pseudo 0 (String.length pseudo - 1)) ^ " proposed the word " ^ (List.nth l 1) ^ ".");
 		     if (!word = (String.sub guessed_word 0 (String.length guessed_word - 1))) then
-			 Condition.broadcast word_found
+		       begin
+			 score_drawer := !score_drawer + 1;
+			 Array.set !running_order number (pseudo ^ string_of_int (!score_finder) ^ "/");
+			 score_finder := !score_finder - 1;
+			 Condition.broadcast word_found;
+		       end
 		     else
 		       Condition.broadcast new_proposition;
 		     Mutex.unlock mutex_proposition;
@@ -312,14 +319,20 @@ object(s)
       Unix.listen s_descr nb_pending;
       if (!verbose_mode) then
 	begin
-	  print_endline ("Server successfully started with parameters : " ^ string_of_int !max_players
-			 ^ " maximum players and " ^ string_of_int !timeout ^ " seconds of timeout.");
-	  print_endline ("Server is waiting for players connections on port " ^ string_of_int port
-			 ^ " and host/address " ^ Unix.gethostname() ^ "/" ^ Unix.string_of_inet_addr h_addr ^ ".");
+	  print_endline ("Server successfully started with parameters : "
+			 ^ string_of_int !max_players
+			 ^ " maximum players and " ^ string_of_int !timeout
+			 ^ " seconds of timeout.");
+	  print_endline ("Server is waiting for players connections on port "
+			 ^ string_of_int port ^ " and host/address "
+			 ^ Unix.gethostname() ^ "/"
+			 ^ Unix.string_of_inet_addr h_addr ^ ".");
 	end;
-      running_order := Array.append !running_order (Array.make !max_players "");
+      running_order := Array.append !running_order
+				    (Array.make !max_players "");
       dictionary_size := compute_size !dictionary_filename;
-      dictionary_words := Array.append !dictionary_words (Array.make !dictionary_size "");
+      dictionary_words := Array.append !dictionary_words
+				       (Array.make !dictionary_size "");
       begin
 	let in_channel = open_in !dictionary_filename and i = ref 0 in
 	let rec loop () =
@@ -359,6 +372,8 @@ object(s)
     while (!round < !max_players) do
       rgb := "0/0/0/";
       size := "1/";
+      score_finder := 10;
+      score_drawer := 0;
       if (!verbose_mode) then
 	print_endline ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");
       print_endline "By default, color is set to black (r = 0, g = 0 and b = 0) and size is set to 1.";

@@ -70,8 +70,8 @@ public class Client extends Thread{
 		try
 		{
 			//Cannot use this constructor but it should be
-			//s = new Socket (address, PORT);
-			s = new Socket("localhost", PORT);
+			s = new Socket (address, PORT);
+			//s = new Socket("localhost", PORT);
 
 			System.out.println("Socket successfuly created");
 			BufferedReader dis = new BufferedReader(new InputStreamReader(s.getInputStream()));
