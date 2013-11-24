@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -113,10 +112,12 @@ public class Messenger {
 		tListener.start();
 		tSender.start();
 	}
-
-	public void closeWindow()
+	
+	public void stopThread()
 	{
-		mWindow.dispose();
+		System.out.println("Arret de threads");
+		tListener.interrupt();
+		tSender.interrupt();
 	}
 
 	/* COMMAND */
@@ -147,10 +148,39 @@ public class Messenger {
 			msgToServer.notifyAll();
 		}
 	}
+	
+	public void sendCommandSetColor(int r, int g, int b)
+	{
+		synchronized (msgToServer)
+		{
+			System.out.println("Changement de couleur");
+			msgToServer.setMsg("SET_COLOR/" + Integer.toString(r) + "/" + 
+								Integer.toString(g) + "/" + 
+								Integer.toString(b) + "/");
+			msgToServer.notifyAll();
+		}
+	}
 
+	public void sendCommandSetLine(int size)
+	{
+		synchronized (msgToServer)
+		{
+			System.out.println("Changement de couleur");
+			msgToServer.setMsg("SET_SIZE/" + Integer.toString(size) + "/");
+			msgToServer.notifyAll();
+		}
+	}
+	
+	/* GRAPHIC WINDOW ACTIONS */
+	
 	public void addPlayer(String name, String score)
 	{
 		mWindow.addPlayer(name, score);
+	}
+	
+	public void closeWindow()
+	{
+		mWindow.dispose();
 	}
 	
 	/* STATIC METHODES */

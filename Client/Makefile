@@ -7,7 +7,10 @@ SRC		=	Message.java		\
 			MessagesPanel.java	\
 			TextPanel.java		\
 			DrawMenu.java		\
-			DrawPanel.java
+			DrawPanel.java		\
+			ColorActionListener.java\
+			SizeActionListener.java	\
+			BoardPanel.java
 
 OBJ		=	$(SRC:.java=.class)
 

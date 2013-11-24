@@ -1,10 +1,6 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.*;
 
 
@@ -30,7 +26,7 @@ public class MainWindow extends JFrame {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setLocationRelativeTo(null);
 		
-		drawPanel = new DrawPanel(wWidth / 2 - 10, wHeight - 10);
+		drawPanel = new DrawPanel(wWidth / 2 - 10, wHeight - 10, this);
 		drawPanel.setBackground(Color.white);
 		drawPanel.setPreferredSize(new Dimension(wWidth / 2 - 10, wHeight - 10));
 		
@@ -48,12 +44,15 @@ public class MainWindow extends JFrame {
 		
 		this.msn = msn;
 	}
+
+	/* PLAYERS */
 	
 	public void addPlayer(String name, String score)
 	{
 		this.messP.addPlayer(name, score);
 	}
 	
+	/* MESSAGES */
 	public void sendProposition(String prop)
 	{
 		msn.wordProposition(prop);
@@ -89,5 +88,16 @@ public class MainWindow extends JFrame {
 		System.out.println("Le round est terminé");
 		System.out.println("Le gagnant est " + tab[1]);
 		System.out.println("Le mot à trouver était " + tab[2]);
+	}
+
+	/* GRAPHICS */
+	public void sendCommandSetColor(int r, int g, int b)
+	{
+		msn.sendCommandSetColor(r, g, b);
+	}
+
+	public void sendCommandSetLine(int size)
+	{
+		msn.sendCommandSetLine(size);
 	}
 }
