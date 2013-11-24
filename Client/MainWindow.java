@@ -22,7 +22,9 @@ public class MainWindow extends JFrame {
 	private TextPanel textP = new TextPanel(wWidth, wHeight, this);
 	private MessagesPanel messP = new MessagesPanel(wWidth, wHeight);
 
-	public MainWindow()
+	private Messenger msn;
+
+	public MainWindow(Messenger msn)
 	{
 		this.setTitle("Joue !");
 		this.setSize(wWidth, wHeight);
@@ -43,6 +45,8 @@ public class MainWindow extends JFrame {
 		
 		this.getContentPane().add(globalPanel);
 		this.setVisible(true);
+
+		this.msn = msn;
 	}
 	
 	public void addPlayer(String name, String score)
@@ -52,7 +56,7 @@ public class MainWindow extends JFrame {
 	
 	public void sendProposition(String prop)
 	{
-		this.messP.newProp(prop);
+		this.msn.wordProposition(prop);
 	}
 
 	public void guessed(String[] tab)
