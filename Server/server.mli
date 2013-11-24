@@ -47,6 +47,7 @@ object
   (** Simple setter function to set number and pseudo variables *)
   method set_number_and_pseudo : int ref -> string -> unit
   (** Called at the beginning of each round and send roles/word to find to the players *)
+  method wait_functions : unit -> unit
   method send_roles_and_word : unit -> unit
   method wait_word_proposition : unit -> unit
   method send_word_proposition : unit -> unit
