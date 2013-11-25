@@ -8,6 +8,7 @@ SRC		=	Message.java		\
 			TextPanel.java		\
 			DrawMenu.java		\
 			DrawPanel.java		\
+			DrawPoint.java		\
 			ColorActionListener.java\
 			SizeActionListener.java	\
 			BoardPanel.java
