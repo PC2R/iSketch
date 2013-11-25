@@ -15,8 +15,8 @@ public class BoardPanel extends JPanel implements MouseListener
 {
 	private DrawPanel drawp;
 
-	private Color gColor;
-	private int gsize;
+	private Color gColor = Color.BLACK;
+	private int gsize = 1;
 
 	private boolean actif;
 
@@ -29,6 +29,8 @@ public class BoardPanel extends JPanel implements MouseListener
 		this.addMouseListener(this);
 	}
 
+	/* MOUSELISTENER */
+	
 	@Override
 	public void mouseClicked(MouseEvent e)
 	{
@@ -59,6 +61,19 @@ public class BoardPanel extends JPanel implements MouseListener
 	{
 	}
 
+	/* GRAPHICS */
+	
+	public void line(String[] tab)
+	{
+		Color c = new Color(Integer.decode(tab[5]), Integer.decode(tab[6]), Integer.decode(tab[7]));
+		int s = Integer.decode(tab[8]);
+		DrawPoint p1 = new DrawPoint(Integer.decode(tab[1]), Integer.decode(tab[2]), c, s);
+		DrawPoint p2 = new DrawPoint(Integer.decode(tab[3]), Integer.decode(tab[4]), c, s);
+		listPoints.add(p1);
+		listPoints.add(p2);
+		repaint();
+	}
+	
 	public void paintComponent(Graphics g)
 	{
 		int i = 0;

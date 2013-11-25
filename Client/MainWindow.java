@@ -53,6 +53,7 @@ public class MainWindow extends JFrame {
 	}
 	
 	/* MESSAGES */
+	
 	public void sendProposition(String prop)
 	{
 		msn.wordProposition(prop);
@@ -89,8 +90,14 @@ public class MainWindow extends JFrame {
 		System.out.println("Le gagnant est " + tab[1]);
 		System.out.println("Le mot à trouver était " + tab[2]);
 	}
+	
+	public void line(String[] tab)
+	{
+		drawPanel.line(tab);
+	}
 
 	/* GRAPHICS */
+	
 	public void sendCommandSetColor(int r, int g, int b)
 	{
 		msn.sendCommandSetColor(r, g, b);

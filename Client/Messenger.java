@@ -129,12 +129,14 @@ public class Messenger {
 			mWindow.guessed(tab);
 		else if (tab[0].equals("WORD_FOUND"))
 			mWindow.wordFound(tab);
-		else if (tab[0].equals("WORD_FOUND_TIME_OUT"))
+		else if (tab[0].equals("WORD_FOUND_TIMEOUT"))
 			mWindow.wordFoundTimeOut(tab);
 		else if (tab[0].equals("SCORE_OUT"))
 			mWindow.scoreOut(tab);
 		else if (tab[0].equals("END_ROUND"))
 			mWindow.endRound(tab);
+		else if (tab[0].equals("LINE"))
+			mWindow.line(tab);
 		else
 			System.out.println("Commande inconnue : " + tab[0]);
 	}

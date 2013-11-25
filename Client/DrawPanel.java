@@ -43,6 +43,14 @@ public class DrawPanel extends JPanel
 		mWindow.sendCommandSetLine(x1, y1, x2, y2);
 	}
 	
+	
+	/* GRAPHICS */
+	
+	public void line(String[] tab)
+	{
+		board.line(tab);
+	}
+	
 	/* GETTERS/SETTERS */
 	
 	public Color getDrawColor() {return color; }
