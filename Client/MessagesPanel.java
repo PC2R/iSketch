@@ -50,19 +50,20 @@ public class MessagesPanel extends JPanel {
 		textMsg.setFont(new Font("Arial", Font.BOLD, 14));
 		textMsg.setEditable(false);
 		textMsg.setBackground(Color.lightGray);
+		textMsg.setLineWrap(true);
 		
 		msgPanel.setBackground(Color.DARK_GRAY);
 		msgPanel.setPreferredSize(new Dimension(wWidth / 4, 4 * wHeight / 5));
 		msgPanel.setMaximumSize(new Dimension(wWidth / 4, 4 * wHeight / 5));
 		msgPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-		msgPanel.add(titleMsg);
+		//msgPanel.add(titleMsg);
 		msgPanel.add(textMsg);
 
 		listJoueurPanel.setBackground(Color.DARK_GRAY);
 		listJoueurPanel.setPreferredSize(new Dimension(wWidth / 4, 4 * wHeight / 5));
 		listJoueurPanel.setMaximumSize(new Dimension(wWidth / 4, 4 * wHeight / 5));
 		listJoueurPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-		listJoueurPanel.add(titleListJoueur);
+		//listJoueurPanel.add(titleListJoueur);
 		listJoueurPanel.add(textListJoueur);
 		
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
@@ -96,6 +97,7 @@ public class MessagesPanel extends JPanel {
 	{
 		textMsg.append("le mot a été trouvé par ");
 		textMsg.append(name);
+		//textMsg.append("Bravo");
 		textMsg.append("!\n");
 	}
 

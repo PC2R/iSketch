@@ -33,10 +33,10 @@ public class DrawMenu extends JMenuBar
 	private int size;
 	private DrawPanel drawp;
 
-	public DrawMenu(int w, int h, DrawPanel dp)
+	public DrawMenu(int w, int l, DrawPanel dp)
 	{
 		super();
-		this.setPreferredSize(new Dimension(w , h / 15));
+		this.setPreferredSize(new Dimension(w , l));
 		initMenuColors();
 		this.add(mColors);
 		initMenuLine();
@@ -126,11 +126,14 @@ public class DrawMenu extends JMenuBar
 		red = c.getRed();
 		green = c.getGreen();
 		blue = c.getBlue();
+		this.drawp.setDrawColor(c);
 		this.drawp.sendCommandSetColor(red, green, blue);
 	}
+	
 	public void setSize(int s)
 	{ 
 		this.size = s;
-		this.drawp.sendCommandSetLine(s);
+		this.drawp.setDrawSize(s);
+		this.drawp.sendCommandSetSize(s);
 	}
 }

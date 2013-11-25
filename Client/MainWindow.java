@@ -26,7 +26,7 @@ public class MainWindow extends JFrame {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setLocationRelativeTo(null);
 		
-		drawPanel = new DrawPanel(wWidth / 2 - 10, wHeight - 10, this);
+		drawPanel = new DrawPanel(wWidth / 2, wHeight, this);
 		drawPanel.setBackground(Color.white);
 		drawPanel.setPreferredSize(new Dimension(wWidth / 2 - 10, wHeight - 10));
 		
@@ -96,8 +96,13 @@ public class MainWindow extends JFrame {
 		msn.sendCommandSetColor(r, g, b);
 	}
 
-	public void sendCommandSetLine(int size)
+	public void sendCommandSetSize(int size)
 	{
-		msn.sendCommandSetLine(size);
+		msn.sendCommandSetSize(size);
+	}
+	
+	public void sendCommandSetLine(int x1, int y1, int x2, int y2)
+	{
+		msn.sendCommandSetLine(x1, y1, x2, y2);
 	}
 }

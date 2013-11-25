@@ -47,7 +47,7 @@ public class Messenger {
 		String[] tab;
 		String line = new String();
 		int i;
-		
+
 		try
 		{
 			System.out.println("Attente de la liste des joueurs");
@@ -67,7 +67,7 @@ public class Messenger {
 			}
 		}
 	}
-	
+
 	public String beginRound()
 	{
 		String res;
@@ -112,7 +112,7 @@ public class Messenger {
 		tListener.start();
 		tSender.start();
 	}
-	
+
 	public void stopThread()
 	{
 		System.out.println("Arret de threads");
@@ -121,7 +121,7 @@ public class Messenger {
 	}
 
 	/* COMMAND */
-	
+
 	public synchronized void interpretCommand()
 	{
 		String tab[] = parse(msgFromServer.getMsg());
@@ -138,7 +138,7 @@ public class Messenger {
 		else
 			System.out.println("Commande inconnue : " + tab[0]);
 	}
-	
+
 	public void wordProposition(String word)
 	{
 		synchronized (msgToServer)
@@ -148,43 +148,56 @@ public class Messenger {
 			msgToServer.notifyAll();
 		}
 	}
-	
+
 	public void sendCommandSetColor(int r, int g, int b)
 	{
 		synchronized (msgToServer)
 		{
 			System.out.println("Changement de couleur");
 			msgToServer.setMsg("SET_COLOR/" + Integer.toString(r) + "/" + 
-								Integer.toString(g) + "/" + 
-								Integer.toString(b) + "/");
+					Integer.toString(g) + "/" + 
+					Integer.toString(b) + "/");
 			msgToServer.notifyAll();
 		}
 	}
 
-	public void sendCommandSetLine(int size)
+	public void sendCommandSetSize(int size)
 	{
 		synchronized (msgToServer)
 		{
-			System.out.println("Changement de couleur");
+			System.out.println("Changement de taille");
 			msgToServer.setMsg("SET_SIZE/" + Integer.toString(size) + "/");
 			msgToServer.notifyAll();
 		}
 	}
-	
+
+	public void sendCommandSetLine(int x1, int y1, int x2, int y2)
+	{
+		synchronized (msgToServer) 
+		{
+			System.out.println("On trace un trait");
+			msgToServer.setMsg("SET_LINE/" + Integer.toString(x1) + "/" + 
+					Integer.toString(y1) + "/" +
+					Integer.toString(x2) + "/" +
+					Integer.toString(y2) + "/");
+			msgToServer.notifyAll();
+		}
+	}
+
 	/* GRAPHIC WINDOW ACTIONS */
-	
+
 	public void addPlayer(String name, String score)
 	{
 		mWindow.addPlayer(name, score);
 	}
-	
+
 	public void closeWindow()
 	{
 		mWindow.dispose();
 	}
-	
+
 	/* STATIC METHODES */
-	
+
 	public static int getNbMotString(String str)
 	{
 		int result = 1;
