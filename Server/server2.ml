@@ -13,12 +13,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *)
 
+let max_players = ref 4
+let timeout = ref 30
+let port = ref 2013
+let verbose_mode = ref false
+let dictionary_filename = ref "dictionary"
 
 let trace message =
-  let out_channel = open_out server.log
-  and let date = in
-  output_string out_channel ""
-
+  let out_channel = open_out_gen [Open_append;Open_creat] 0o666 "log/server.log"
+  and date = Unix.gmtime (Unix.time ()) in
+  output_string out_channel
+		("[" ^ string_of_int (date.Unix.tm_mday)
+		 ^ "/" ^ string_of_int (date.Unix.tm_mon + 1)
+		 ^ "/" ^ string_of_int (date.Unix.tm_year + 1900)
+		 ^ " " ^ string_of_int (date.Unix.tm_hour)
+		 ^ ":" ^ string_of_int (date.Unix.tm_min)
+		 ^ ":" ^ string_of_int (date.Unix.tm_sec)
+		 ^ "]" ^ " \"" ^ message ^ "\"\n");
+  close_out out_channel;;
+  
 let main () =
   begin
     let speclist =
@@ -38,6 +51,6 @@ let main () =
        in Arg.parse speclist print_endline usage_msg;
   end;
   Random.self_init();
-  (new server !port 2)#start();;
+  trace "coucou";;
   
   main ();;
