@@ -18,4 +18,4 @@ all:
 	$(CAMLDOC) -I +threads -v -latex $(INTERFACE) -o doc/doc.tex
 
 clean:
-	rm -f $(EXEC) *.cm[io] *~
+	rm -f $(EXEC) *.cm[io] *~ log/*
