@@ -88,12 +88,17 @@ let add_player player name =
       false
     end;;
 
+exception Time
+
 let my_input_line file_descr =
-  let s = " " and r = ref "" in
-  while (Unix.read file_descr s 0 1 > 0) && s.[0] <> '\n' do
-    r := !r ^ s
-  done;
-  !r;;
+  try
+    let s = " " and r = ref "" in
+    while (Unix.read file_descr s 0 1 > 0) && s.[0] <> '\n' do
+      r := !r ^ s
+    done;
+    !r;
+  with Time -> print_endline "Time's up";
+	       "";;
   
 (* This function computes how many lines has the file given in parameter *)
 let compute_size file =
@@ -103,13 +108,10 @@ let compute_size file =
 
 exception Fin
 exception Maximum_players_reached
-exception Timeout
-
-let sigalrm_handler = Sys.Signal_handle (fun _ -> raise Timeout) ;;
 
 class player sd (sa : Unix.sockaddr) =
 object (self)
-	 
+
   val s_descr = sd
   val s_addr = sa
   val mutable pseudo = ""
@@ -225,8 +227,8 @@ object (self)
     ignore (Thread.create (fun x ->
 			   self#send_word_found x
 			  ) ());
-
-    try
+    Sys.set_signal Sys.sigalrm (Sys.Signal_handle (fun _ -> raise Time));	
+    try 
       while true do
 	let command = my_input_line s_descr in
 	let l = Str.split (Str.regexp "[/]") command in
@@ -242,8 +244,7 @@ object (self)
 			 score_drawer := !score_drawer + 1;
 			 Array.set !running_order number (pseudo ^ string_of_int (!score_finder) ^ "/");
 			 score_finder := !score_finder - 1;
-			 ignore (Sys.signal Sys.sigalrm sigalrm_handler);
-			 ignore (Unix.alarm !timeout);
+			 ignore (Unix.alarm 5);
 			 print_endline ("The timeout has begun.");
 			 Condition.broadcast word_found;
 		       end
@@ -269,8 +270,12 @@ object (self)
 	       ignore (Unix.write s_descr result 0 (String.length result));
       done;
     with
-    | exn -> print_string (Printexc.to_string exn ^ " in wait_word_proposition method.\n");
-    | Timeout -> print_endline ("Time's up !");
+    | Time -> Sys.set_signal Sys.sigalrm Sys.Signal_default;
+	      print_endline ("Time's up !")
+(*
+    with
+    (*| exn -> print_string (Printexc.to_string exn ^ " in wait_word_proposition method.\n");*)
+    | Failure "timeout" -> print_endline ("Time's up !");*)
 		 
   method send_word_proposition () =
     if (!verbose_mode) then
