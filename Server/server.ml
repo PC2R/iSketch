@@ -23,6 +23,11 @@ let logfile = "log/server.log"
 
 let dictionary_words = ref (Array.make 0 "")
 
+let players = ref []
+
+let mutex_players = Mutex.create ()
+let players_connected = ref 0
+
 let trace message =
   let out_channel = open_out_gen [Open_append;Open_creat] 0o666 logfile
   and date = Unix.gmtime (Unix.time ()) in
@@ -52,26 +57,72 @@ let init_dict () =
     Array.set !dictionary_words !i (input_line in_channel); incr i; loop ()
   in
   try loop () with End_of_file -> close_in in_channel;;
-  
 
-class player sd (sa : Unix.sockaddr) =
+let my_input_line file_descr =
+  let s = " " and r = ref "" in
+  while (Unix.read file_descr s 0 1 > 0) && s.[0] <> '\n' do
+    r := !r ^ s
+  done;
+  !r;;
+
+class player pseudo s_descr =
 object (self)
 
-  val s_descr = sd
-  val s_addr = sa
+  val s_descr = s_descr
   val mutable name = ""
-  val mutable id = ""
+  val mutable id = 0
   val mutable role = ""
 
-  method start () =
-    ignore(Thread.create (fun x -> self#c x;) ());
+  initializer
+    name <- pseudo;
 
-  method c () =
-    print_endline ("debut du print");
-    Thread.delay (30.);
-    print_endline ("fin du print");
+  method start () =
+    print_endline ("hey");
+
+  method get_name () =
+    name;
 
 end;;
+
+let connection_player (s_descr, sock_addr) =
+  try
+    let command = my_input_line s_descr in
+    let l = Str.split (Str.regexp "[/]") command in
+    match List.nth l 0 with
+    | "CONNECT" -> let name = String.sub command 8 (String.length command - 8) in
+		   Mutex.lock mutex_players;
+		   if ((List.length !players) = !max_players) then
+		     begin
+		       let result = "CONNECTION_REFUSED/"
+				    ^ name ^ "maximum_capacity_reached/\n" in
+		       ignore (Unix.write s_descr result 0 (String.length result));
+		       Mutex.unlock mutex_players;
+		       Thread.exit ()
+		     end
+		   else
+		     begin
+		       for i = 0 to (List.length !players - 1) do
+			 if (List.nth !players i)#get_name () = name then
+			   begin
+			     let result = "CONNECTION_REFUSED/"
+					  ^ name ^ "name_already_taken/\n" in
+			     ignore (Unix.write s_descr result 0 (String.length result));
+			     Mutex.unlock mutex_players;
+			     Thread.exit ()
+			   end
+		       done;
+		       let result = "CONNECTED/" ^ name ^ "\n" in
+		       ignore (Unix.write s_descr result 0 (String.length result));
+		       let player = new player name s_descr in
+		       players := player::!players;
+		       incr players_connected;
+		       Mutex.unlock mutex_players;
+		       Thread.exit ()
+		     end
+    | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
+	   ignore (Unix.write s_descr result 0 (String.length result));
+  with
+  | exn -> trace (Printexc.to_string exn);
 
 class server port n =
 object (self)
@@ -101,11 +152,16 @@ object (self)
     while (true) do
       let (service_sock, client_sock_addr) =
 	Unix.accept s_descr in
-      ignore ((new player service_sock client_sock_addr)#start());
+      ignore (Thread.create connection_player (service_sock, client_sock_addr));
     done;
 
   method game () =
     init_dict ();
+    Thread.delay (30.);
+    for i = 0 to (List.length !players - 1) do
+      print_endline ((string_of_int i) ^ " : ");
+      print_endline ((List.nth !players i)#get_name ());
+    done;
 
 end;;
 
