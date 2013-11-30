@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -69,8 +70,8 @@ public class Client extends Thread{
 		try
 		{
 			//Cannot use this constructor but it should be
-			s = new Socket (address, PORT);
-			//s = new Socket("localhost", PORT);
+			//s = new Socket (address, PORT);
+			s = new Socket("localhost", PORT);
 
 			System.out.println("Socket successfuly created");
 			BufferedReader dis = new BufferedReader(new InputStreamReader(s.getInputStream()));
@@ -95,37 +96,20 @@ public class Client extends Thread{
 				{
 					role = 0; // drawer 
 					word = round;
+					msg.setActifMode();
 					msg.waitEndRound();
 				}
 				else
 				{
 					role = 1; // finder
-					/*
-					msg.wordProposition("MOT1");
-					try 
-					{
-						sleep(1000);
-					} catch (InterruptedException e) 
-					{
-						e.printStackTrace();
-					}
-					msg.wordProposition("MOT2");
-					try 
-					{
-						sleep(1000);
-					} catch (InterruptedException e) 
-					{
-						e.printStackTrace();
-					}
-					msg.wordProposition("MOT3");
-					*/
-					//break;
+					msg.setPassiveMode();
 				}
 				//}
 			}
 			else
 			{
 				System.out.println("Connection au jeu refusée");
+				msg.closeWindow();
 				if (s != null)
 					try 
 				{

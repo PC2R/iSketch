@@ -13,22 +13,18 @@ SRC		=	Message.java		\
 			SizeActionListener.java	\
 			BoardPanel.java
 
-OBJ		=	$(SRC:.java=.class)
+OBJ		=	$(addprefix $(DIR)/, $(SRC:.java=.class))
 
 DIR		=	./class
 
-NAME		=	Client
 
-%.class	: %.java classP
-		javac $< -d $(DIR)
+$(addprefix $(DIR)/, %.class) :	%.java
+	javac $< -d $(DIR)
 
-all	: $(OBJ)
+all	: $(DIR)  $(OBJ)
 
-$(NAME)	:
-	java -classpath $(DIR) $(NAME)
-
-classP	:
-	mkdir -p $(DIR)
+$(DIR)	:
+	mkdir $(DIR)
 
 clean	:
 	rm -fr $(DIR)

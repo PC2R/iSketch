@@ -1,3 +1,4 @@
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -97,6 +98,10 @@ public class MainWindow extends JFrame {
 	}
 
 	/* GRAPHICS */
+	
+	public void setPassiveMode() { this.drawPanel.setPassiveMode(); }
+	
+	public void setActifMode() { this.drawPanel.setActifMode(); }
 	
 	public void sendCommandSetColor(int r, int g, int b)
 	{

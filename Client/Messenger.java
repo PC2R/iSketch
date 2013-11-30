@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -193,6 +194,18 @@ public class Messenger {
 		mWindow.addPlayer(name, score);
 	}
 
+	public void setPassiveMode() 
+	{ 
+		System.out.println("La zone de dessin n'est pas active");
+		this.mWindow.setPassiveMode(); 
+	}
+	
+	public void setActifMode() 
+	{ 
+		System.out.println("La zone de dessin est active");
+		this.mWindow.setActifMode();
+	}
+	
 	public void closeWindow()
 	{
 		mWindow.dispose();
