@@ -26,7 +26,21 @@ let dictionary_words = ref (Array.make 0 "")
 let players = ref []
 
 let mutex_players = Mutex.create ()
+let mutex_maximum_players = Mutex.create ()
+
+let condition_players = Condition.create ()
+
 let players_connected = ref 0
+
+let round = ref 0
+
+let rgb = ref ""
+let size = ref ""
+let line = ref ""
+
+type status = CONNECTED | DISCONNECTED
+
+type role = DRAWER | FINDER | NOT_DEFINED
 
 let trace message =
   let out_channel = open_out_gen [Open_append;Open_creat] 0o666 logfile
@@ -65,22 +79,76 @@ let my_input_line file_descr =
   done;
   !r;;
 
+let remove_slash s =
+  (String.sub s 0 (String.length s - 1));;
+
+let notify_exit name =
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    player#send_exited name
+  done;;
+
+let notify_guess word =
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    player#send_guessed word
+  done;;
+
+let send_list_players () =
+  let result = ref "SCORE_ROUND/" in
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    result := !result ^ player#get_name () ^ string_of_int (player#get_score ()) ^ "/";
+  done;
+  result := !result ^ "\n";
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    player#send_command !result
+  done;;
+
 class player pseudo s_descr =
 object (self)
 
   val s_descr = s_descr
   val mutable name = ""
-  val mutable id = 0
-  val mutable role = ""
+  val mutable score = 0
+  val mutable status = CONNECTED
+  val mutable role = NOT_DEFINED
 
   initializer
     name <- pseudo;
+    ignore (Thread.create self#start_game ());
+ 
+  method start_game () =
+    while (true) do
+      let command = my_input_line s_descr in
+      let l = Str.split (Str.regexp "[/]") command in
+      match List.nth l 0 with
+      | "GUESS" -> let word = String.sub command 6 (String.length command - 6) in
+		   notify_guess word;
+      | "EXIT" -> let name = String.sub command 4 (String.length command - 4) in
+		  status <- DISCONNECTED;
+		  notify_exit name;
+      | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
+	     ignore (Unix.write s_descr result 0 (String.length result));
+    done;
 
-  method start () =
-    print_endline ("hey");
 
-  method get_name () =
-    name;
+  method get_name () = name;
+  method get_score () = score;
+
+ (* method get_status () = status;*)
+
+  method send_exited name =
+    let result = "EXITED/" ^ name ^ "\n" in
+    ignore (Unix.write s_descr result 0 (String.length result));
+
+  method send_guessed word =
+    let result = "GUESSED/" ^ word ^ name ^ "\n" in
+      ignore (Unix.write s_descr result 0 (String.length result));
+
+  method send_command result =
+    ignore (Unix.write s_descr result 0 (String.length result));
 
 end;;
 
@@ -96,6 +164,8 @@ let connection_player (s_descr, sock_addr) =
 		       let result = "CONNECTION_REFUSED/"
 				    ^ name ^ "maximum_capacity_reached/\n" in
 		       ignore (Unix.write s_descr result 0 (String.length result));
+		       trace (remove_slash name
+			      ^ " tried to join the game but maximum capacity was reached.");
 		       Mutex.unlock mutex_players;
 		       Thread.exit ()
 		     end
@@ -107,6 +177,8 @@ let connection_player (s_descr, sock_addr) =
 			     let result = "CONNECTION_REFUSED/"
 					  ^ name ^ "name_already_taken/\n" in
 			     ignore (Unix.write s_descr result 0 (String.length result));
+			     trace (remove_slash name
+				    ^ " tried to join the game but the name was already taken.");
 			     Mutex.unlock mutex_players;
 			     Thread.exit ()
 			   end
@@ -116,13 +188,20 @@ let connection_player (s_descr, sock_addr) =
 		       let player = new player name s_descr in
 		       players := player::!players;
 		       incr players_connected;
+		       trace (remove_slash name
+			      ^ " has been successfully added to the game.");
+		       if ((List.length !players) = !max_players) then
+			 begin
+			   Condition.signal condition_players;
+			   Mutex.unlock mutex_maximum_players;
+			 end;
 		       Mutex.unlock mutex_players;
 		       Thread.exit ()
 		     end
     | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
 	   ignore (Unix.write s_descr result 0 (String.length result));
   with
-  | exn -> trace (Printexc.to_string exn);
+  | exn -> trace (Printexc.to_string exn)
 
 class server port n =
 object (self)
@@ -145,23 +224,26 @@ object (self)
 	     ^ string_of_int port ^ " and host/address "
 	     ^ Unix.gethostname() ^ "/"
 	     ^ Unix.string_of_inet_addr h_addr ^ ".");
-      init_dict ();
       
-  method start () =
-    ignore (Thread.create self#game ());
+  method wait_connections () =
+    ignore (Thread.create self#start_game ());
     while (true) do
       let (service_sock, client_sock_addr) =
 	Unix.accept s_descr in
       ignore (Thread.create connection_player (service_sock, client_sock_addr));
     done;
 
-  method game () =
+  method start_game () =
     init_dict ();
-    Thread.delay (30.);
-    for i = 0 to (List.length !players - 1) do
-      print_endline ((string_of_int i) ^ " : ");
-      print_endline ((List.nth !players i)#get_name ());
-    done;
+    trace ("Server has successfully read the dictionary.");
+    Condition.wait condition_players mutex_maximum_players;
+    trace ("All players are now connected, let the game begin !");
+    send_list_players ();
+(*    while (!round < !max_players ) do
+
+      trace ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");*)
+(*      set_roles ();
+       done*)
 
 end;;
 
@@ -184,6 +266,6 @@ let main () =
        in Arg.parse speclist print_endline usage_msg;
   end;
   Random.self_init();
-  (new server !port 2)#start();;
+  (new server !port 2)#wait_connections ();;
 
   main ();;
