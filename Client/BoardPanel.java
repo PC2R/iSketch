@@ -18,6 +18,7 @@ public class BoardPanel extends JPanel implements MouseListener
 
 	private Color gColor = Color.BLACK;
 	private int gsize = 1;
+	private int flag = 0;
 
 	private ArrayList<DrawPoint> listPoints = new ArrayList<DrawPoint>();
 
@@ -42,8 +43,17 @@ public class BoardPanel extends JPanel implements MouseListener
 	@Override
 	public void mouseClicked(MouseEvent e)
 	{
+		int last;
 		listPoints.add(new DrawPoint(e.getX(), e.getY(), drawp.getDrawColor(), drawp.getDrawSize()));
-		repaint();
+		if (flag < 2)
+			this.flag = this.flag + 1;
+		else
+		{
+			flag = 0;
+			last = listPoints.size();
+			drawp.sendCommandSetLine(listPoints.get(last - 2).getX(), listPoints.get(last - 2).getY(),
+					 listPoints.get(last - 1).getX(), listPoints.get(last - 1).getY());
+		}
 	}
 
 	@Override
@@ -94,8 +104,6 @@ public class BoardPanel extends JPanel implements MouseListener
 				g2.setStroke(new BasicStroke(listPoints.get(i).getSize()));
 				g2.drawLine(listPoints.get(i).getX(), listPoints.get(i).getY(), 
 							listPoints.get(i + 1).getX(), listPoints.get(i + 1).getY());
-				drawp.sendCommandSetLine(listPoints.get(i).getX(), listPoints.get(i).getY(),
-										 listPoints.get(i + 1).getX(), listPoints.get(i + 1).getY());
 			}
 		}
 	}
