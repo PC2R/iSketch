@@ -1,3 +1,4 @@
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -13,6 +14,8 @@ public class DrawPanel extends JPanel
 	
 	private Color color;
 	private int size;
+	
+	private boolean actif;
 	
 	public DrawPanel(int w, int l, MainWindow mainWindow) 
 	{
@@ -51,10 +54,26 @@ public class DrawPanel extends JPanel
 		board.line(tab);
 	}
 	
+	public void setPassiveMode()
+	{
+		this.actif = false;
+		this.board.setPassiveMode();
+		this.menu.setPassiveMode();
+	}
+	
+	public void setActifMode()
+	{
+		this.actif = true;
+		this.board.setActifMode();
+		this.menu.setActifMode();
+	}
+	
 	/* GETTERS/SETTERS */
 	
 	public Color getDrawColor() {return color; }
 	public void setDrawColor(Color c) { this.color = c; }
 	public int getDrawSize() { return this.size; }
 	public void setDrawSize(int s) { this.size = s; }
+	public boolean getActif() { return actif; }
+	//public void setActif(boolean b) { this.actif = b; }
 }

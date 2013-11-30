@@ -1,3 +1,4 @@
+
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -52,42 +53,34 @@ public class DrawMenu extends JMenuBar
 
 		mYellow.setBackground(Color.YELLOW);
 		mYellow.setPreferredSize(new Dimension(150, 30));
-		mYellow.addActionListener(new ColorActionListener(Color.YELLOW, this));
 		mColors.add(mYellow);
 
 		mOrange.setBackground(Color.ORANGE);
 		mOrange.setPreferredSize(new Dimension(150, 30));
-		mOrange.addActionListener(new ColorActionListener(Color.ORANGE, this));
 		mColors.add(mOrange);
 
 		mRed.setBackground(Color.RED);
 		mRed.setPreferredSize(new Dimension(150, 30));
-		mRed.addActionListener(new ColorActionListener(Color.RED, this));
 		mColors.add(mRed);
 
 		mPink.setBackground(Color.PINK);
 		mPink.setPreferredSize(new Dimension(150, 30));
-		mPink.addActionListener(new ColorActionListener(Color.PINK, this));
 		mColors.add(mPink);
 
 		mViolet.setBackground(Color.MAGENTA);
 		mViolet.setPreferredSize(new Dimension(150, 30));
-		mViolet.addActionListener(new ColorActionListener(Color.MAGENTA, this));
 		mColors.add(mViolet);
 
 		mBlue.setBackground(Color.BLUE);
 		mBlue.setPreferredSize(new Dimension(150, 30));
-		mBlue.addActionListener(new ColorActionListener(Color.BLUE, this));
 		mColors.add(mBlue);
 
 		mGreen.setBackground(Color.GREEN);
 		mGreen.setPreferredSize(new Dimension(150, 30));
-		mGreen.addActionListener(new ColorActionListener(Color.GREEN, this));
 		mColors.add(mGreen);
 
 		mBlack.setBackground(Color.BLACK);
 		mBlack.setPreferredSize(new Dimension(150, 30));
-		mBlack.addActionListener(new ColorActionListener(Color.BLACK, this));
 		mColors.add(mBlack);
 	}
 
@@ -99,16 +92,12 @@ public class DrawMenu extends JMenuBar
 
 		ms2.setPreferredSize(new Dimension(150, 30));
 		ms2.setText("Fin");
-		ms2.addActionListener(new SizeActionListener(2, this));
 		ms5.setPreferredSize(new Dimension(150, 30));
 		ms5.setText("Moyen");
-		ms5.addActionListener(new SizeActionListener(5, this));
 		ms8.setPreferredSize(new Dimension(150, 30));
 		ms8.setText("Large");
-		ms8.addActionListener(new SizeActionListener(8, this));
 		ms10.setPreferredSize(new Dimension(150, 30));
 		ms10.setText("Très large");
-		ms10.addActionListener(new SizeActionListener(10, this));
 
 		mLine.add(ms2);
 		mLine.add(ms5);
@@ -116,6 +105,40 @@ public class DrawMenu extends JMenuBar
 		mLine.add(ms10);
 	}
 
+	public void setPassiveMode()
+	{
+		mYellow.removeAll();
+		mOrange.removeAll();
+		mRed.removeAll();
+		mPink.removeAll();
+		mViolet.removeAll();
+		mBlue.removeAll();
+		mGreen.removeAll();
+		mBlack.removeAll();
+		ms2.removeAll();
+		ms5.removeAll();
+		ms8.removeAll();
+		ms10.removeAll();
+	}
+	
+	public void setActifMode()
+	{
+		mYellow.addActionListener(new ColorActionListener(Color.YELLOW, this));
+		mOrange.addActionListener(new ColorActionListener(Color.ORANGE, this));
+		mRed.addActionListener(new ColorActionListener(Color.RED, this));
+		mPink.addActionListener(new ColorActionListener(Color.PINK, this));
+		mViolet.addActionListener(new ColorActionListener(Color.MAGENTA, this));
+		mBlue.addActionListener(new ColorActionListener(Color.BLUE, this));
+		mGreen.addActionListener(new ColorActionListener(Color.GREEN, this));
+		mBlack.addActionListener(new ColorActionListener(Color.BLACK, this));
+		
+		ms2.addActionListener(new SizeActionListener(2, this));
+		ms5.addActionListener(new SizeActionListener(5, this));
+		ms8.addActionListener(new SizeActionListener(8, this));
+		ms10.addActionListener(new SizeActionListener(10, this));
+	}
+	
+	
 	public Color getColor() { return this.color; }
 	public int getsize() { return this.size; }
 

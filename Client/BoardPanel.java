@@ -1,3 +1,4 @@
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -18,17 +19,24 @@ public class BoardPanel extends JPanel implements MouseListener
 	private Color gColor = Color.BLACK;
 	private int gsize = 1;
 
-	private boolean actif;
-
 	private ArrayList<DrawPoint> listPoints = new ArrayList<DrawPoint>();
 
 	public BoardPanel(int w, int l, DrawPanel dp)
 	{
 		this.drawp = dp;
 		this.setPreferredSize(new Dimension(w, l));
-		this.addMouseListener(this);
 	}
 
+	public void setPassiveMode()
+	{
+		this.removeMouseListener(this);
+	}
+	
+	public void setActifMode()
+	{
+		this.addMouseListener(this);
+	}
+	
 	/* MOUSELISTENER */
 	
 	@Override
