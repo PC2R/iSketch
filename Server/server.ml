@@ -42,8 +42,8 @@ let players_connected = ref 0
 
 let round = ref 0
 
-let rgb = ref ""
-let size = ref ""
+let rgb = ref "0/0/0/"
+let size = ref "1/"
 let line = ref ""
 
 let score_round_finder = ref 0
@@ -147,7 +147,7 @@ let send_new_round_command () =
     begin
       player#set_role "drawer";
       let name = player#get_name () in
-      let result = "NEW_ROUND/dessinateur/" ^ name ^ !word ^ "\n" in
+      let result = "NEW_ROUND/dessinateur/" ^ name ^ !word ^ "/\n" in
       for i = 0 to (List.length !players - 1) do
 	let player2 = List.nth !players i in
 	player2#send_command result
@@ -206,12 +206,12 @@ object (self)
 		   Mutex.unlock mutex_guessed_word;
       | "SET_COLOR" -> let new_color = String.sub command 10 (String.length command - 10) in
 		       rgb := new_color;
-		       trace (name ^ "just changed the color of the line.");
+		       trace (remove_slash name ^ " just changed the color of the line.");
       | "SET_SIZE" -> let new_size = String.sub command 9 (String.length command - 9) in
 		      size := new_size;
-		      trace (name ^ "just changed the color of the line.");
+		      trace (remove_slash name ^ " just changed the color of the line.");
       | "SET_LINE" -> let new_line = String.sub command 9 (String.length command - 9) in
-		      trace (name ^ "just proposed a line");
+		      trace (remove_slash name ^ " just proposed a line");
 		      notify_line new_line;
       | "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
 		  connected <- false;
