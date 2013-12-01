@@ -37,7 +37,7 @@ public class Messenger {
 		{
 			e.printStackTrace();
 		}
-		if (answer.equals("CONNECTED/"+ usr + "/"))
+		if (answer.equals("WELCOME/"+ usr + "/"))
 			return true;
 		else
 			return false;
