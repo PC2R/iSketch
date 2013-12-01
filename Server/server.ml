@@ -21,7 +21,7 @@ let verbose_mode = ref false
 let dictionary_filename = ref "dictionary"
 let logfile = "log/server.log"
 
-let dictionary_words = ref (Array.make 0 "")
+let dictionary_words = ref []
 
 let word = ref ""
 
@@ -62,20 +62,28 @@ let trace message =
     print_endline message;
   close_out out_channel;;
 
+let rec remove element list =
+  match list with
+  | [] -> []
+  | head::tail -> if head = element then
+		    tail
+		  else
+		    head::(remove element tail);;
+
+let rec read_file in_channel =
+  try 
+    let word = (input_line in_channel) in
+    word::(read_file in_channel)
+  with End_of_file -> [];;
+  
 let init_dict () =
-  let lines =
-    let n = ref 0
-    and in_channel = open_in !dictionary_filename in
-    let rec loop () =
-      ignore (input_line in_channel); incr n; loop ()
-    in
-    try loop () with End_of_file -> close_in in_channel; !n in
-  dictionary_words := Array.append !dictionary_words (Array.make lines "");
-  let in_channel = open_in !dictionary_filename and i = ref 0 in
-  let rec loop () =
-    Array.set !dictionary_words !i (input_line in_channel); incr i; loop ()
-  in
-  try loop () with End_of_file -> close_in in_channel;;
+  let in_channel = open_in !dictionary_filename in
+  read_file in_channel;;
+  
+let choose_word () =
+  word := List.nth !dictionary_words (Random.int (List.length !dictionary_words));
+  trace ("The word " ^ !word ^ " has been chosen.");
+  dictionary_words := remove !word !dictionary_words;;
 
 let my_input_line file_descr =
   let s = " " and r = ref "" in
@@ -280,14 +288,14 @@ object (self)
     done;
 
   method start_game () =
-    init_dict ();
+    dictionary_words := init_dict ();
     trace ("Server has successfully read the dictionary.");
     Condition.wait condition_players mutex_maximum_players;
     trace ("All players are now connected, let the game begin !");
     send_connected_command ();
     while (!round < !max_players ) do
       trace ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");
-      word := !dictionary_words.(Random.int (Array.length !dictionary_words));
+      choose_word ();
       send_new_round_command ();
       Condition.wait condition_end_round mutex_end_round;
     done
