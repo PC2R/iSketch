@@ -173,7 +173,12 @@ public class DrawMenu extends JMenuBar
 	
 	public void sendPass(){ drawp.sendCommandPass(); }
 	
-	public void sendCheat(){ drawp.sendCommandCheat(); }
+	public void sendCheat()
+	{
+		drawp.sendCommandCheat();
+		this.mCheat.removeAll();
+		this.mCheat.setForeground(Color.WHITE);
+	}
 	
 	public Color getColor() { return this.color; }
 	
