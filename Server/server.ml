@@ -93,8 +93,9 @@ let notify_guess word =
     let player = List.nth !players i in
     player#send_guessed word
   done;;
+  
 
-let send_list_players () =
+let send_score_round_command () =
   let result = ref "SCORE_ROUND/" in
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
@@ -183,13 +184,18 @@ let connection_player (s_descr, sock_addr) =
 			     Thread.exit ()
 			   end
 		       done;
-		       let result = "CONNECTED/" ^ name ^ "\n" in
+		       let result = "WELCOME/" ^ name ^ "\n" in
 		       ignore (Unix.write s_descr result 0 (String.length result));
 		       let player = new player name s_descr in
 		       players := player::!players;
 		       incr players_connected;
 		       trace (remove_slash name
-			      ^ " has been successfully added to the game.");
+			      ^ " has been successfully welcomed to the game.");
+		       for i = 0 to (List.length !players - 1) do
+			 let player = List.nth !players i in
+			 if player#get_name () != name then
+			   player#send_command ("CONNECTED/" ^ name);
+		       done;
 		       if ((List.length !players) = !max_players) then
 			 begin
 			   Condition.signal condition_players;
@@ -238,7 +244,6 @@ object (self)
     trace ("Server has successfully read the dictionary.");
     Condition.wait condition_players mutex_maximum_players;
     trace ("All players are now connected, let the game begin !");
-    send_list_players ();
 (*    while (!round < !max_players ) do
 
       trace ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");*)
