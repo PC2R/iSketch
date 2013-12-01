@@ -131,6 +131,12 @@ let notify_line line =
     let player =  List.nth !players i in
     player#send_command ("LINE/" ^ line ^ !rgb ^ !size ^ "\n");
   done;;
+
+let notify_cheat name =
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    player#send_command ("BROADCAST/" ^ name ^ " has reported cheating behavior./\n");
+  done;;
   
 let send_connected_command () =
   for i = 0 to (List.length !players - 1) do
@@ -232,6 +238,8 @@ object (self)
 		  decr players_connected;
 		  notify_exit name;
       | "CHEAT" -> cheat_counter := !cheat_counter + 1;
+		   trace (remove_slash name ^ " has reported cheating behavior.");
+		   notify_cheat name;
 		   if !cheat_counter = !cheat_parameter then
 		     trace (string_of_int (!cheat_parameter) ^ " players have reported cheating behavior.");
       | _ -> trace(command ^ "has been received from " ^ remove_slash(name) ^ ".");
