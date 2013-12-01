@@ -16,6 +16,7 @@
 let max_players = ref 4
 let timeout = ref 30
 let port = ref 2013
+let cheat_parameter = ref 3
 let verbose_mode = ref false
 
 let dictionary_filename = ref "dictionary"
@@ -48,10 +49,12 @@ let line = ref ""
 let score_round_finder = ref 0
 let score_round_drawer = ref 0
 
-let init_score () =
-  score_round_finder := 10;
-  score_round_drawer := 0;;
+let cheat_counter = ref 0
 
+let init_variables () =
+  score_round_finder := 10;
+  score_round_drawer := 0;
+  cheat_counter := 0;;
 
 let trace message =
   let out_channel = open_out_gen [Open_append;Open_creat] 0o666 logfile
@@ -213,8 +216,10 @@ object (self)
       | "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
 		  connected <- false;
 		  notify_exit name;
-      | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
-	     ignore (Unix.write s_descr result 0 (String.length result));
+      | "CHEAT" -> cheat_counter := !cheat_counter + 1;
+		   if !cheat_counter = !cheat_parameter then
+		     trace (string_of_int (!cheat_parameter) ^ " players have reported cheating behavior.");
+      | _ -> trace(command ^ "has been received from " ^ remove_slash(name) ^ ".");
     done;
 
 
@@ -318,7 +323,7 @@ object (self)
     send_connected_command ();
     while (!round < !max_players ) do
       trace ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" has just begun.");
-      init_score ();
+      init_variables ();
       choose_word ();
       send_new_round_command ();
       Condition.wait condition_end_round mutex_end_round;
@@ -338,6 +343,8 @@ let main () =
 	" Sets the listening port for the server (default : 2013)");
        ("-dico", Arg.Set_string dictionary_filename,
 	" Dictionary");
+       ("-n", Arg.Set_int cheat_parameter,
+       " Sets the cheat parameter (default : 3)");
        ("-v", Arg.Set verbose_mode,
 	" Enables verbose mode");
       ]
