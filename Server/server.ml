@@ -35,6 +35,8 @@ let condition_players = Condition.create ()
 let condition_end_round = Condition.create ()
 let mutex_end_round = Mutex.create ()
 
+let mutex_guessed_word = Mutex.create ()
+
 let players_connected = ref 0
 
 let round = ref 0
@@ -43,9 +45,15 @@ let rgb = ref ""
 let size = ref ""
 let line = ref ""
 
-type status = CONNECTED | DISCONNECTED
+let score_round_finder = ref 0
+let score_round_drawer = ref 0
 
-type role = DRAWER | FINDER | NOT_DEFINED
+let init_score () =
+  score_round_finder := 10;
+  score_round_drawer := 0;;
+
+let score_for_drawer () =
+  print_endline "";;
 
 let trace message =
   let out_channel = open_out_gen [Open_append;Open_creat] 0o666 logfile
@@ -98,13 +106,13 @@ let remove_slash s =
 let notify_exit name =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    player#send_exited name
+    player#send_command ("EXITED/" ^ name ^ "\n");
   done;;
 
-let notify_guess word =
+let notify_guess word name =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    player#send_guessed word
+    player#send_command ("GUESSED/" ^ word ^ name ^ "\n");
   done;;
 
 let notify_line line =
@@ -112,7 +120,6 @@ let notify_line line =
     let player =  List.nth !players i in
     player#send_command ("LINE/" ^ line ^ !rgb ^ !size ^ "\n");
   done;;
-    
   
 let send_connected_command () =
   for i = 0 to (List.length !players - 1) do
@@ -155,20 +162,31 @@ object (self)
   val s_descr = s_descr
   val mutable name = ""
   val mutable score = 0
-  val mutable status = true
-  val mutable role = NOT_DEFINED
+  val mutable connected = true
+  val mutable role = ""
 
   initializer
     name <- pseudo;
     ignore (Thread.create self#start_game ());
  
   method start_game () =
+    (* to do *)
+    (* wait every one before starting to send guess command *)
     while (true) do
       let command = my_input_line s_descr in
       let l = Str.split (Str.regexp "[/]") command in
       match List.nth l 0 with
-      | "GUESS" -> let word = String.sub command 6 (String.length command - 6) in
-		   notify_guess word;
+      | "GUESS" -> Mutex.lock mutex_guessed_word;
+		   let guessed_word = String.sub command 6 (String.length command - 6) in
+		   if (guessed_word = !word) then
+		     begin
+		       score <- !score_round_finder;
+		       score_for_drawer ();
+		       if !score_round_finder > 5 then
+			 score_round_finder := !score_round_finder -1
+		     end;
+		   Mutex.unlock mutex_guessed_word;
+		   notify_guess guessed_word name;
       | "SET_COLOR" -> let new_color = String.sub command 10 (String.length command - 10) in
 		       rgb := new_color;
 		       trace (name ^ "just changed the color of the line.");
@@ -179,7 +197,7 @@ object (self)
 		      trace (name ^ "just proposed a line");
 		      notify_line new_line;
       | "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
-		  status <- false;
+		  connected <- false;
 		  notify_exit name;
       | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
 	     ignore (Unix.write s_descr result 0 (String.length result));
@@ -188,21 +206,12 @@ object (self)
 
   method get_name () = name;
   method get_score () = score;
-  method get_status () = status;
-
- (* method get_status () = status;*)
-
-  method send_exited name =
-    let result = "EXITED/" ^ name ^ "\n" in
-    ignore (Unix.write s_descr result 0 (String.length result));
-
-  method send_guessed word =
-    let result = "GUESSED/" ^ word ^ name ^ "\n" in
-      ignore (Unix.write s_descr result 0 (String.length result));
+  method get_status () = connected;
+  method set_role () = role;
 
   method send_command result =
     ignore (Unix.write s_descr result 0 (String.length result));
-    trace (remove_slash (result) ^ " sent to " ^ remove_slash (name) ^ ".");
+    trace (remove_slash (result) ^ " has been sent to " ^ remove_slash (name) ^ ".");
 
 end;;
 
@@ -273,8 +282,8 @@ object (self)
       Unix.listen s_descr n;
       trace ("Server successfully started with parameters : "
 	     ^ string_of_int !max_players ^ " maximum players and "
-	     ^ string_of_int !timeout ^ " seconds of timeout.\n"
-	     ^ "Server is waiting for players connections on port "
+	     ^ string_of_int !timeout ^ " seconds of timeout.");
+      trace ("Server is waiting for players connections on port "
 	     ^ string_of_int port ^ " and host/address "
 	     ^ Unix.gethostname() ^ "/"
 	     ^ Unix.string_of_inet_addr h_addr ^ ".");
@@ -294,7 +303,8 @@ object (self)
     trace ("All players are now connected, let the game begin !");
     send_connected_command ();
     while (!round < !max_players ) do
-      trace ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");
+      trace ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" has just begun.");
+      init_score ();
       choose_word ();
       send_new_round_command ();
       Condition.wait condition_end_round mutex_end_round;
