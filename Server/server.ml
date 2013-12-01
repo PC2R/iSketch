@@ -94,6 +94,19 @@ let notify_guess word =
     player#send_guessed word
   done;;
   
+let send_connected_command () =
+  for i = 0 to (List.length !players - 1) do
+    let player1 = List.nth !players i in
+    let name = player1#get_name () in
+    for j = 0 to (List.length !players - 1) do
+      if i != j then
+	begin
+	  let player2 = List.nth !players j in
+	  player2#send_command ("CONNECTED/" ^ name);
+	end
+    done;
+  done;;
+
 
 let send_score_round_command () =
   let result = ref "SCORE_ROUND/" in
@@ -150,6 +163,7 @@ object (self)
 
   method send_command result =
     ignore (Unix.write s_descr result 0 (String.length result));
+    trace (result ^ " sent to " ^ name ^ ".");
 
 end;;
 
@@ -191,11 +205,6 @@ let connection_player (s_descr, sock_addr) =
 		       incr players_connected;
 		       trace (remove_slash name
 			      ^ " has been successfully welcomed to the game.");
-		       for i = 0 to (List.length !players - 1) do
-			 let player = List.nth !players i in
-			 if player#get_name () != name then
-			   player#send_command ("CONNECTED/" ^ name);
-		       done;
 		       if ((List.length !players) = !max_players) then
 			 begin
 			   Condition.signal condition_players;
@@ -245,10 +254,8 @@ object (self)
     Condition.wait condition_players mutex_maximum_players;
     trace ("All players are now connected, let the game begin !");
 (*    while (!round < !max_players ) do
-
-      trace ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");*)
-(*      set_roles ();
-       done*)
+      trace ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");
+    done*)
 
 end;;
 
