@@ -1,4 +1,3 @@
-
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -15,6 +14,7 @@ public class DrawMenu extends JMenuBar
 
 	private JMenu mColors = new JMenu("Couleur");
 	private JMenu mLine = new JMenu("Taille");
+	private JMenu mOption = new JMenu("Autres");
 
 	private JMenuItem mYellow = new JMenuItem();
 	private JMenuItem mOrange = new JMenuItem();
@@ -29,6 +29,9 @@ public class DrawMenu extends JMenuBar
 	private JMenuItem ms5 = new JMenuItem();
 	private JMenuItem ms8 = new JMenuItem();
 	private JMenuItem ms10 = new JMenuItem();
+	
+	private JMenuItem mPass = new JMenuItem("Passer le tour");
+	private JMenuItem mCheat = new JMenuItem("Il triche !");
 
 	private Color color;
 	private int size;
@@ -42,6 +45,9 @@ public class DrawMenu extends JMenuBar
 		this.add(mColors);
 		initMenuLine();
 		this.add(mLine);
+		initMenuOption();
+		this.add(mOption);
+		
 		this.drawp = dp;
 	}
 
@@ -105,6 +111,20 @@ public class DrawMenu extends JMenuBar
 		mLine.add(ms10);
 	}
 
+	public void initMenuOption()
+	{
+		mOption.setHorizontalTextPosition(SwingConstants.CENTER);
+		mOption.setVerticalTextPosition(SwingConstants.CENTER);
+		mOption.setLayout(new FlowLayout(FlowLayout.CENTER));
+		
+		mPass.setPreferredSize(new Dimension(150, 30));
+		mCheat.setPreferredSize(new Dimension(150, 30));
+		
+		mOption.add(mPass);
+		mOption.add(mCheat);
+	}
+	
+	
 	public void setPassiveMode()
 	{
 		mYellow.removeAll();
@@ -119,6 +139,11 @@ public class DrawMenu extends JMenuBar
 		ms5.removeAll();
 		ms8.removeAll();
 		ms10.removeAll();
+	
+		mPass.setForeground(Color.WHITE);
+		mPass.removeAll();
+		mCheat.setForeground(Color.BLACK);
+		mCheat.addActionListener(new OptionActionListener("CHEAT", this));
 	}
 	
 	public void setActifMode()
@@ -136,10 +161,22 @@ public class DrawMenu extends JMenuBar
 		ms5.addActionListener(new SizeActionListener(5, this));
 		ms8.addActionListener(new SizeActionListener(8, this));
 		ms10.addActionListener(new SizeActionListener(10, this));
+		
+		mPass.setForeground(Color.BLACK);
+		mPass.addActionListener(new OptionActionListener("PASS", this));
+		mCheat.setForeground(Color.WHITE);
+		mCheat.removeAll();
 	}
 	
 	
+	/* COMMAND */
+	
+	public void sendPass(){ drawp.sendCommandPass(); }
+	
+	public void sendCheat(){ drawp.sendCommandCheat(); }
+	
 	public Color getColor() { return this.color; }
+	
 	public int getsize() { return this.size; }
 
 	public void setColor(Color c)

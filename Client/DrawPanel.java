@@ -1,4 +1,3 @@
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -45,6 +44,10 @@ public class DrawPanel extends JPanel
 	{
 		mWindow.sendCommandSetLine(x1, y1, x2, y2);
 	}
+	
+	public void sendCommandPass(){ mWindow.sendCommandPass(); }
+	
+	public void sendCommandCheat(){ mWindow.senCommandCheat(); }
 	
 	
 	/* GRAPHICS */

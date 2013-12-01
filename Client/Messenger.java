@@ -12,7 +12,9 @@ public class Messenger {
 	private Message msgToServer = new Message();
 	private Message msgFromServer = new Message();
 
-	private MainWindow mWindow = new MainWindow(this); 
+	private MainWindow mWindow = new MainWindow(this);
+	
+	private String userPseudo;
 
 	Messenger(BufferedReader dis, PrintStream ps)
 	{
@@ -39,6 +41,7 @@ public class Messenger {
 		if (answer.equals("WELCOME/"+ usr + "/"))
 		{
 			this.addPlayer(usr, "0");
+			this.userPseudo = usr;
 			return true;
 		}
 		else
@@ -115,6 +118,7 @@ public class Messenger {
 		tSender.interrupt();
 	}
 
+	
 	/* COMMAND */
 
 	public synchronized void interpretCommand()
@@ -181,6 +185,27 @@ public class Messenger {
 		}
 	}
 
+	public void sendCommandPass()
+	{
+		synchronized (msgToServer)
+		{
+			System.out.println("Le dessinateur veut passer son tour");
+			msgToServer.setMsg("PASS/");
+			msgToServer.notifyAll();
+		}
+	}
+	
+	public void sendCommandCheat()
+	{
+		synchronized (msgToServer)
+		{
+			System.out.println( this.userPseudo + " pense que le dessinateur triche");
+			msgToServer.setMsg("CHEAT/" + this.userPseudo + "/");
+			msgToServer.notifyAll();
+		}
+	}
+	
+	
 	/* GRAPHIC WINDOW ACTIONS */
 
 	public void addPlayer(String name, String score)
@@ -205,6 +230,7 @@ public class Messenger {
 		mWindow.dispose();
 	}
 
+	
 	/* STATIC METHODES */
 
 	public static int getNbMotString(String str)

@@ -52,6 +52,7 @@ public class MainWindow extends JFrame {
 		this.messP.addPlayer(name, score);
 	}
 	
+	
 	/* MESSAGES */
 	
 	public void sendProposition(String prop)
@@ -96,6 +97,7 @@ public class MainWindow extends JFrame {
 		drawPanel.line(tab);
 	}
 
+	
 	/* GRAPHICS */
 	
 	public void setPassiveMode()
@@ -109,6 +111,9 @@ public class MainWindow extends JFrame {
 		this.drawPanel.setActifMode();
 		this.messP.setMode(true, word);
 	}
+	
+	
+	/* COMMAND */
 	
 	public void sendCommandSetColor(int r, int g, int b)
 	{
@@ -124,4 +129,9 @@ public class MainWindow extends JFrame {
 	{
 		msn.sendCommandSetLine(x1, y1, x2, y2);
 	}
+	
+	public void sendCommandPass() { msn.sendCommandPass(); }
+	
+	public void senCommandCheat() { msn.sendCommandCheat(); }
+	
 }
