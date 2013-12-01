@@ -181,7 +181,7 @@ object (self)
 
   method send_command result =
     ignore (Unix.write s_descr result 0 (String.length result));
-    trace (result ^ " sent to " ^ name ^ ".");
+    trace (remove_slash (result) ^ " sent to " ^ remove_slash (name) ^ ".");
 
 end;;
 
