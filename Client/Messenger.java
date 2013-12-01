@@ -37,7 +37,10 @@ public class Messenger {
 			e.printStackTrace();
 		}
 		if (answer.equals("WELCOME/"+ usr + "/"))
+		{
+			this.addPlayer(usr, "0");
 			return true;
+		}
 		else
 			return false;
 	}
@@ -70,7 +73,7 @@ public class Messenger {
 		return line;
 	}
 
-	public String beginRound(String line)
+	public String beginRound(String line, String name)
 	{
 		String res;
 		String[] tab = parse(line);
@@ -78,7 +81,7 @@ public class Messenger {
 		System.out.println("Debut du round");
 		if (tab[0].equals("NEW_ROUND"))
 		{
-			if (tab[1].equals("dessinateur"))
+			if (tab[2].equals(name))
 			{
 				res = new String(tab[3]);
 				System.out.println("Vous êtes dessinateur. Vous devez dessiner le mot " + res);
@@ -86,7 +89,7 @@ public class Messenger {
 			else
 			{
 				res = new String();
-				System.out.println("Vous êtes joueur. Devinez le mot pour gagner");
+				System.out.println("Vous êtes joueur.");
 			}
 		}
 		else

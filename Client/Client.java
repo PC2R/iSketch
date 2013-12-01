@@ -82,7 +82,7 @@ public class Client extends Thread{
 				//while (true)
 				//{
 				round = msg.getPlayers();
-				round = msg.beginRound(round);
+				round = msg.beginRound(round, user);
 				msg.startThread();
 				try 
 				{
