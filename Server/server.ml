@@ -25,6 +25,8 @@ let logfile = "log/server.log"
 let dictionary_words = ref []
 
 let word = ref ""
+let word_found = ref false
+let word_finders = ref 0
 
 let players = ref []
 
@@ -52,6 +54,8 @@ let score_round_drawer = ref 0
 let cheat_counter = ref 0
 
 let init_variables () =
+  word_found := false;
+  word_finders := 0;
   score_round_finder := 10;
   score_round_drawer := 0;
   cheat_counter := 0;;
@@ -158,7 +162,10 @@ let send_score_round_command () =
   let result = ref "SCORE_ROUND/" in
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    result := !result ^ player#get_name () ^ string_of_int (player#get_score ()) ^ "/";
+    if (player#get_role () = "drawer")then
+      result := !result ^ player#get_name () ^ string_of_int (!score_round_drawer) ^ "/"
+    else
+      result := !result ^ player#get_name () ^ string_of_int (player#get_score ()) ^ "/";
   done;
   result := !result ^ "\n";
   for i = 0 to (List.length !players - 1) do
@@ -188,9 +195,12 @@ object (self)
       match List.nth l 0 with
       | "GUESS" -> Mutex.lock mutex_guessed_word;
 		   let guessed_word = String.sub command 6 (String.length command - 6) in
+		   (* If the word is the right one *)
 		   if (remove_slash (guessed_word) = !word) then
 		     begin
+		       (* We tell the others players *)
 		       notify_word_found name;
+		       (* We compute how many points he wins *)
 		       score <- !score_round_finder;
 		       trace (remove_slash (name) ^ " has just won " ^ string_of_int score ^ " points.");
 		       if !score_round_finder > 5 then
@@ -200,6 +210,10 @@ object (self)
 		       else if !score_round_drawer < 15 then
 			 score_round_drawer := !score_round_drawer + 1;
 		       trace("The drawer has " ^ string_of_int !score_round_drawer ^ " points.");
+		       word_found := true;
+		       incr word_finders;
+		       if !word_finders = !players_connected - 1 then
+			 Condition.signal condition_end_round;
 		     end
 		   else
 		     notify_guess guessed_word name;
@@ -215,6 +229,7 @@ object (self)
 		      notify_line new_line;
       | "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
 		  connected <- false;
+		  decr players_connected;
 		  notify_exit name;
       | "CHEAT" -> cheat_counter := !cheat_counter + 1;
 		   if !cheat_counter = !cheat_parameter then
@@ -226,6 +241,7 @@ object (self)
   method get_name () = name;
   method get_score () = score;
   method get_status () = connected;
+  method get_role () = role;
   method set_role r = role <- r;
 
   method send_command result =
@@ -327,6 +343,8 @@ object (self)
       choose_word ();
       send_new_round_command ();
       Condition.wait condition_end_round mutex_end_round;
+      send_score_round_command ();
+      incr round;
     done
 
 end;;
