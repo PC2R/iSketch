@@ -81,6 +81,14 @@ public class MessagesPanel extends JPanel {
 		this.textListJoueur.append("\n");
 	}
 	
+	public void setMode(boolean m, String word)
+	{
+		if (m)
+			this.textMsg.append("Vous etes le dessinateur.\nVous devez dessiner le mot " + word + "\n");
+		else
+			this.textMsg.append("La partie commence\nDevinez le mot qui se dessine à l'écran\n");
+	}
+	
 	public void newProp(String msg)
 	{
 		this.textMsg.append(msg);
@@ -115,7 +123,7 @@ public class MessagesPanel extends JPanel {
 		textListJoueur.removeAll();
 		for (i = 1; i < tab.length - 1 ; i = i + 2)
 		{
-			textListJoueur.append(tab[i] + "\t\t\t" + tab[i + 1]);
+			textListJoueur.append(tab[i] + "\t" + tab[i + 1]);
 			textListJoueur.append("\n");
 		}
 	}
