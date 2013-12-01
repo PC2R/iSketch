@@ -136,6 +136,8 @@ public class Messenger {
 			mWindow.endRound(tab);
 		else if (tab[0].equals("LINE"))
 			mWindow.line(tab);
+		else if (tab[0].equals("BROADCAST"))
+			mWindow.broadcast(tab);
 		else
 			System.out.println("Commande inconnue : " + tab[0]);
 	}

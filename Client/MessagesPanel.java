@@ -127,4 +127,10 @@ public class MessagesPanel extends JPanel {
 			textListJoueur.append("\n");
 		}
 	}
+	
+	public void broadcast(String[] tab)
+	{
+		textMsg.append(tab[1]);
+		textMsg.append("\n");
+	}
 }

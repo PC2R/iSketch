@@ -55,10 +55,7 @@ public class MainWindow extends JFrame {
 	
 	/* MESSAGES */
 	
-	public void sendProposition(String prop)
-	{
-		msn.wordProposition(prop);
-	}
+	public void sendProposition(String prop) { msn.wordProposition(prop);}
 
 	public void guessed(String[] tab)
 	{
@@ -92,10 +89,9 @@ public class MainWindow extends JFrame {
 		System.out.println("Le mot à trouver était " + tab[2]);
 	}
 	
-	public void line(String[] tab)
-	{
-		drawPanel.line(tab);
-	}
+	public void line(String[] tab) { drawPanel.line(tab); }
+	
+	public void broadcast(String[] tab) { this.messP.broadcast(tab); }
 
 	
 	/* GRAPHICS */
