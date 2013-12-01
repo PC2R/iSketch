@@ -21,4 +21,10 @@ public class DrawPoint
 	public int getY(){ return y; }
 	public Color getColor() {return color; }
 	public int getSize(){ return size; }
+	
+	public void erase() 
+	{ 
+		this.color = Color.WHITE;
+		this.size = 10;
+	};
 }

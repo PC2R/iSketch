@@ -71,8 +71,11 @@ public class BoardPanel extends JPanel implements MouseListener
 	
 	public void cleanBoard()
 	{
+		int i;
+		
 		System.out.println("On nettoie le tableau");
-		this.listPoints.clear();
+		for (i = 0; i < listPoints.size(); i++ )
+			listPoints.get(i).erase();
 		this.erase = true;
 		repaint();
 	}
@@ -92,11 +95,6 @@ public class BoardPanel extends JPanel implements MouseListener
 	{
 		int i = 0;
 		Graphics2D g2 = (Graphics2D)g;
-		if (this.erase)
-		{
-			this.erase = false;
-			g.clearRect(150, 0, this.getPreferredSize().width, this.getPreferredSize().height);
-		}
 		if (listPoints.size() > 1)
 		{
 			for (i = 0; i < listPoints.size() - 1; i = i +2)
@@ -106,6 +104,11 @@ public class BoardPanel extends JPanel implements MouseListener
 				g2.drawLine(listPoints.get(i).getX(), listPoints.get(i).getY(), 
 							listPoints.get(i + 1).getX(), listPoints.get(i + 1).getY());
 			}
+		}
+		if (this.erase)
+		{
+			this.listPoints.clear();
+			this.erase = false;
 		}
 	}
 }

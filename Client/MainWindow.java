@@ -101,7 +101,7 @@ public class MainWindow extends JFrame implements WindowListener{
 	
 	public void exitDrawer(String[] tab)
 	{
-		this.messP.exitFinder(tab);
+		this.messP.exitDrawer(tab);
 		this.drawPanel.cleanBoard();
 	}
 

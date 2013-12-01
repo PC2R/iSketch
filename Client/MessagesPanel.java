@@ -86,7 +86,7 @@ public class MessagesPanel extends JPanel {
 		if (m)
 			this.textMsg.append("Vous etes le dessinateur.\nVous devez dessiner le mot " + word + "\n");
 		else
-			this.textMsg.append("La partie commence\nDevinez le mot qui se dessine à l'écran\n");
+			this.textMsg.append("La partie commence\nDevinez le mot\n");
 	}
 	
 	public void newProp(String msg)
@@ -134,7 +134,10 @@ public class MessagesPanel extends JPanel {
 		textMsg.append("\n");
 	}
 	
-	public void exitFinder(String[] tab) { textMsg.append(tab[1] + " a quitté le le jeux\n"); }
+	public void exitFinder(String[] tab) { textMsg.append(tab[1] + " a quitté le jeu\n"); }
 	
-	public void exitDrawer(String tab) { textMsg.append("Le dessinateur a quitté la partie"); }
+	public void exitDrawer(String[] tab)
+	{
+		textMsg.append("Le dessinateur a quitté la partie");
+	}
 }
