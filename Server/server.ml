@@ -23,6 +23,8 @@ let logfile = "log/server.log"
 
 let dictionary_words = ref (Array.make 0 "")
 
+let word = ref ""
+
 let players = ref []
 
 let mutex_players = Mutex.create ()
@@ -117,6 +119,16 @@ let send_connected_command () =
     done;
   done;;
 
+let send_new_round_command () =
+  let player = List.nth !players !round in
+  if player#get_status () != false then
+    let name = player#get_name () in
+    let result = "NEW_ROUND/dessinateur/" ^ name ^ !word ^ "\n" in
+    for i = 0 to (List.length !players - 1) do
+      let player2 = List.nth !players i in
+      player2#send_command result
+    done;;
+
 let send_score_round_command () =
   let result = ref "SCORE_ROUND/" in
   for i = 0 to (List.length !players - 1) do
@@ -135,7 +147,7 @@ object (self)
   val s_descr = s_descr
   val mutable name = ""
   val mutable score = 0
-  val mutable status = CONNECTED
+  val mutable status = true
   val mutable role = NOT_DEFINED
 
   initializer
@@ -159,7 +171,7 @@ object (self)
 		      trace (name ^ "just proposed a line");
 		      notify_line new_line;
       | "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
-		  status <- DISCONNECTED;
+		  status <- false;
 		  notify_exit name;
       | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
 	     ignore (Unix.write s_descr result 0 (String.length result));
@@ -168,6 +180,7 @@ object (self)
 
   method get_name () = name;
   method get_score () = score;
+  method get_status () = status;
 
  (* method get_status () = status;*)
 
@@ -274,6 +287,8 @@ object (self)
     send_connected_command ();
     while (!round < !max_players ) do
       trace ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");
+      word := !dictionary_words.(Random.int (Array.length !dictionary_words));
+      send_new_round_command ();
       Condition.wait condition_end_round mutex_end_round;
     done
 
