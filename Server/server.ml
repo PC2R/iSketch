@@ -30,6 +30,9 @@ let mutex_maximum_players = Mutex.create ()
 
 let condition_players = Condition.create ()
 
+let condition_end_round = Condition.create ()
+let mutex_end_round = Mutex.create ()
+
 let players_connected = ref 0
 
 let round = ref 0
@@ -93,6 +96,13 @@ let notify_guess word =
     let player = List.nth !players i in
     player#send_guessed word
   done;;
+
+let notify_line line =
+  for i = 0 to (List.length !players - 1) do
+    let player =  List.nth !players i in
+    player#send_command ("LINE/" ^ line ^ !rgb ^ !size ^ "\n");
+  done;;
+    
   
 let send_connected_command () =
   for i = 0 to (List.length !players - 1) do
@@ -102,11 +112,10 @@ let send_connected_command () =
       if i != j then
 	begin
 	  let player2 = List.nth !players j in
-	  player2#send_command ("CONNECTED/" ^ name);
+	  player2#send_command ("CONNECTED/" ^ name ^ "\n");
 	end
     done;
   done;;
-
 
 let send_score_round_command () =
   let result = ref "SCORE_ROUND/" in
@@ -140,7 +149,16 @@ object (self)
       match List.nth l 0 with
       | "GUESS" -> let word = String.sub command 6 (String.length command - 6) in
 		   notify_guess word;
-      | "EXIT" -> let name = String.sub command 4 (String.length command - 4) in
+      | "SET_COLOR" -> let new_color = String.sub command 10 (String.length command - 10) in
+		       rgb := new_color;
+		       trace (name ^ "just changed the color of the line.");
+      | "SET_SIZE" -> let new_size = String.sub command 9 (String.length command - 9) in
+		      size := new_size;
+		      trace (name ^ "just changed the color of the line.");
+      | "SET_LINE" -> let new_line = String.sub command 9 (String.length command - 9) in
+		      trace (name ^ "just proposed a line");
+		      notify_line new_line;
+      | "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
 		  status <- DISCONNECTED;
 		  notify_exit name;
       | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
@@ -253,9 +271,11 @@ object (self)
     trace ("Server has successfully read the dictionary.");
     Condition.wait condition_players mutex_maximum_players;
     trace ("All players are now connected, let the game begin !");
-(*    while (!round < !max_players ) do
+    send_connected_command ();
+    while (!round < !max_players ) do
       trace ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" !");
-    done*)
+      Condition.wait condition_end_round mutex_end_round;
+    done
 
 end;;
 
