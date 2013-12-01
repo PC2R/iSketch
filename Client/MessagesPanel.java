@@ -84,7 +84,7 @@ public class MessagesPanel extends JPanel {
 	public void setMode(boolean m, String word)
 	{
 		if (m)
-			this.textMsg.append("Vous etes le dessinateur.\nVous devez dessiner le mot " + word + "\n");
+			this.textMsg.append("Vous etes le dessinateur.\nVous devez dessiner le mot :\n\t" + word + "\n");
 		else
 			this.textMsg.append("La partie commence\nDevinez le mot\n");
 	}

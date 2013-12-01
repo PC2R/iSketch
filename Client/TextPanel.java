@@ -28,6 +28,7 @@ public class TextPanel extends JPanel implements ActionListener , KeyListener{
 		textField.setBackground(Color.lightGray);
 		textField.setAlignmentX(LEFT_ALIGNMENT);
 		textField.setAlignmentY(CENTER_ALIGNMENT);
+		textField.addKeyListener(this);
 
 		btnSend.setPreferredSize(new Dimension(wWidth / 6, 30));
 		btnSend.setForeground(Color.black);
