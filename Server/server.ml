@@ -135,7 +135,7 @@ let notify_line line =
 let notify_cheat name =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    player#send_command ("BROADCAST/" ^ name ^ " has reported cheating behavior./\n");
+    player#send_command ("BROADCAST/" ^ remove_slash name ^ " has reported cheating behavior./\n");
   done;;
   
 let send_connected_command () =
@@ -179,6 +179,13 @@ let send_score_round_command () =
     player#send_command !result
   done;;
 
+let start_timeout () =
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    player#send_command ("WORD_FOUND_TIMEOUT/" ^ string_of_int !timeout ^ "/\n");
+  done;;
+  
+
 class player pseudo s_descr =
 object (self)
 
@@ -216,6 +223,8 @@ object (self)
 		       else if !score_round_drawer < 15 then
 			 score_round_drawer := !score_round_drawer + 1;
 		       trace("The drawer has " ^ string_of_int !score_round_drawer ^ " points.");
+		       if !word_found = false then
+			 start_timeout ();
 		       word_found := true;
 		       incr word_finders;
 		       if !word_finders = !players_connected - 1 then
@@ -226,12 +235,12 @@ object (self)
 		   Mutex.unlock mutex_guessed_word;
       | "SET_COLOR" -> let new_color = String.sub command 10 (String.length command - 10) in
 		       rgb := new_color;
-		       trace (remove_slash name ^ " just changed the color of the line.");
+		       trace (remove_slash name ^ " has just changed the color of the line.");
       | "SET_SIZE" -> let new_size = String.sub command 9 (String.length command - 9) in
 		      size := new_size;
-		      trace (remove_slash name ^ " just changed the color of the line.");
+		      trace (remove_slash name ^ " has just changed the color of the line.");
       | "SET_LINE" -> let new_line = String.sub command 9 (String.length command - 9) in
-		      trace (remove_slash name ^ " just proposed a line");
+		      trace (remove_slash name ^ " has just proposed a line.");
 		      notify_line new_line;
       | "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
 		  connected <- false;
