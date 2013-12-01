@@ -52,9 +52,6 @@ let init_score () =
   score_round_finder := 10;
   score_round_drawer := 0;;
 
-let score_for_drawer () =
-  print_endline ("we need to change drawer points");;
-  (* to do *)
 
 let trace message =
   let out_channel = open_out_gen [Open_append;Open_creat] 0o666 logfile
@@ -144,12 +141,15 @@ let send_connected_command () =
 let send_new_round_command () =
   let player = List.nth !players !round in
   if player#get_status () != false then
-    let name = player#get_name () in
-    let result = "NEW_ROUND/dessinateur/" ^ name ^ !word ^ "\n" in
-    for i = 0 to (List.length !players - 1) do
-      let player2 = List.nth !players i in
-      player2#send_command result
-    done;;
+    begin
+      player#set_role "drawer";
+      let name = player#get_name () in
+      let result = "NEW_ROUND/dessinateur/" ^ name ^ !word ^ "\n" in
+      for i = 0 to (List.length !players - 1) do
+	let player2 = List.nth !players i in
+	player2#send_command result
+      done;
+    end;;
 
 let send_score_round_command () =
   let result = ref "SCORE_ROUND/" in
@@ -190,9 +190,13 @@ object (self)
 		       notify_word_found name;
 		       score <- !score_round_finder;
 		       trace (remove_slash (name) ^ " has just won " ^ string_of_int score ^ " points.");
-		       score_for_drawer ();
 		       if !score_round_finder > 5 then
-			 score_round_finder := !score_round_finder -1
+			 score_round_finder := !score_round_finder -1;
+		       if !score_round_drawer = 0 then
+			 score_round_drawer := 10
+		       else if !score_round_drawer < 15 then
+			 score_round_drawer := !score_round_drawer + 1;
+		       trace("The drawer has " ^ string_of_int !score_round_drawer ^ " points.");
 		     end
 		   else
 		     notify_guess guessed_word name;
@@ -217,7 +221,7 @@ object (self)
   method get_name () = name;
   method get_score () = score;
   method get_status () = connected;
-  method set_role () = role;
+  method set_role r = role <- r;
 
   method send_command result =
     ignore (Unix.write s_descr result 0 (String.length result));
