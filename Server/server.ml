@@ -183,8 +183,12 @@ let start_timeout () =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
     player#send_command ("WORD_FOUND_TIMEOUT/" ^ string_of_int !timeout ^ "/\n");
-  done;;
-  
+  done;
+  let thread_timeout = Thread.create (fun x ->
+				      Thread.delay (float_of_int !timeout);
+				      Condition.signal condition_end_round;
+				     ) () in
+  trace ("The server has started the timeout.");;
 
 class player pseudo s_descr =
 object (self)
