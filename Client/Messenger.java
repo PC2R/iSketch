@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -43,53 +42,45 @@ public class Messenger {
 			return false;
 	}
 
-	public void getPlayers()
+	public String getPlayers()
 	{
 		String[] tab;
 		String line = new String();
-		int i;
 
-		try
+		System.out.println("Attente de la liste des joueurs");
+		while (true)
 		{
-			System.out.println("Attente de la liste des joueurs");
-			line = readStream.readLine();
-			System.out.println("S->C : " + line);
-		}
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
-		tab = parse(line);
-		if (tab[0].equals("SCORE_ROUND"))
-		{
-			for (i = 1; i < tab.length - 1; i = i + 2)
+			try
 			{
-				this.addPlayer(tab[i], tab[i + 1]);
+				line = readStream.readLine();
 			}
+			catch (IOException e) 
+			{
+				e.printStackTrace();
+			}
+			System.out.println("S->C : " + line);
+			tab = parse(line);
+			if (tab[0].equals("CONNECTED"))
+			{
+				this.addPlayer(tab[1], "0");
+			}
+			if (tab[0].equals("NEW_ROUND"))
+				break;
 		}
+		return line;
 	}
 
-	public String beginRound()
+	public String beginRound(String line)
 	{
 		String res;
-		String line = new String();
-		String[] tab;
-		try
-		{
-			System.out.println("Attente du debut du round");
-			line = readStream.readLine();
-			System.out.println("S->C : " + line);
-		}
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
-		tab = parse(line);
+		String[] tab = parse(line);
+		
+		System.out.println("Debut du round");
 		if (tab[0].equals("NEW_ROUND"))
 		{
-			if (tab[1].equals("drawer"))
+			if (tab[1].equals("dessinateur"))
 			{
-				res = new String(tab[2]);
+				res = new String(tab[3]);
 				System.out.println("Vous êtes dessinateur. Vous devez dessiner le mot " + res);
 			}
 			else
@@ -197,15 +188,15 @@ public class Messenger {
 	public void setPassiveMode() 
 	{ 
 		System.out.println("La zone de dessin n'est pas active");
-		this.mWindow.setPassiveMode(); 
+		this.mWindow.setPassiveMode();
 	}
-	
-	public void setActifMode() 
+
+	public void setActifMode(String word) 
 	{ 
 		System.out.println("La zone de dessin est active");
-		this.mWindow.setActifMode();
+		this.mWindow.setActifMode(word);
 	}
-	
+
 	public void closeWindow()
 	{
 		mWindow.dispose();

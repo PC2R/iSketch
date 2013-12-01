@@ -1,4 +1,3 @@
-
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -18,7 +17,6 @@ public class BoardPanel extends JPanel implements MouseListener
 
 	private Color gColor = Color.BLACK;
 	private int gsize = 1;
-	private int flag = 0;
 
 	private ArrayList<DrawPoint> listPoints = new ArrayList<DrawPoint>();
 
@@ -41,43 +39,31 @@ public class BoardPanel extends JPanel implements MouseListener
 	/* MOUSELISTENER */
 	
 	@Override
-	public void mouseClicked(MouseEvent e)
-	{
-		int last;
-		listPoints.add(new DrawPoint(e.getX(), e.getY(), drawp.getDrawColor(), drawp.getDrawSize()));
-		if (flag < 2)
-			this.flag = this.flag + 1;
-		else
-		{
-			flag = 0;
-			last = listPoints.size();
-			drawp.sendCommandSetLine(listPoints.get(last - 2).getX(), listPoints.get(last - 2).getY(),
-					 listPoints.get(last - 1).getX(), listPoints.get(last - 1).getY());
-		}
-	}
+	public void mouseClicked(MouseEvent e) { }
 
 	@Override
 	public void mousePressed(MouseEvent e) 
 	{
 		//System.out.println("Pressed on (" + e.getX() + "," + e.getY() + ")");
+		listPoints.add(new DrawPoint(e.getX(), e.getY(), drawp.getDrawColor(), drawp.getDrawSize()));
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) 
 	{
 		//System.out.println("Released on (" + e.getX() + "," + e.getY() + ")");
+		int s;
+		listPoints.add(new DrawPoint(e.getX(), e.getY(), drawp.getDrawColor(), drawp.getDrawSize()));
+		s = listPoints.size();
+		drawp.sendCommandSetLine(listPoints.get(s - 2).getX(), listPoints.get(s - 2).getY(),
+				 listPoints.get(s - 1).getX(), listPoints.get(s - 1).getY());
+		repaint();
 	}
 
 	@Override
-	public void mouseEntered(MouseEvent e) 
-	{
-		//System.out.println("Click on (" + e.getX() + "," + e.getY() + ")");
-	}
-
+	public void mouseEntered(MouseEvent e) { }
 	@Override
-	public void mouseExited(MouseEvent e) 
-	{
-	}
+	public void mouseExited(MouseEvent e) { }
 
 	/* GRAPHICS */
 	
