@@ -1,11 +1,14 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+
 import javax.swing.*;
 
 
 @SuppressWarnings("serial")
-public class MainWindow extends JFrame {
+public class MainWindow extends JFrame implements WindowListener{
 
 	private static int wHeight = 600;
 	private static int wWidth = 1100;
@@ -25,6 +28,7 @@ public class MainWindow extends JFrame {
 		this.setSize(wWidth, wHeight);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setLocationRelativeTo(null);
+		this.addWindowListener(this);
 		
 		drawPanel = new DrawPanel(wWidth / 2, wHeight, this);
 		drawPanel.setBackground(Color.white);
@@ -92,6 +96,14 @@ public class MainWindow extends JFrame {
 	public void line(String[] tab) { drawPanel.line(tab); }
 	
 	public void broadcast(String[] tab) { this.messP.broadcast(tab); }
+	
+	public void exitFinder(String[] tab) { this.messP.exitFinder(tab); }
+	
+	public void exitDrawer(String[] tab)
+	{
+		this.messP.exitFinder(tab);
+		this.drawPanel.cleanBoard();
+	}
 
 	
 	/* GRAPHICS */
@@ -128,6 +140,28 @@ public class MainWindow extends JFrame {
 	
 	public void sendCommandPass() { msn.sendCommandPass(); }
 	
-	public void senCommandCheat() { msn.sendCommandCheat(); }
+	public void sendCommandCheat() { msn.sendCommandCheat(); }
+
+	
+	/* WINDOWS LISTENER */
+
+	@Override
+	public void windowClosing(WindowEvent arg0)
+	{
+		msn.sendCommandExit();
+	}
+	
+	@Override
+	public void windowClosed(WindowEvent arg0) {}
+	@Override
+	public void windowActivated(WindowEvent arg0) {}
+	@Override
+	public void windowDeactivated(WindowEvent arg0) {}
+	@Override
+	public void windowDeiconified(WindowEvent arg0) {}
+	@Override
+	public void windowIconified(WindowEvent arg0) {}
+	@Override
+	public void windowOpened(WindowEvent arg0) {}
 	
 }

@@ -15,6 +15,7 @@ public class Messenger {
 	private MainWindow mWindow = new MainWindow(this);
 	
 	private String userPseudo;
+	private String drawerPseudo;
 
 	Messenger(BufferedReader dis, PrintStream ps)
 	{
@@ -84,6 +85,7 @@ public class Messenger {
 		System.out.println("Debut du round");
 		if (tab[0].equals("NEW_ROUND"))
 		{
+			this.drawerPseudo = tab[2];
 			if (tab[2].equals(name))
 			{
 				res = new String(tab[3]);
@@ -138,6 +140,13 @@ public class Messenger {
 			mWindow.line(tab);
 		else if (tab[0].equals("BROADCAST"))
 			mWindow.broadcast(tab);
+		else if (tab[0].equals("EXITED"))
+		{
+			if (tab[1].equals(this.drawerPseudo))
+				mWindow.exitDrawer(tab);
+			else
+				mWindow.exitFinder(tab);
+		}
 		else
 			System.out.println("Commande inconnue : " + tab[0]);
 	}
@@ -203,6 +212,16 @@ public class Messenger {
 		{
 			System.out.println( this.userPseudo + " pense que le dessinateur triche");
 			msgToServer.setMsg("CHEAT/" + this.userPseudo + "/");
+			msgToServer.notifyAll();
+		}
+	}
+	
+	public void sendCommandExit()
+	{
+		synchronized (msgToServer)
+		{
+			System.out.println( this.userPseudo + " a quitté le jeu");
+			msgToServer.setMsg("EXIT/" + this.userPseudo + "/");
 			msgToServer.notifyAll();
 		}
 	}

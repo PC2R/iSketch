@@ -47,7 +47,7 @@ public class DrawPanel extends JPanel
 	
 	public void sendCommandPass(){ mWindow.sendCommandPass(); }
 	
-	public void sendCommandCheat(){ mWindow.senCommandCheat(); }
+	public void sendCommandCheat(){ mWindow.sendCommandCheat(); }
 	
 	
 	/* GRAPHICS */
@@ -70,6 +70,8 @@ public class DrawPanel extends JPanel
 		this.board.setActifMode();
 		this.menu.setActifMode();
 	}
+	
+	public void cleanBoard() { this.board.cleanBoard(); }
 	
 	/* GETTERS/SETTERS */
 	

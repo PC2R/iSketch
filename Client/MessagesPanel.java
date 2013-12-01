@@ -133,4 +133,8 @@ public class MessagesPanel extends JPanel {
 		textMsg.append(tab[1]);
 		textMsg.append("\n");
 	}
+	
+	public void exitFinder(String[] tab) { textMsg.append(tab[1] + " a quitté le le jeux\n"); }
+	
+	public void exitDrawer(String tab) { textMsg.append("Le dessinateur a quitté la partie"); }
 }

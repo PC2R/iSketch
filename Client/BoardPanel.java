@@ -17,12 +17,14 @@ public class BoardPanel extends JPanel implements MouseListener
 
 	private Color gColor = Color.BLACK;
 	private int gsize = 1;
+	private boolean erase = false;
 
 	private ArrayList<DrawPoint> listPoints = new ArrayList<DrawPoint>();
 
 	public BoardPanel(int w, int l, DrawPanel dp)
 	{
 		this.drawp = dp;
+		this.setBackground(Color.WHITE);
 		this.setPreferredSize(new Dimension(w, l));
 	}
 
@@ -67,6 +69,14 @@ public class BoardPanel extends JPanel implements MouseListener
 
 	/* GRAPHICS */
 	
+	public void cleanBoard()
+	{
+		System.out.println("On nettoie le tableau");
+		this.listPoints.clear();
+		this.erase = true;
+		repaint();
+	}
+	
 	public void line(String[] tab)
 	{
 		Color c = new Color(Integer.decode(tab[5]), Integer.decode(tab[6]), Integer.decode(tab[7]));
@@ -82,6 +92,11 @@ public class BoardPanel extends JPanel implements MouseListener
 	{
 		int i = 0;
 		Graphics2D g2 = (Graphics2D)g;
+		if (this.erase)
+		{
+			this.erase = false;
+			g.clearRect(150, 0, this.getPreferredSize().width, this.getPreferredSize().height);
+		}
 		if (listPoints.size() > 1)
 		{
 			for (i = 0; i < listPoints.size() - 1; i = i +2)
