@@ -53,7 +53,8 @@ let init_score () =
   score_round_drawer := 0;;
 
 let score_for_drawer () =
-  print_endline "";;
+  print_endline ("we need to change drawer points");;
+  (* to do *)
 
 let trace message =
   let out_channel = open_out_gen [Open_append;Open_creat] 0o666 logfile
@@ -113,6 +114,12 @@ let notify_guess word name =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
     player#send_command ("GUESSED/" ^ word ^ name ^ "\n");
+  done;;
+
+let notify_word_found name = 
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    player#send_command ("WORD_FOUND/" ^ name ^ "\n");
   done;;
 
 let notify_line line =
@@ -178,15 +185,18 @@ object (self)
       match List.nth l 0 with
       | "GUESS" -> Mutex.lock mutex_guessed_word;
 		   let guessed_word = String.sub command 6 (String.length command - 6) in
-		   if (guessed_word = !word) then
+		   if (remove_slash (guessed_word) = !word) then
 		     begin
+		       notify_word_found name;
 		       score <- !score_round_finder;
+		       trace (remove_slash (name) ^ " has just won " ^ string_of_int score ^ " points.");
 		       score_for_drawer ();
 		       if !score_round_finder > 5 then
 			 score_round_finder := !score_round_finder -1
-		     end;
+		     end
+		   else
+		     notify_guess guessed_word name;
 		   Mutex.unlock mutex_guessed_word;
-		   notify_guess guessed_word name;
       | "SET_COLOR" -> let new_color = String.sub command 10 (String.length command - 10) in
 		       rgb := new_color;
 		       trace (name ^ "just changed the color of the line.");
