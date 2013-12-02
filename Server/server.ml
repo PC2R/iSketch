@@ -108,6 +108,13 @@ let my_input_line file_descr =
 let remove_slash s =
   (String.sub s 0 (String.length s - 1));;
 
+(* function for EXITED / GUESSED / WORD_FOUND *)
+let notify_players keyword name =
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    player#send_command (keyword ^ "/" ^ name ^ "\n");
+  done;;
+
 let notify_exit name =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
@@ -143,11 +150,8 @@ let send_connected_command () =
     let player1 = List.nth !players i in
     let name = player1#get_name () in
     for j = 0 to (List.length !players - 1) do
-      if i != j then
-	begin
-	  let player2 = List.nth !players j in
-	  player2#send_command ("CONNECTED/" ^ name ^ "\n");
-	end
+      let player2 = List.nth !players j in
+      player2#send_command ("CONNECTED/" ^ name ^ "\n");
     done;
   done;;
 
@@ -178,6 +182,24 @@ let send_score_round_command () =
     let player = List.nth !players i in
     player#send_command !result
   done;;
+
+let send_end_round_command () =
+  let score = ref 0 and name = ref "" in
+  for i = 0 to (List.length !players - 1) do
+    let player1 = List.nth !players i in
+    if (player1#get_score () > !score) then
+      begin
+	score := player1#get_score ();
+	name := player1#get_name ()
+      end
+  done;
+  print_endline ("name : " ^ !name ^ " / score : " ^ string_of_int (!score));
+  for i = 0 to (List.length !players - 1) do
+    let player2 = List.nth !players i in
+    player2#send_command ("END_ROUND/" ^ !name ^ !word ^ "/\n");
+  done;;
+	       
+				  
 
 let start_timeout () =
   for i = 0 to (List.length !players - 1) do
@@ -364,6 +386,7 @@ object (self)
       choose_word ();
       send_new_round_command ();
       Condition.wait condition_end_round mutex_end_round;
+      send_end_round_command ();
       send_score_round_command ();
       incr round;
     done
