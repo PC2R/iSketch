@@ -16,7 +16,7 @@
 let max_players = ref 4
 let timeout = ref 30
 let port = ref 2013
-let cheat_parameter = ref 3
+let cheat_parameter = ref 3 (* should be (max_players - 1) by default but subject says 3 *)
 let verbose_mode = ref false
 
 let dictionary_filename = ref "dictionary"
@@ -51,14 +51,14 @@ let line = ref ""
 let score_round_finder = ref 0
 let score_round_drawer = ref 0
 
-let cheat_counter = ref 0
+let timeout_on = ref false
 
-let init_variables () =
-  word_found := false;
-  word_finders := 0;
-  score_round_finder := 10;
-  score_round_drawer := 0;
-  cheat_counter := 0;;
+let thread_timeout = ref (Thread.create (fun _ ->
+					 while true do
+					   Thread.yield ()
+					 done;
+					) ()
+			 )
 
 let trace message =
   let out_channel = open_out_gen [Open_append;Open_creat] 0o666 logfile
@@ -74,6 +74,47 @@ let trace message =
   if (!verbose_mode) then
     print_endline message;
   close_out out_channel;;
+
+let notify_timeout () =
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    player#send_command ("WORD_FOUND_TIMEOUT/" ^ string_of_int !timeout ^ "/\n");
+  done;;
+
+let update_variables () =
+  if !score_round_finder > 5 then score_round_finder := !score_round_finder -1;
+  if !score_round_drawer = 0 then score_round_drawer := 10
+  else
+    if !score_round_drawer < 15 then
+      score_round_drawer := !score_round_drawer + 1;
+  if !word_found = false then
+    begin
+      notify_timeout ();
+      word_found :=true;
+      timeout_on := true;
+      thread_timeout := Thread.create (fun _ ->
+				       Thread.delay (float_of_int !timeout);
+				       if !timeout_on then
+					 Condition.signal condition_end_round;
+				       trace ("Timeout has just ended.")
+				      ) ();
+      trace ("Server has started the timeout.");
+    end;
+  incr word_finders;
+  if !word_finders = !players_connected - 1 then
+    begin
+      timeout_on := false;
+      Condition.signal condition_end_round
+    end;;
+
+let cheat_counter = ref 0
+
+let init_variables () =
+  word_found := false;
+  word_finders := 0;
+  score_round_finder := 10;
+  score_round_drawer := 0;
+  cheat_counter := 0;;
 
 let rec remove element list =
   match list with
@@ -193,24 +234,10 @@ let send_end_round_command () =
 	name := player1#get_name ()
       end
   done;
-  print_endline ("name : " ^ !name ^ " / score : " ^ string_of_int (!score));
   for i = 0 to (List.length !players - 1) do
     let player2 = List.nth !players i in
     player2#send_command ("END_ROUND/" ^ !name ^ !word ^ "/\n");
   done;;
-	       
-				  
-
-let start_timeout () =
-  for i = 0 to (List.length !players - 1) do
-    let player = List.nth !players i in
-    player#send_command ("WORD_FOUND_TIMEOUT/" ^ string_of_int !timeout ^ "/\n");
-  done;
-  let thread_timeout = Thread.create (fun x ->
-				      Thread.delay (float_of_int !timeout);
-				      Condition.signal condition_end_round;
-				     ) () in
-  trace ("The server has started the timeout.");;
 
 class player pseudo s_descr =
 object (self)
@@ -234,27 +261,11 @@ object (self)
       match List.nth l 0 with
       | "GUESS" -> Mutex.lock mutex_guessed_word;
 		   let guessed_word = String.sub command 6 (String.length command - 6) in
-		   (* If the word is the right one *)
-		   if (remove_slash (guessed_word) = !word) then
+		   if (remove_slash (guessed_word) = ! word) then
 		     begin
-		       (* We tell the others players *)
 		       notify_word_found name;
-		       (* We compute how many points he wins *)
 		       score <- !score_round_finder;
-		       trace (remove_slash (name) ^ " has just won " ^ string_of_int score ^ " points.");
-		       if !score_round_finder > 5 then
-			 score_round_finder := !score_round_finder -1;
-		       if !score_round_drawer = 0 then
-			 score_round_drawer := 10
-		       else if !score_round_drawer < 15 then
-			 score_round_drawer := !score_round_drawer + 1;
-		       trace("The drawer has " ^ string_of_int !score_round_drawer ^ " points.");
-		       if !word_found = false then
-			 start_timeout ();
-		       word_found := true;
-		       incr word_finders;
-		       if !word_finders = !players_connected - 1 then
-			 Condition.signal condition_end_round;
+		       update_variables ();
 		     end
 		   else
 		     notify_guess guessed_word name;
@@ -286,6 +297,7 @@ object (self)
   method get_status () = connected;
   method get_role () = role;
   method set_role r = role <- r;
+  method set_score s = score <- s;
 
   method send_command result =
     ignore (Unix.write s_descr result 0 (String.length result));
