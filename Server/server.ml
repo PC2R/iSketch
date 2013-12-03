@@ -223,7 +223,7 @@ let send_score_round_command () =
     let player = List.nth !players i in
     player#send_command !result
   done;;
-
+  
 let send_end_round_command () =
   let score = ref 0 and name = ref "" in
   for i = 0 to (List.length !players - 1) do
@@ -236,7 +236,18 @@ let send_end_round_command () =
   done;
   for i = 0 to (List.length !players - 1) do
     let player2 = List.nth !players i in
-    player2#send_command ("END_ROUND/" ^ !name ^ !word ^ "/\n");
+    print_endline (string_of_bool (!name != ""));
+    if !name != "" then
+      player2#send_command ("END_ROUND/" ^ !name ^ !word ^ "/\n")
+    else
+      player2#send_command ("END_ROUND/" ^ "/" ^ !word ^ "/\n");
+  done;;
+    
+let reset_score_players () =
+  score_round_drawer := 0;
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    player#set_score 0;
   done;;
 
 class player pseudo s_descr =
@@ -261,7 +272,7 @@ object (self)
       match List.nth l 0 with
       | "GUESS" -> Mutex.lock mutex_guessed_word;
 		   let guessed_word = String.sub command 6 (String.length command - 6) in
-		   if (remove_slash (guessed_word) = ! word) then
+		   if (remove_slash (guessed_word) = !word) then
 		     begin
 		       notify_word_found name;
 		       score <- !score_round_finder;
@@ -288,6 +299,13 @@ object (self)
 		   notify_cheat name;
 		   if !cheat_counter = !cheat_parameter then
 		     trace (string_of_int (!cheat_parameter) ^ " players have reported cheating behavior.");
+      | "PASS" -> if !word_found = true then
+		    begin
+		      reset_score_players ();
+		      timeout_on := false;
+		    end;
+		  Condition.signal condition_end_round;
+		    
       | _ -> trace(command ^ "has been received from " ^ remove_slash(name) ^ ".");
     done;
 
