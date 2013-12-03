@@ -236,11 +236,10 @@ let send_end_round_command () =
   done;
   for i = 0 to (List.length !players - 1) do
     let player2 = List.nth !players i in
-    print_endline (string_of_bool (!name != ""));
-    if !name != "" then
-      player2#send_command ("END_ROUND/" ^ !name ^ !word ^ "/\n")
+    if !name = "" then
+      player2#send_command ("END_ROUND/" ^ "/" ^ !word ^ "/\n")
     else
-      player2#send_command ("END_ROUND/" ^ "/" ^ !word ^ "/\n");
+      player2#send_command ("END_ROUND/" ^ remove_slash (!name) ^ "/" ^ !word ^ "/\n")
   done;;
     
 let reset_score_players () =
