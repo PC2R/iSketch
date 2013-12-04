@@ -185,6 +185,12 @@ let notify_cheat name =
     let player = List.nth !players i in
     player#send_command ("BROADCAST/" ^ remove_slash name ^ " has reported cheating behavior./\n");
   done;;
+
+let notify_talk name text =
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    player#send_command ("LISTEN/" ^ name ^ text ^ "/\n");
+  done;;
   
 let send_connected_command () =
   for i = 0 to (List.length !players - 1) do
@@ -304,7 +310,8 @@ object (self)
 		      timeout_on := false;
 		    end;
 		  Condition.signal condition_end_round;
-		    
+      | "TALK" -> let text = String.sub command 5 (String.length command - 5) in
+		  notify_talk name text;
       | _ -> trace(command ^ "has been received from " ^ remove_slash(name) ^ ".");
     done;
 
