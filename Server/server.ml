@@ -244,9 +244,10 @@ let send_new_round_command () =
     begin
       player#set_role "drawer";
       let name = player#get_name () in
-      let result = "NEW_ROUND/dessinateur/" ^ name ^ !word ^ "/\n" in
       for i = 0 to (List.length !players - 1) do
 	let player2 = List.nth !players i in
+	let name2 = player2#get_name () in
+	let result = "NEW_ROUND/" ^ name ^ "/" ^ name2 ^ "/" ^ !word ^ "/\n" in
 	player2#send_command result
       done;
     end;;
