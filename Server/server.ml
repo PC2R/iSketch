@@ -189,7 +189,7 @@ let my_input_line file_descr =
 let notify_players keyword name =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    player#send_command (keyword ^ "/" ^ name ^ "\n");
+    player#send_command (keyword ^ "/" ^ name ^ "/\n");
   done;;
 
 let notify_exit name =
@@ -201,13 +201,13 @@ let notify_exit name =
 let notify_guess word name =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    player#send_command ("GUESSED/" ^ word ^ name ^ "\n");
+    player#send_command ("GUESSED/" ^ word ^ "/" ^ name ^ "/\n");
   done;;
 
 let notify_word_found name = 
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    player#send_command ("WORD_FOUND/" ^ name ^ "\n");
+    player#send_command ("WORD_FOUND/" ^ name ^ "/\n");
   done;;
 
 let notify_line line =
