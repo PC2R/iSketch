@@ -21,12 +21,15 @@ let verbose_mode = ref false
 
 let dictionary_filename = ref "dictionary"
 let logfile = "log/server.log"
+let registered_players = "db_players"
 
 let dictionary_words = ref []
 
 let word = ref ""
 let word_found = ref false
 let word_finders = ref 0
+
+type role = DRAWER | FINDER | NOT_DEFINED
 
 let players = ref []
 
@@ -128,11 +131,32 @@ let rec read_file in_channel =
   try 
     let word = (input_line in_channel) in
     word::(read_file in_channel)
-  with End_of_file -> [];;
-  
+  with End_of_file -> close_in in_channel;
+		      [];;
+
 let init_dict () =
   let in_channel = open_in !dictionary_filename in
   read_file in_channel;;
+
+let exists_in_db name =
+  let is_registered = ref false in
+  let in_channel = open_in_gen[Open_creat] 0o666 registered_players in
+  try
+    while true do
+      let line = (input_line in_channel) in
+      let l = Str.split (Str.regexp " ") line in
+      if List.nth l 0 = name then
+	is_registered := true;
+    done;
+    !is_registered;
+  with End_of_file -> close_in in_channel;
+		      !is_registered;;
+
+let register_in_db name password =
+  let out_channel = open_out_gen [Open_append;Open_creat] 0o666 registered_players
+  and md5sum_hexa = Digest.to_hex (Digest.string password) in
+  output_string out_channel (name ^ md5sum_hexa);
+  close_out out_channel;;
   
 let choose_word () =
   word := List.nth !dictionary_words (Random.int (List.length !dictionary_words));
@@ -145,9 +169,6 @@ let my_input_line file_descr =
     r := !r ^ s
   done;
   !r;;
-
-let remove_slash s =
-  (String.sub s 0 (String.length s - 1));;
 
 (* function for EXITED / GUESSED / WORD_FOUND *)
 let notify_players keyword name =
@@ -183,7 +204,7 @@ let notify_line line =
 let notify_cheat name =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    player#send_command ("BROADCAST/" ^ remove_slash name ^ " has reported cheating behavior./\n");
+    player#send_command ("BROADCAST/" ^ name ^ "has reported cheating behavior./\n");
   done;;
 
 let notify_talk name text =
@@ -198,7 +219,7 @@ let send_connected_command () =
     let name = player1#get_name () in
     for j = 0 to (List.length !players - 1) do
       let player2 = List.nth !players j in
-      player2#send_command ("CONNECTED/" ^ name ^ "\n");
+      player2#send_command ("CONNECTED/" ^ name ^ "/\n");
     done;
   done;;
 
@@ -245,7 +266,7 @@ let send_end_round_command () =
     if !name = "" then
       player2#send_command ("END_ROUND/" ^ "/" ^ !word ^ "/\n")
     else
-      player2#send_command ("END_ROUND/" ^ remove_slash (!name) ^ "/" ^ !word ^ "/\n")
+      player2#send_command ("END_ROUND/" ^ !name ^ "/" ^ !word ^ "/\n")
   done;;
     
 let reset_score_players () =
@@ -254,6 +275,8 @@ let reset_score_players () =
     let player = List.nth !players i in
     player#set_score 0;
   done;;
+
+
 
 class player pseudo s_descr =
 object (self)
@@ -276,8 +299,8 @@ object (self)
       let l = Str.split (Str.regexp "[/]") command in
       match List.nth l 0 with
       | "GUESS" -> Mutex.lock mutex_guessed_word;
-		   let guessed_word = String.sub command 6 (String.length command - 6) in
-		   if (remove_slash (guessed_word) = !word) then
+		   let guessed_word = List.nth l 1 in
+		   if guessed_word = !word then
 		     begin
 		       notify_word_found name;
 		       score <- !score_round_finder;
@@ -288,19 +311,19 @@ object (self)
 		   Mutex.unlock mutex_guessed_word;
       | "SET_COLOR" -> let new_color = String.sub command 10 (String.length command - 10) in
 		       rgb := new_color;
-		       trace (remove_slash name ^ " has just changed the color of the line.");
+		       trace (name ^ " has just changed the color of the line.");
       | "SET_SIZE" -> let new_size = String.sub command 9 (String.length command - 9) in
 		      size := new_size;
-		      trace (remove_slash name ^ " has just changed the color of the line.");
+		      trace (name ^ " has just changed the color of the line.");
       | "SET_LINE" -> let new_line = String.sub command 9 (String.length command - 9) in
-		      trace (remove_slash name ^ " has just proposed a line.");
+		      trace (name ^ " has just proposed a line.");
 		      notify_line new_line;
       | "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
 		  connected <- false;
 		  decr players_connected;
 		  notify_exit name;
       | "CHEAT" -> cheat_counter := !cheat_counter + 1;
-		   trace (remove_slash name ^ " has reported cheating behavior.");
+		   trace (name ^ " has reported cheating behavior.");
 		   notify_cheat name;
 		   if !cheat_counter = !cheat_parameter then
 		     trace (string_of_int (!cheat_parameter) ^ " players have reported cheating behavior.");
@@ -312,7 +335,7 @@ object (self)
 		  Condition.signal condition_end_round;
       | "TALK" -> let text = String.sub command 5 (String.length command - 5) in
 		  notify_talk name text;
-      | _ -> trace(command ^ "has been received from " ^ remove_slash(name) ^ ".");
+      | _ -> trace(command ^ "has been received from " ^ name ^ ".");
     done;
 
 
@@ -325,7 +348,7 @@ object (self)
 
   method send_command result =
     ignore (Unix.write s_descr result 0 (String.length result));
-    trace (remove_slash (result) ^ " has been sent to " ^ remove_slash (name) ^ ".");
+    trace (String.sub result 0 (String.length result - 1) ^ " has been sent to " ^ name ^ ".");
 
 end;;
 
@@ -334,14 +357,14 @@ let connection_player (s_descr, sock_addr) =
     let command = my_input_line s_descr in
     let l = Str.split (Str.regexp "[/]") command in
     match List.nth l 0 with
-    | "CONNECT" -> let name = String.sub command 8 (String.length command - 8) in
-		   Mutex.lock mutex_players;
+    | "CONNECT" -> Mutex.lock mutex_players;
+		   let name = List.nth l 1 in
 		   if ((List.length !players) = !max_players) then
 		     begin
 		       let result = "CONNECTION_REFUSED/"
 				    ^ name ^ "maximum_capacity_reached/\n" in
 		       ignore (Unix.write s_descr result 0 (String.length result));
-		       trace (remove_slash name
+		       trace (name
 			      ^ " tried to join the game but maximum capacity was reached.");
 		       Mutex.unlock mutex_players;
 		       Thread.exit ()
@@ -352,20 +375,20 @@ let connection_player (s_descr, sock_addr) =
 			 if (List.nth !players i)#get_name () = name then
 			   begin
 			     let result = "CONNECTION_REFUSED/"
-					  ^ name ^ "name_already_taken/\n" in
+					  ^ name ^ "/name_already_taken/\n" in
 			     ignore (Unix.write s_descr result 0 (String.length result));
-			     trace (remove_slash name
+			     trace (name
 				    ^ " tried to join the game but the name was already taken.");
 			     Mutex.unlock mutex_players;
 			     Thread.exit ()
 			   end
 		       done;
-		       let result = "WELCOME/" ^ name ^ "\n" in
+		       let result = "WELCOME/" ^ name ^ "/\n" in
 		       ignore (Unix.write s_descr result 0 (String.length result));
 		       let player = new player name s_descr in
 		       players := player::!players;
 		       incr players_connected;
-		       trace (remove_slash name
+		       trace (name
 			      ^ " has been successfully welcomed to the game.");
 		       if ((List.length !players) = !max_players) then
 			 begin
@@ -375,6 +398,16 @@ let connection_player (s_descr, sock_addr) =
 		       Mutex.unlock mutex_players;
 		       Thread.exit ()
 		     end
+    | "REGISTER" -> let name = List.nth l 1
+		    and password = List.nth l 2 in
+		    Mutex.lock mutex_players;
+		    if (exists_in_db name) then
+		      let result = "ACCESSDENIED/\n" in
+		      ignore (Unix.write s_descr result 0 (String.length result));
+		      trace (name
+			     ^ "has tried to register but was already in the database.");
+		    else
+		      register_in_db name password;
     | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
 	   ignore (Unix.write s_descr result 0 (String.length result));
   with
@@ -388,12 +421,14 @@ object (self)
   val s_descr = Unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
 
   initializer
-  let host = Unix.gethostbyname (Unix.gethostname()) in
-      let h_addr = host.Unix.h_addr_list.(0) in
+  (*let host = Unix.gethostbyname (Unix.gethostname()) in
+      let h_addr = host.Unix.h_addr_list.(0) in*)
+  let h_addr = Unix.inet_addr_any in
       let sock_addr = Unix.ADDR_INET (h_addr, port) in
       Unix.setsockopt s_descr Unix.SO_REUSEADDR true;
       Unix.bind s_descr sock_addr;
       Unix.listen s_descr n;
+      dictionary_words := init_dict ();      
       trace ("Server successfully started with parameters : "
 	     ^ string_of_int !max_players ^ " maximum players and "
 	     ^ string_of_int !timeout ^ " seconds of timeout.");
@@ -401,6 +436,8 @@ object (self)
 	     ^ string_of_int port ^ " and host/address "
 	     ^ Unix.gethostname() ^ "/"
 	     ^ Unix.string_of_inet_addr h_addr ^ ".");
+      trace ("Server has successfully read the dictionary.");
+    
       
   method wait_connections () =
     ignore (Thread.create self#start_game ());
@@ -411,8 +448,6 @@ object (self)
     done;
 
   method start_game () =
-    dictionary_words := init_dict ();
-    trace ("Server has successfully read the dictionary.");
     Condition.wait condition_players mutex_maximum_players;
     trace ("All players are now connected, let the game begin !");
     send_connected_command ();
