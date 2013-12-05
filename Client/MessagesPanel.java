@@ -9,6 +9,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 import javax.xml.ws.handler.MessageContext.Scope;
 
 /* Zone d'affichage de la liste des joueurs et des différents messages envoyés */
@@ -19,13 +20,14 @@ public class MessagesPanel extends JPanel {
 	private JPanel msgPanel = new JPanel(null);
 	private JPanel listJoueurPanel = new JPanel(null);
 	
-	private JTextArea textListJoueur = new JTextArea();
-	private JTextArea textMsg = new JTextArea();
+	private JTextArea textListJoueur;
+	private JTextArea textMsg;
 	
 	private JLabel titleListJoueur = new JLabel("Liste des joueurs");
 	private JLabel titleMsg = new JLabel("Propositions");
 	
-	private JScrollPane jScroll;
+	private JScrollPane scrollMsg;
+	private JScrollPane scrollList;
 	
 	MessagesPanel(int wWidth, int wHeight)
 	{
@@ -35,36 +37,44 @@ public class MessagesPanel extends JPanel {
 		titleMsg.setForeground(Color.WHITE);
 		titleMsg.setFont(new Font("Arial", Font.BOLD, 16));
 		
-		textListJoueur.setPreferredSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
-		textListJoueur.setMaximumSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
-		textListJoueur.setAlignmentY(TOP_ALIGNMENT);
+		//textListJoueur.setPreferredSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
+		//textListJoueur.setMaximumSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
+		//textListJoueur.setAlignmentY(TOP_ALIGNMENT);
+		textListJoueur = new JTextArea("", 20, 10);
 		textListJoueur.setFont(new Font("Arial", Font.BOLD, 14));
 		textListJoueur.setEditable(false);
 		textListJoueur.setBackground(Color.lightGray);
 		
-		jScroll = new JScrollPane(textMsg, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		scrollList = new JScrollPane(textListJoueur);
+		scrollList.setVerticalScrollBarPolicy ( ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS );
+		scrollList.setPreferredSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
 		
-		textMsg.setPreferredSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
-		textMsg.setMaximumSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
-		textMsg.setAlignmentY(TOP_ALIGNMENT);
+		//textMsg.setPreferredSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
+		//textMsg.setMaximumSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
+		//textMsg.setAlignmentY(TOP_ALIGNMENT);
+		textMsg = new JTextArea("", 20, 10);
 		textMsg.setFont(new Font("Arial", Font.BOLD, 14));
 		textMsg.setEditable(false);
 		textMsg.setBackground(Color.lightGray);
 		textMsg.setLineWrap(true);
+		
+		scrollMsg = new JScrollPane(textMsg);
+		scrollMsg.setVerticalScrollBarPolicy ( ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS );
+		scrollMsg.setPreferredSize(new Dimension(wWidth / 4 - 20, 4 * wHeight / 5 - 20));
 		
 		msgPanel.setBackground(Color.DARK_GRAY);
 		msgPanel.setPreferredSize(new Dimension(wWidth / 4, 4 * wHeight / 5));
 		msgPanel.setMaximumSize(new Dimension(wWidth / 4, 4 * wHeight / 5));
 		msgPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 		//msgPanel.add(titleMsg);
-		msgPanel.add(textMsg);
+		msgPanel.add(scrollMsg);
 
 		listJoueurPanel.setBackground(Color.DARK_GRAY);
 		listJoueurPanel.setPreferredSize(new Dimension(wWidth / 4, 4 * wHeight / 5));
 		listJoueurPanel.setMaximumSize(new Dimension(wWidth / 4, 4 * wHeight / 5));
 		listJoueurPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 		//listJoueurPanel.add(titleListJoueur);
-		listJoueurPanel.add(textListJoueur);
+		listJoueurPanel.add(scrollList);
 		
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 		this.setPreferredSize(new Dimension(wWidth / 2, wHeight));
@@ -125,7 +135,7 @@ public class MessagesPanel extends JPanel {
 			textMsg.append("Le gagnant est :\n" + tab[1] + "\n");
 		textMsg.append("Le mot a trouver était :\n" + tab[2] + "\n\n");
 	}
-
+	
 	public void scoreout(String[] tab)
 	{
 		int i;
@@ -144,10 +154,7 @@ public class MessagesPanel extends JPanel {
 		textMsg.append("\n");
 	}
 	
-	public void exitFinder(String[] tab) { textMsg.append("\n"  + tab[1] + " a quitté le jeu\n"); }
+	public void exitFinder(String[] tab) { textMsg.append("\n" + tab[1] + " a quitté le jeu\n"); }
 	
-	public void exitDrawer(String[] tab)
-	{
-		textMsg.append("\nLe dessinateur a quitté la partie\n");
-	}
+	public void exitDrawer(String[] tab) { textMsg.append("\nLe dessinateur a quitté la partie\n"); }
 }
