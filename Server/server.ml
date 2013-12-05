@@ -167,10 +167,20 @@ let is_ok name password =
   with End_of_file -> close_in in_channel;
 		      !valid;;
 
+let gen_salt n =
+  let alphanum = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" in
+  let length = String.length alphanum in
+  let str = String.create n in        
+  for i = 0 to pred n do
+    str.[i] <- alphanum.[Random.int length]
+  done;
+  (str) ;;
+
 let register_in_db name password =
+  let salt = gen_salt (String.length (name ^ password)) in
   let out_channel = open_out_gen [Open_append;Open_creat] 0o666 registered_players
-  and md5sum_hexa = Digest.to_hex (Digest.string password) in
-  output_string out_channel (name ^ md5sum_hexa ^ "\n");
+  and md5sum_hexa = Digest.to_hex (Digest.string password ^ salt) in
+  output_string out_channel (name ^ " " ^ md5sum_hexa ^ " " ^ salt ^ "\n");
   close_out out_channel;;
   
 let choose_word () =
@@ -181,7 +191,7 @@ let choose_word () =
 let my_input_line file_descr =
   let s = " " and r = ref "" in
   while (Unix.read file_descr s 0 1 > 0) && s.[0] <> '\n' do
-    r := !r ^ s
+    r := !r ^ s;
   done;
   !r;;
 
@@ -219,7 +229,7 @@ let notify_line line =
 let notify_cheat name =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    player#send_command ("BROADCAST/" ^ name ^ "has reported cheating behavior./\n");
+    player#send_command ("BROADCAST/" ^ name ^ " has reported cheating behavior./\n");
   done;;
 
 let notify_talk name text =
@@ -259,7 +269,7 @@ let send_score_round_command () =
     if (player#get_role () = "drawer")then
       result := !result ^ player#get_name () ^ "/" ^ string_of_int (!score_round_drawer) ^ "/"
     else
-      result := !result ^ player#get_name () ^ "/" ^ string_of_int (player#get_score ()) ^ "/";
+      result := !result ^ player#get_name () ^ "/" ^ string_of_int (player#get_score ()) ^ "/"
   done;
   result := !result ^ "\n";
   for i = 0 to (List.length !players - 1) do
@@ -320,7 +330,7 @@ object (self)
 		     begin
 		       notify_word_found name;
 		       score <- !score_round_finder;
-		       update_variables ();
+		       update_variables ()
 		     end
 		   else
 		     notify_guess guessed_word name;

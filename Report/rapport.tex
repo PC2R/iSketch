@@ -27,20 +27,19 @@ des futurs clients) ainsi que l’initialisation de variables qui seront
 utilisées une fois le jeu lancé.
 
 \bigskip La création de notre objet serveur reprend les étapes
-classiques vues en cours. On crée tout d’abord \textbf{une prise} à
-l’aide de l’appel système \verb+Unix.socket+ (en utilisant le domaine
-Internet, le flot d’octets et le protocole de communication par
-défaut), puis on récupère \textbf{une adresse dans le domaine
-  internet} (à l’aide de l’adresse Internet de la machine locale et
-d’un numéro de port défini par l’utilisateur) afin de pouvoir associer
-les deux. Ensuite, on rend la prise capable d’accepter les
-connexions. Enfin, on met en place une boucle infinie qui accepte les
-demandes de connexions et qui va créer un objet joueur à chaque
-nouvelle demande (nous verrons plus tard comment nous gérons le nombre
-limite de joueurs par partie).
+classiques vues en cours : on crée une \textbf{une prise} (en
+utilisant le domaine Internet, le flot d’octets et le protocole de
+communication par défaut) et on récupère \textbf{une adresse dans le
+  domaine internet} (à l’aide de l’adresse Internet de la machine
+locale et d’un numéro de port défini par l’utilisateur) afin de
+pouvoir associer les deux puis ensuite, on rend la prise capable
+d’accepter les connexions et enfin, on met en place une boucle infinie
+qui accepte les demandes de connexions et qui va créer un thread
+joueur à chaque nouvelle demande (nous verrons plus tard comment nous
+gérons le nombre limite de joueurs par partie).
 
-\bigskip Juste avant de commencer à accepter les demande de connexions
-des joueurs, on initialise quelques variables :
+\bigskip En parallèle des demandes de connexions
+des joueurs, on lance un thread qui va gérer une partie.
 \begin{itemize}
 \item Un tableau de taille le nombre de joueurs maximal pour une
   partie et dont chaque case contiendra une string avec le
@@ -51,6 +50,36 @@ des joueurs, on initialise quelques variables :
   tirera au hasard un mot à chaque tour
 \end{itemize}
 
+\subsection {Création des joueurs}
+
+\subsubsection {Quand un mot est trouvé par un joueur}
+
+Voici le déroulement général des étapes effectuées par le serveur
+lorsqu’un joueur a trouvé le mot que le dessinateur était en train de
+dessiner. Notons que puisque les joueurs évoluent chacun sur un
+thread, nous avons protégé cette série d’opérations par un
+\textbf{mutex}.
+
+\begin{enumerate}
+\item Le serveur se charge d’envoyer la commande
+  \verb+WORD_FOUND/joueur/+ à tous les joueurs de la partie.
+\item Le serveur attribue le nombre de points qui va bien au joueur
+\item 
+\end{enumerate}
+
+\subsection {Extensions}
+
+\subsubsection {Comptes utilisateurs}
+
+Côté serveur, nous avons opté pour le stockage des noms et mots de
+passe des joueurs dans un simple fichier texte. Cependant, avant
+d'être stocké sur ce fichier, le mot de passe est salé (dynamiquement
+pour éviter les attaques par tables arc-en-ciel) puis hashé avec la
+fonction de hashage MD5 (cette fonction de hachage n'est certes plus
+fiable depuis longtemps mais nous n’avons pas trouvé dans la librairie
+standard d'OCaml d’autres fonctions plus performantes telle SHA-256).
+Ainsi, à chaque inscription, on ajoute une ligne contenant le nom du
+joueur, le mot de passé hashé et salé et le sel.
 
 \section{Côté client}
 
