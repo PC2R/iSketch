@@ -12,6 +12,7 @@ SRC		=	Message.java		\
 			ColorActionListener.java\
 			SizeActionListener.java	\
 			BoardPanel.java		\
+			Player.java		\
 			OptionActionListener.java
 
 OBJ		=	$(addprefix $(DIR)/, $(SRC:.java=.class))

@@ -3,6 +3,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.ArrayList;
 
 import javax.swing.*;
 
@@ -50,14 +51,13 @@ public class MainWindow extends JFrame implements WindowListener{
 		this.msn = msn;
 	}
 
-
 	/* TEXT FIELD */
 	
 	public void setAvailableButton() { this.textP.setAvailableButton(); }
 	
 	public void setDisableButton() { this.textP.setDisableButton(); }
-
-
+	
+	
 	/* PLAYERS */
 	
 	public void addPlayer(String name, String score)
@@ -89,10 +89,10 @@ public class MainWindow extends JFrame implements WindowListener{
 		messP.wordFoundTimeOut(tab[1]);
 	}
 	
-	public void scoreOut(String[] tab)
+	public void scoreOut(ArrayList<Player> list)
 	{
 		System.out.println("Voici les scores");
-		messP.scoreout(tab);
+		messP.scoreout(list);
 	}
 	
 	public void endRound(String[] tab)
@@ -129,7 +129,7 @@ public class MainWindow extends JFrame implements WindowListener{
 		this.drawPanel.setActifMode();
 		this.messP.setMode(true, word);
 	}
-
+	
 	public void cleanBoard() { this.drawPanel.cleanBoard(); }
 	
 	

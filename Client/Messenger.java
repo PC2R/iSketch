@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 
 public class Messenger {
 
@@ -13,9 +14,11 @@ public class Messenger {
 	private Message msgFromServer = new Message();
 
 	private MainWindow mWindow = new MainWindow(this);
-	
+
 	private String userPseudo;
 	private String drawerPseudo;
+
+	private ArrayList<Player> listPlayers = new ArrayList<Player>();
 
 	Messenger(BufferedReader dis, PrintStream ps)
 	{
@@ -70,6 +73,7 @@ public class Messenger {
 			if (tab[0].equals("CONNECTED"))
 			{
 				this.addPlayer(tab[1], "0");
+				this.listPlayers.add(new Player(tab[1]));
 			}
 			if (tab[0].equals("NEW_ROUND"))
 				break;
@@ -81,7 +85,7 @@ public class Messenger {
 	{
 		String res;
 		String[] tab = parse(line);
-		
+
 		System.out.println("Debut du round");
 		if (tab[0].equals("NEW_ROUND"))
 		{
@@ -121,6 +125,36 @@ public class Messenger {
 		tSender.interrupt();
 	}
 
+	public void removePlayer(String name)
+	{
+		int	i;
+		if (!this.listPlayers.isEmpty())
+		{
+			for (i = 0; i < this.listPlayers.size(); i++)
+				if (name.equals(listPlayers.get(i).getPseudo()))
+					break;
+			this.listPlayers.remove(i);
+		}
+	}
+	
+	public void updateScore(String name, int to_add)
+	{
+		int	i;
+		if (!this.listPlayers.isEmpty())
+		{
+			for (i = 0; i < this.listPlayers.size(); i++)
+			{
+				System.out.println(listPlayers.get(i).getPseudo());
+				if (name.equals(listPlayers.get(i).getPseudo()))
+				{
+					System.out.println("Mise a jour de " + name + ", i = " + i);
+					this.listPlayers.get(i).updateScore(to_add);
+					break;
+				}
+			}
+		}
+	}
+
 	
 	/* COMMAND */
 
@@ -138,11 +172,15 @@ public class Messenger {
 		else if (tab[0].equals("WORD_FOUND_TIMEOUT"))
 			this.mWindow.wordFoundTimeOut(tab);
 		else if (tab[0].equals("SCORE_ROUND"))
-			this.mWindow.scoreOut(tab);
+		{
+			for (int i = 1; i < tab.length - 1; i = i + 2)
+				this.updateScore(tab[i], Integer.parseInt(tab[i + 1]));
+			this.mWindow.scoreOut(listPlayers);
+		}
 		else if (tab[0].equals("END_ROUND"))
 		{
 			this.mWindow.setDisableButton();
-			this.setPassiveMode();
+			this.mWindow.setPassiveMode();
 			this.mWindow.endRound(tab);
 		}
 		else if (tab[0].equals("LINE"))
@@ -151,6 +189,7 @@ public class Messenger {
 			this.mWindow.broadcast(tab);
 		else if (tab[0].equals("EXITED"))
 		{
+			this.removePlayer(tab[1]);
 			if (tab[1].equals(this.drawerPseudo))
 				mWindow.exitDrawer(tab);
 			else
@@ -228,7 +267,7 @@ public class Messenger {
 			msgToServer.notifyAll();
 		}
 	}
-	
+
 	public void sendCommandCheat()
 	{
 		synchronized (msgToServer)
@@ -238,7 +277,7 @@ public class Messenger {
 			msgToServer.notifyAll();
 		}
 	}
-	
+
 	public void sendCommandExit()
 	{
 		synchronized (msgToServer)
@@ -248,8 +287,8 @@ public class Messenger {
 			msgToServer.notifyAll();
 		}
 	}
-	
-	
+
+
 	/* GRAPHIC WINDOW ACTIONS */
 
 	public void addPlayer(String name, String score)
@@ -274,7 +313,7 @@ public class Messenger {
 		mWindow.dispose();
 	}
 
-	
+
 	/* STATIC METHODES */
 
 	public static int getNbMotString(String str)

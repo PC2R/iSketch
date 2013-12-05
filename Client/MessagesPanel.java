@@ -2,6 +2,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -136,14 +137,14 @@ public class MessagesPanel extends JPanel {
 		textMsg.append("Le mot a trouver était :\n" + tab[2] + "\n\n");
 	}
 	
-	public void scoreout(String[] tab)
+	public void scoreout(ArrayList<Player> list)
 	{
 		int i;
 		
 		textListJoueur.setText("");
-		for (i = 1; i < tab.length - 1 ; i = i + 2)
+		for (i = 0; i < list.size() ; i = i + 1)
 		{
-			textListJoueur.append(tab[i] + "\t" + tab[i + 1]);
+			textListJoueur.append(list.get(i).getPseudo() + "\t" + list.get(i).getScore());
 			textListJoueur.append("\n");
 		}
 	}
