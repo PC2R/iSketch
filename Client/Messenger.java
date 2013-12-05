@@ -86,7 +86,7 @@ public class Messenger {
 		if (tab[0].equals("NEW_ROUND"))
 		{
 			this.drawerPseudo = tab[2];
-			if (tab[2].equals(name))
+			if (tab[1].equals(name))
 			{
 				res = new String(tab[3]);
 				System.out.println("Vous êtes dessinateur. Vous devez dessiner le mot " + res);
