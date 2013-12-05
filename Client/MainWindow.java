@@ -129,6 +129,8 @@ public class MainWindow extends JFrame implements WindowListener{
 		this.drawPanel.setActifMode();
 		this.messP.setMode(true, word);
 	}
+
+	public void cleanBoard() { this.drawPanel.cleanBoard(); }
 	
 	
 	/* COMMAND */

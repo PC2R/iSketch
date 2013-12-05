@@ -90,6 +90,7 @@ public class Messenger {
 			{
 				res = new String(tab[3]);
 				System.out.println("Vous êtes dessinateur. Vous devez dessiner le mot " + res);
+				this.mWindow.setDisableButton();
 			}
 			else
 			{
@@ -139,7 +140,11 @@ public class Messenger {
 		else if (tab[0].equals("SCORE_ROUND"))
 			this.mWindow.scoreOut(tab);
 		else if (tab[0].equals("END_ROUND"))
+		{
+			this.mWindow.setDisableButton();
+			this.setPassiveMode();
 			this.mWindow.endRound(tab);
+		}
 		else if (tab[0].equals("LINE"))
 			this.mWindow.line(tab);
 		else if (tab[0].equals("BROADCAST"))
@@ -153,11 +158,17 @@ public class Messenger {
 		}
 		else if (tab[0].equals("NEW_ROUND"))
 		{
+			this.mWindow.cleanBoard();
 			if (tab[1].equals(this.userPseudo))
+			{
 				this.mWindow.setActifMode(tab[3]);
+				this.mWindow.setDisableButton();
+			}
 			else
+			{
 				this.setPassiveMode();
-			this.mWindow.setAvailableButton();
+				this.mWindow.setAvailableButton();
+			}
 		}
 		else
 			System.out.println("Commande inconnue : " + tab[0]);
