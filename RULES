@@ -1,0 +1,5 @@
+AUTHORISED USERNAME :
+- Without space (" ") and special characters like "\n" and "\t"
+- With all kind of other special characters like "\", "/" etc.
+
+empty username ("") is forbidden
