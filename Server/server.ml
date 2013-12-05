@@ -257,9 +257,9 @@ let send_score_round_command () =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
     if (player#get_role () = "drawer")then
-      result := !result ^ player#get_name () ^ string_of_int (!score_round_drawer) ^ "/"
+      result := !result ^ player#get_name () ^ "/" ^ string_of_int (!score_round_drawer) ^ "/"
     else
-      result := !result ^ player#get_name () ^ string_of_int (player#get_score ()) ^ "/";
+      result := !result ^ player#get_name () ^ "/" ^ string_of_int (player#get_score ()) ^ "/";
   done;
   result := !result ^ "\n";
   for i = 0 to (List.length !players - 1) do
