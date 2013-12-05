@@ -41,7 +41,7 @@ public class Messenger {
 		}
 		if (answer.equals("WELCOME/"+ usr + "/"))
 		{
-			this.addPlayer(usr, "0");
+			//this.addPlayer(usr, "0");
 			this.userPseudo = usr;
 			return true;
 		}
@@ -127,25 +127,37 @@ public class Messenger {
 	{
 		String tab[] = parse(msgFromServer.getMsg());
 		if (tab[0].equals("GUESSED"))
-			mWindow.guessed(tab);
+			this.mWindow.guessed(tab);
 		else if (tab[0].equals("WORD_FOUND"))
-			mWindow.wordFound(tab);
+		{
+			this.mWindow.wordFound(tab);
+			if (tab[1].equals(this.userPseudo))
+				this.mWindow.setDisableButton();
+		}
 		else if (tab[0].equals("WORD_FOUND_TIMEOUT"))
-			mWindow.wordFoundTimeOut(tab);
-		else if (tab[0].equals("SCORE_OUT"))
-			mWindow.scoreOut(tab);
+			this.mWindow.wordFoundTimeOut(tab);
+		else if (tab[0].equals("SCORE_ROUND"))
+			this.mWindow.scoreOut(tab);
 		else if (tab[0].equals("END_ROUND"))
-			mWindow.endRound(tab);
+			this.mWindow.endRound(tab);
 		else if (tab[0].equals("LINE"))
-			mWindow.line(tab);
+			this.mWindow.line(tab);
 		else if (tab[0].equals("BROADCAST"))
-			mWindow.broadcast(tab);
+			this.mWindow.broadcast(tab);
 		else if (tab[0].equals("EXITED"))
 		{
 			if (tab[1].equals(this.drawerPseudo))
 				mWindow.exitDrawer(tab);
 			else
 				mWindow.exitFinder(tab);
+		}
+		else if (tab[0].equals("NEW_ROUND"))
+		{
+			if (tab[1].equals(this.userPseudo))
+				this.mWindow.setActifMode(tab[3]);
+			else
+				this.setPassiveMode();
+			this.mWindow.setAvailableButton();
 		}
 		else
 			System.out.println("Commande inconnue : " + tab[0]);

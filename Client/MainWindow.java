@@ -45,9 +45,18 @@ public class MainWindow extends JFrame implements WindowListener{
 		
 		this.getContentPane().add(globalPanel);
 		this.setVisible(true);
+		this.setResizable(false);
 		
 		this.msn = msn;
 	}
+
+
+	/* TEXT FIELD */
+	
+	public void setAvailableButton() { this.textP.setAvailableButton(); }
+	
+	public void setDisableButton() { this.textP.setDisableButton(); }
+
 
 	/* PLAYERS */
 	
@@ -91,6 +100,7 @@ public class MainWindow extends JFrame implements WindowListener{
 		System.out.println("Le round est terminé");
 		System.out.println("Le gagnant est " + tab[1]);
 		System.out.println("Le mot à trouver était " + tab[2]);
+		this.messP.endRound(tab);
 	}
 	
 	public void line(String[] tab) { drawPanel.line(tab); }

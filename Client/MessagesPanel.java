@@ -83,10 +83,11 @@ public class MessagesPanel extends JPanel {
 	
 	public void setMode(boolean m, String word)
 	{
+		this.textMsg.append("Un nouveau round commence\n");
 		if (m)
-			this.textMsg.append("Vous etes le dessinateur.\nVous devez dessiner le mot :\n\t" + word + "\n");
+			this.textMsg.append("Vous etes le dessinateur.\nVous devez dessiner le mot :\n" + word + "\n\n");
 		else
-			this.textMsg.append("La partie commence\nDevinez le mot\n");
+			this.textMsg.append("Devinez le mot\n\n");
 	}
 	
 	public void newProp(String msg)
@@ -103,24 +104,33 @@ public class MessagesPanel extends JPanel {
 
 	public void wordFound(String name)
 	{
-		textMsg.append("le mot a été trouvé par ");
+		textMsg.append("\nLe mot a été trouvé par ");
 		textMsg.append(name);
-		//textMsg.append("Bravo");
 		textMsg.append("!\n");
 	}
 
 	public void wordFoundTimeOut(String time)
 	{
-		textMsg.append("Il vous reste ");
+		textMsg.append("\nIl vous reste ");
 		textMsg.append(time);
 		textMsg.append(" secondes pour trouver le mot\n");
 	}
 	
+	public void endRound(String[] tab)
+	{
+		textMsg.append("\nLe round est terminé\n");
+		if (tab[1].isEmpty())
+			textMsg.append("Le dessinateur choisit de passer son tour\n");
+		else
+			textMsg.append("Le gagnant est :\n" + tab[1] + "\n");
+		textMsg.append("Le mot a trouver était :\n" + tab[2] + "\n\n");
+	}
+
 	public void scoreout(String[] tab)
 	{
 		int i;
 		
-		textListJoueur.removeAll();
+		textListJoueur.setText("");
 		for (i = 1; i < tab.length - 1 ; i = i + 2)
 		{
 			textListJoueur.append(tab[i] + "\t" + tab[i + 1]);
@@ -134,10 +144,10 @@ public class MessagesPanel extends JPanel {
 		textMsg.append("\n");
 	}
 	
-	public void exitFinder(String[] tab) { textMsg.append(tab[1] + " a quitté le jeu\n"); }
+	public void exitFinder(String[] tab) { textMsg.append("\n"  + tab[1] + " a quitté le jeu\n"); }
 	
 	public void exitDrawer(String[] tab)
 	{
-		textMsg.append("Le dessinateur a quitté la partie");
+		textMsg.append("\nLe dessinateur a quitté la partie\n");
 	}
 }

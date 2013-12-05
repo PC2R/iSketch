@@ -44,6 +44,18 @@ public class TextPanel extends JPanel implements ActionListener , KeyListener{
 		this.setMinimumSize(new Dimension(wWidth / 2, wHeight / 5));
 	}
 
+	public void setDisableButton()
+	{
+		this.btnSend.setEnabled(false);
+		this.textField.removeKeyListener(this);
+	}
+	
+	public void setAvailableButton()
+	{
+		this.btnSend.setEnabled(true);
+		this.textField.addKeyListener(this);
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (!this.textField.getText().isEmpty())
