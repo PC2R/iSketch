@@ -152,10 +152,25 @@ let exists_in_db name =
   with End_of_file -> close_in in_channel;
 		      !is_registered;;
 
+let is_ok name password =
+  let valid = ref false in
+  let in_channel = open_in_gen[Open_creat] 0o666 registered_players in
+  try
+    while true do
+      let line = (input_line in_channel) in
+      let l = Str.split (Str.regexp " ") line in
+      if List.nth l 0 = name then
+	if List.nth l 1 = Digest.to_hex (Digest.string password) then
+	  valid := true;
+    done;
+    !valid;
+  with End_of_file -> close_in in_channel;
+		      !valid;;
+
 let register_in_db name password =
   let out_channel = open_out_gen [Open_append;Open_creat] 0o666 registered_players
   and md5sum_hexa = Digest.to_hex (Digest.string password) in
-  output_string out_channel (name ^ md5sum_hexa);
+  output_string out_channel (name ^ md5sum_hexa ^ "\n");
   close_out out_channel;;
   
 let choose_word () =
@@ -398,18 +413,30 @@ let connection_player (s_descr, sock_addr) =
 		       Mutex.unlock mutex_players;
 		       Thread.exit ()
 		     end
-    | "REGISTER" -> let name = List.nth l 1
+    | "REGISTER" -> Mutex.lock mutex_players;
+		    let name = List.nth l 1
 		    and password = List.nth l 2 in
-		    Mutex.lock mutex_players;
 		    if (exists_in_db name) then
 		      let result = "ACCESSDENIED/\n" in
 		      ignore (Unix.write s_descr result 0 (String.length result));
 		      trace (name
-			     ^ "has tried to register but was already in the database.");
+			     ^ "has tried to register but username was already in the database.");
+		      Mutex.unlock mutex_players;
+		      Thread.exit ()
 		    else
 		      register_in_db name password;
+    | "LOGIN" -> Mutex.lock mutex_players;
+		 let name = List.nth l 1
+		 and password = List.nth l 2 in
+		 if is_ok name password = false then
+		   let result = "ACCESSDENIED/\n" in
+		   ignore (Unix.write s_descr result 0 (String.length result));
+		   trace (name
+			 ^ "has tried to log in but it failed.");
+		   Mutex.unlock mutex_players;
+		   Thread.exit ();
     | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
-	   ignore (Unix.write s_descr result 0 (String.length result));
+	   ignore (Unix.write s_descr result 0 (String.length result))	   
   with
   | exn -> trace (Printexc.to_string exn)
 
