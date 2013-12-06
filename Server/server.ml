@@ -195,6 +195,7 @@ let generate_name n =
     name := n ^ string_of_int !i;
     if exists !name = false then
       found := true;
+    i := !i + 1;
   done;
   !name;;
 
