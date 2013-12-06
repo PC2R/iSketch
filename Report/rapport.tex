@@ -20,7 +20,7 @@ langage OCaml. Nous allons dans un premier temps expliquer quels ont
 été nos choix pour organiser notre serveur avant de s’attarder un peu
 plus en détail sur le code.
 
-\subsection {Création du serveur}
+\subsection {Lancement du serveur}
 Lorsque l'on lance l’exécutable, la première étape du programme est la
 création du serveur (pour qu’il soit prêt à recevoir les connexions
 des futurs clients) ainsi que l’initialisation de certaines variables
@@ -48,7 +48,28 @@ chaque tour de round pour piocher un mot.
 un thread qui va gérer une partie de la manière suivante :
 \bigskip
 
-\subsection {Création des joueurs}
+\subsection {Connexion d’un joueur}
+
+Plusieurs possibilités sont offertes au joueur pour accéder au jeu :
+\bigskip
+\begin{itemize}
+\item Avec la commande \verb+CONNECT/user/+ : le serveur vérifie alors
+  que le nom \textit{user} n’a pas déjà été choisi (en vérifiant la
+  base de données des comptes utilisateurs ainsi que les joueurs déjà
+  connectés à la partie en cours) et crée un nouveau nom si ce n’est
+  pas le cas (en concaténant un nombre à la fin de \textit{user}).
+\item Avec la commande \verb+REGISTER/user/password/+ : le serveur
+  vérifie alors que le nom \textit{user} n’a pas déjà été choisi et
+  l’ajoute à la base de données si c’est le cas.
+\item Avec la commande \verb+LOGIN/user/password/+ : le serveur
+  vérifie alors que les noms \textit{user} et \textit{password} sont
+  corrects et s’ils le sont, le serveur vérifie également que le
+  joueur n’est pas déjà en train de jouer.
+\end{itemize}
+\bigskip Enfin, notons qu’une commande \verb+ACCESSDENIED/+ est
+envoyée ou bien si le nombre maximum de joueurs pour une partie est
+atteint ou bien si les noms et mots de passe ne correspondent pas ou
+bien si un joueur tente de se connecter alors qu’il est déjà connecté.
 
 \subsubsection {Quand un mot est trouvé par un joueur}
 
