@@ -21,10 +21,10 @@ langage OCaml. Nous allons dans un premier temps expliquer quels ont
 plus en détail sur le code.
 
 \subsection {Création du serveur}
-Lorsque l'on lance l’executable, la première étape du programme est la
+Lorsque l'on lance l’exécutable, la première étape du programme est la
 création du serveur (pour qu’il soit prêt à recevoir les connexions
-des futurs clients) ainsi que l’initialisation de variables qui seront
-utilisées une fois le jeu lancé.
+des futurs clients) ainsi que l’initialisation de certaines variables
+qui seront utilisées une fois le jeu lancé.
 
 \bigskip La création de notre objet serveur reprend les étapes
 classiques vues en cours : on crée une \textbf{une prise} (en
@@ -32,23 +32,21 @@ utilisant le domaine Internet, le flot d’octets et le protocole de
 communication par défaut) et on récupère \textbf{une adresse dans le
   domaine internet} (à l’aide de l’adresse Internet de la machine
 locale et d’un numéro de port défini par l’utilisateur) afin de
-pouvoir associer les deux puis ensuite, on rend la prise capable
-d’accepter les connexions et enfin, on met en place une boucle infinie
-qui accepte les demandes de connexions et qui va créer un thread
-joueur à chaque nouvelle demande (nous verrons plus tard comment nous
-gérons le nombre limite de joueurs par partie).
+pouvoir associer les deux, puis on rend la prise capable d’accepter
+les connexions et enfin, on met en place une boucle infinie qui
+accepte les demandes de connexions et qui va créer un thread joueur à
+chaque nouvelle demande (nous verrons plus tard comment nous gérons le
+nombre limite de joueurs par partie).
 
-\bigskip En parallèle des demandes de connexions
-des joueurs, on lance un thread qui va gérer une partie.
-\begin{itemize}
-\item Un tableau de taille le nombre de joueurs maximal pour une
-  partie et dont chaque case contiendra une string avec le
-  \textit{pseudo} du joueur ainsi que son nombre de \textit{points} au
-  cours du jeu sous la forme \textit{pseudo/points/}
-\item Un tableau contenant l’ensemble des mots présent dans le fichier
-  \textit{dictionnaire} donné par l’utilisateur et dans lequel on
-  tirera au hasard un mot à chaque tour
-\end{itemize}
+Notons qu’avant de commencer à accepter les demandes de connexion,
+nous lisons le fichier dictionnaire et nous stockons dans une liste
+chacun des mots présent dans le fichier. Nous avons opté pour cette
+solution pour éviter de devoir ouvrir et fermer le dictionnaire à
+chaque tour de round pour piocher un mot. 
+
+\bigskip En parallèle des demandes de connexions des joueurs, on lance
+un thread qui va gérer une partie de la manière suivante :
+\bigskip
 
 \subsection {Création des joueurs}
 
@@ -80,6 +78,9 @@ fiable depuis longtemps mais nous n’avons pas trouvé dans la librairie
 standard d'OCaml d’autres fonctions plus performantes telle SHA-256).
 Ainsi, à chaque inscription, on ajoute une ligne contenant le nom du
 joueur, le mot de passé hashé et salé et le sel.
+
+\bigskip Par ailleurs, notons que pour l’instant, les mots de passe
+circulent en clair lorsqu’il est envoyé depuis le client.
 
 \section{Côté client}
 
