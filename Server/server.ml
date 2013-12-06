@@ -54,6 +54,8 @@ let line = ref ""
 let score_round_finder = ref 0
 let score_round_drawer = ref 0
 
+let back_up = ref ""
+
 let timeout_on = ref false
 
 let thread_timeout = ref (Thread.create (fun _ ->
@@ -175,6 +177,26 @@ let gen_salt n =
     str.[i] <- alphanum.[Random.int length]
   done;
   (str) ;;
+
+let exists name =
+  let b = ref false in
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    if player#get_name () = name then
+      b := true
+  done;
+  !b;;
+
+let generate_name n =
+  let found = ref false
+  and name = ref n
+  and i = ref 1 in
+  while !found = false do
+    name := n ^ string_of_int !i;
+    if exists !name = false then
+      found := true;
+  done;
+  !name;;
 
 let register_in_db name password =
   let salt = gen_salt (String.length (name ^ password)) in
@@ -302,8 +324,6 @@ let reset_score_players () =
     player#set_score 0;
   done;;
 
-
-
 class player pseudo s_descr =
 object (self)
 
@@ -384,37 +404,27 @@ let connection_player (s_descr, sock_addr) =
     let l = Str.split (Str.regexp "[/]") command in
     match List.nth l 0 with
     | "CONNECT" -> Mutex.lock mutex_players;
-		   let name = List.nth l 1 in
+		   let name = ref (List.nth l 1) in
 		   if ((List.length !players) = !max_players) then
 		     begin
 		       let result = "CONNECTION_REFUSED/"
-				    ^ name ^ "maximum_capacity_reached/\n" in
+				    ^ !name ^ "maximum_capacity_reached/\n" in
 		       ignore (Unix.write s_descr result 0 (String.length result));
-		       trace (name
+		       trace (!name
 			      ^ " tried to join the game but maximum capacity was reached.");
 		       Mutex.unlock mutex_players;
 		       Thread.exit ()
 		     end
 		   else
 		     begin
-		       for i = 0 to (List.length !players - 1) do
-			 if (List.nth !players i)#get_name () = name then
-			   begin
-			     let result = "CONNECTION_REFUSED/"
-					  ^ name ^ "/name_already_taken/\n" in
-			     ignore (Unix.write s_descr result 0 (String.length result));
-			     trace (name
-				    ^ " tried to join the game but the name was already taken.");
-			     Mutex.unlock mutex_players;
-			     Thread.exit ()
-			   end
-		       done;
-		       let result = "WELCOME/" ^ name ^ "/\n" in
+		       if (exists !name) then
+			 name := generate_name !name;
+		       let result = "WELCOME/" ^ !name ^ "/\n" in
 		       ignore (Unix.write s_descr result 0 (String.length result));
-		       let player = new player name s_descr in
+		       let player = new player !name s_descr in
 		       players := player::!players;
 		       incr players_connected;
-		       trace (name
+		       trace (!name
 			      ^ " has been successfully welcomed to the game.");
 		       if ((List.length !players) = !max_players) then
 			 begin
