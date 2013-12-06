@@ -423,7 +423,7 @@ let connection_player (s_descr, sock_addr) =
 		   let name = ref (List.nth l 1) in
 		   if ((List.length !players) = !max_players) then
 		     begin
-		       let result = "CONNECTION_REFUSED/"
+		       let result = "ACCESSDENIED/"
 				    ^ !name ^ "maximum_capacity_reached/\n" in
 		       ignore (Unix.write s_descr result 0 (String.length result));
 		       trace (!name
@@ -431,7 +431,7 @@ let connection_player (s_descr, sock_addr) =
 		     end
 		   else
 		     begin
-		       if (exists !name) then
+		       if (exists !name) or (exists_in_db !name) then
 			 name := generate_name !name;
 		       welcome_player !name s_descr
 		     end;
@@ -464,17 +464,26 @@ let connection_player (s_descr, sock_addr) =
 			 ^ "has tried to log in but it failed.");
 		 else
 		   begin
-		     trace (name
-			    ^ " has been successfully logged in.");
-		     welcome_player name s_descr
+		     if (exists name) then
+		       begin
+			 let result = "ACCESSDENIED/\n" in
+			 ignore (Unix.write s_descr result 0 (String.length result));
+			 trace (name
+				^ " has tried to log in but was already connected.")
+		       end
+		     else
+		       begin
+			 trace (name
+				^ " has been successfully logged in.");
+			 welcome_player name s_descr
+		       end
 		   end;
 		 Mutex.unlock mutex_players;
 		 Thread.exit ()
-    | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
-	   ignore (Unix.write s_descr result 0 (String.length result))	   
+    | _ -> trace (command ^ "has been received."); 
   with
   | exn -> trace (Printexc.to_string exn)
-
+		 
 class server port n =
 object (self)
 
