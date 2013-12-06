@@ -20,10 +20,11 @@ let cheat_parameter = ref 3 (* should be (max_players - 1) by default but subjec
 let verbose_mode = ref false
 
 let dictionary_filename = ref "dictionary"
-let logfile = "log/server.log"
-let registered_players = "db_players"
-
 let dictionary_words = ref []
+
+let logfile = "log/server.log"
+
+let registered_players = "db_players"
 
 let word = ref ""
 let word_found = ref false
@@ -382,7 +383,7 @@ object (self)
 		  Condition.signal condition_end_round;
       | "TALK" -> let text = String.sub command 5 (String.length command - 5) in
 		  notify_talk name text;
-      | _ -> trace(command ^ "has been received from " ^ name ^ ".");
+      | _ -> trace (command ^ "has been received from " ^ name ^ ".");
     done;
 
 
@@ -399,6 +400,20 @@ object (self)
 
 end;;
 
+let welcome_player name s_descr =					       
+  let result = "WELCOME/" ^ name ^ "/\n" in
+  ignore (Unix.write s_descr result 0 (String.length result));
+  let player = new player name s_descr in
+  players := player::!players;
+  incr players_connected;
+  trace (name
+	 ^ " has been successfully welcomed to the game.");
+  if ((List.length !players) = !max_players) then
+    begin
+      Condition.signal condition_players;
+      Mutex.unlock mutex_maximum_players;
+    end;;
+
 let connection_player (s_descr, sock_addr) =
   try
     let command = my_input_line s_descr in
@@ -412,29 +427,16 @@ let connection_player (s_descr, sock_addr) =
 				    ^ !name ^ "maximum_capacity_reached/\n" in
 		       ignore (Unix.write s_descr result 0 (String.length result));
 		       trace (!name
-			      ^ " tried to join the game but maximum capacity was reached.");
-		       Mutex.unlock mutex_players;
-		       Thread.exit ()
+			      ^ " tried to join the game but maximum capacity was reached.")
 		     end
 		   else
 		     begin
 		       if (exists !name) then
 			 name := generate_name !name;
-		       let result = "WELCOME/" ^ !name ^ "/\n" in
-		       ignore (Unix.write s_descr result 0 (String.length result));
-		       let player = new player !name s_descr in
-		       players := player::!players;
-		       incr players_connected;
-		       trace (!name
-			      ^ " has been successfully welcomed to the game.");
-		       if ((List.length !players) = !max_players) then
-			 begin
-			   Condition.signal condition_players;
-			   Mutex.unlock mutex_maximum_players;
-			 end;
-		       Mutex.unlock mutex_players;
-		       Thread.exit ()
-		     end
+		       welcome_player !name s_descr
+		     end;
+		   Mutex.unlock mutex_players;
+		   Thread.exit ()
     | "REGISTER" -> Mutex.lock mutex_players;
 		    let name = List.nth l 1
 		    and password = List.nth l 2 in
@@ -442,11 +444,16 @@ let connection_player (s_descr, sock_addr) =
 		      let result = "ACCESSDENIED/\n" in
 		      ignore (Unix.write s_descr result 0 (String.length result));
 		      trace (name
-			     ^ "has tried to register but username was already in the database.");
-		      Mutex.unlock mutex_players;
-		      Thread.exit ()
+			     ^ " has tried to register but username was already in the database.");
 		    else
-		      register_in_db name password;
+		      begin
+			register_in_db name password;
+			trace (name
+			       ^ " has been successfully registered to the game.");
+			welcome_player name s_descr
+		      end;
+		    Mutex.unlock mutex_players;
+		    Thread.exit ()
     | "LOGIN" -> Mutex.lock mutex_players;
 		 let name = List.nth l 1
 		 and password = List.nth l 2 in
@@ -455,8 +462,14 @@ let connection_player (s_descr, sock_addr) =
 		   ignore (Unix.write s_descr result 0 (String.length result));
 		   trace (name
 			 ^ "has tried to log in but it failed.");
-		   Mutex.unlock mutex_players;
-		   Thread.exit ();
+		 else
+		   begin
+		     trace (name
+			    ^ " has been successfully logged in.");
+		     welcome_player name s_descr
+		   end;
+		 Mutex.unlock mutex_players;
+		 Thread.exit ()
     | _ -> let result = command ^ " is unknown (try CONNECT/user/). \n" in
 	   ignore (Unix.write s_descr result 0 (String.length result))	   
   with
@@ -470,9 +483,9 @@ object (self)
   val s_descr = Unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
 
   initializer
-  (*let host = Unix.gethostbyname (Unix.gethostname()) in
-      let h_addr = host.Unix.h_addr_list.(0) in*)
-  let h_addr = Unix.inet_addr_any in
+  let host = Unix.gethostbyname (Unix.gethostname()) in
+      let h_addr = host.Unix.h_addr_list.(0) in
+  (*let h_addr = Unix.inet_addr_any in*)
       let sock_addr = Unix.ADDR_INET (h_addr, port) in
       Unix.setsockopt s_descr Unix.SO_REUSEADDR true;
       Unix.bind s_descr sock_addr;
