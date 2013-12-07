@@ -206,7 +206,7 @@ let register_in_db name password =
   let out_channel =
     open_out_gen [Open_append;Open_creat] 0o666 registered_players
   and md5sum_hexa = Digest.to_hex (Digest.string password ^ salt) in
-  output_string out_channel (name ^ " " ^ md5sum_hexa ^ " " ^ salt ^ "\n");
+  output_string out_channel (name ^ " " ^ md5sum_hexa ^ " " ^ salt ^ " " ^ string_of_int 0 ^ " " ^ string_of_int 0 ^ "\n");
   close_out out_channel;;
   
 let choose_word () =
@@ -540,29 +540,39 @@ object (self)
 
 end;;
 
+let rec read_db in_channel =
+  let result = ref "<ul>" in
+  try
+    while true do
+      let line = (input_line in_channel) in
+      let l = Str.split (Str.regexp " ") line in
+      result := !result ^ "<li>" ^ List.nth l 0 ^ " has " ^ List.nth l 3 ^ " wins and " ^ List.nth l 4 ^ " defeats.</li>";
+    done;
+    !result;
+  with End_of_file -> close_in in_channel;
+		      result := !result ^ "</ul></body></html>";
+		      !result;;
+
+
 let generate_response protocol =
   let result = ref ("HTTP/" ^ protocol ^ " 200 OK\r\n" 
 	       ^ "Content-Type: text/html; charset=UTF-8\r\n\r\n" 
 	       ^ "<!DOCTYPE html><html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"fr\">
 	          <head><meta charset=\"utf-8\" /><title>Statistics of the game</title></head>") in
   result := !result ^ "<body><p1>Hello World !</p1>";
-  let players_connected =
-    let i = ref 0 in
-    for j = 0 to List.length !players - 1 do
-      i := !i + 1;
-    done;
-    !i in
-  result := !result ^ "<p>Players connected : " ^ string_of_int players_connected ^ "</p>";
-  result := !result ^ "</body></html>";
+  result := !result ^ "<p>Players : </p>";
+  let in_channel = open_in_gen[Open_creat] 0o666 registered_players in
+  result := !result ^ (read_db in_channel);
   !result;;
-
+	 
+  
 let response (s_descr, sock_addr) =
   try
     let command = my_input_line s_descr in
     let l = Str.split (Str.regexp "[/]") command in
     match List.nth l 0 with
     | "GET " -> let protocol = List.nth l 2 in
-		let result = generate_response protocol in 
+		let result = generate_response protocol in
 		ignore (Unix.write s_descr result 0 (String.length result));
     | _ -> trace (command ^ "has been received on serverHTTP."); 
   with
