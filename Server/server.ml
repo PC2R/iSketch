@@ -171,7 +171,8 @@ let is_ok name password =
 		      !valid;;
 
 let gen_salt n =
-  let alphanum = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" in
+  let alphanum =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" in
   let length = String.length alphanum in
   let str = String.create n in        
   for i = 0 to pred n do
@@ -202,13 +203,15 @@ let generate_name n =
 
 let register_in_db name password =
   let salt = gen_salt (String.length (name ^ password)) in
-  let out_channel = open_out_gen [Open_append;Open_creat] 0o666 registered_players
+  let out_channel =
+    open_out_gen [Open_append;Open_creat] 0o666 registered_players
   and md5sum_hexa = Digest.to_hex (Digest.string password ^ salt) in
   output_string out_channel (name ^ " " ^ md5sum_hexa ^ " " ^ salt ^ "\n");
   close_out out_channel;;
   
 let choose_word () =
-  word := List.nth !dictionary_words (Random.int (List.length !dictionary_words));
+  word := List.nth !dictionary_words
+		   (Random.int (List.length !dictionary_words));
   trace ("The word " ^ !word ^ " has been chosen.");
   dictionary_words := remove !word !dictionary_words;;
 
@@ -253,7 +256,8 @@ let notify_line line =
 let notify_cheat name =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    player#send_command ("BROADCAST/" ^ name ^ " has reported cheating behavior./\n");
+    player#send_command ("BROADCAST/" 
+			 ^ name ^ " has reported cheating behavior./\n");
   done;;
 
 let notify_talk name text =
@@ -291,9 +295,11 @@ let send_score_round_command () =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
     if (player#get_role () = "drawer")then
-      result := !result ^ player#get_name () ^ "/" ^ string_of_int (!score_round_drawer) ^ "/"
+      result := !result ^ player#get_name () ^ "/"
+		^ string_of_int (!score_round_drawer) ^ "/"
     else
-      result := !result ^ player#get_name () ^ "/" ^ string_of_int (player#get_score ()) ^ "/"
+      result := !result ^ player#get_name () ^ "/"
+		^ string_of_int (player#get_score ()) ^ "/"
   done;
   result := !result ^ "\n";
   for i = 0 to (List.length !players - 1) do
@@ -483,7 +489,7 @@ let connection_player (s_descr, sock_addr) =
     | _ -> trace (command ^ "has been received."); 
   with
   | exn -> trace (Printexc.to_string exn)
-		 
+	 
 class server port n =
 object (self)
 
@@ -507,8 +513,7 @@ object (self)
 	     ^ string_of_int port ^ " and host/address "
 	     ^ Unix.gethostname() ^ "/"
 	     ^ Unix.string_of_inet_addr h_addr ^ ".");
-      trace ("Server has successfully read the dictionary.");
-    
+      trace ("Server has successfully read the dictionary."); 
       
   method wait_connections () =
     ignore (Thread.create self#start_game ());
@@ -535,6 +540,49 @@ object (self)
 
 end;;
 
+let generate_response () =
+  let result = ref "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n
+		    <!DOCTYPE html><html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"fr\">
+		    <head><meta charset=\"utf-8\" /><title>Statistics of the game</title></head>" in
+  result := !result ^ "<body><p1>Hello World !</p1></body></html>";
+  !result;;
+
+let response (s_descr, sock_addr) =
+  try
+    let command = my_input_line s_descr in
+    let l = Str.split (Str.regexp "[/]") command in
+    match List.nth l 0 with
+    | "GET " -> let result = generate_response () in 
+		ignore (Unix.write s_descr result 0 (String.length result));
+    | _ -> trace (command ^ "has been received on serverHTTP."); 
+  with
+  | exn -> trace (Printexc.to_string exn);;
+
+class serverHTTP port n =
+object(self)
+
+  val port_num = port
+  val nb_pending = n
+  val s_descr = Unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
+			    
+  initializer
+  let host = Unix.gethostbyname (Unix.gethostname()) in
+      let h_addr = host.Unix.h_addr_list.(0) in
+      (*let h_addr = Unix.inet_addr_any in*)
+      let sock_addr = Unix.ADDR_INET (h_addr, port) in
+      Unix.setsockopt s_descr Unix.SO_REUSEADDR true;
+      Unix.bind s_descr sock_addr;
+      Unix.listen s_descr n;
+      trace ("Server HTTP successfully started.")
+
+  method start () =
+    while (true) do
+      let (service_sock, client_sock_addr) =
+	Unix.accept s_descr in
+      ignore (Thread.create response (service_sock, client_sock_addr));
+    done;
+end;;
+
 let main () =
   begin
     let speclist =
@@ -556,6 +604,7 @@ let main () =
        in Arg.parse speclist print_endline usage_msg;
   end;
   Random.self_init();
-  (new server !port 2)#wait_connections ();;
+  ignore (Thread.create (fun x -> (new server !port 2)#wait_connections ()) ());
+  (new serverHTTP 2092 2)#start ();;
 
   main ();;
