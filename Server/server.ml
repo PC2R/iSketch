@@ -540,11 +540,20 @@ object (self)
 
 end;;
 
-let generate_response () =
-  let result = ref "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n
-		    <!DOCTYPE html><html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"fr\">
-		    <head><meta charset=\"utf-8\" /><title>Statistics of the game</title></head>" in
-  result := !result ^ "<body><p1>Hello World !</p1></body></html>";
+let generate_response protocol =
+  let result = ref ("HTTP/" ^ protocol ^ " 200 OK\r\n" 
+	       ^ "Content-Type: text/html; charset=UTF-8\r\n\r\n" 
+	       ^ "<!DOCTYPE html><html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"fr\">
+	          <head><meta charset=\"utf-8\" /><title>Statistics of the game</title></head>") in
+  result := !result ^ "<body><p1>Hello World !</p1>";
+  let players_connected =
+    let i = ref 0 in
+    for j = 0 to List.length !players - 1 do
+      i := !i + 1;
+    done;
+    !i in
+  result := !result ^ "<p>Players connected : " ^ string_of_int players_connected ^ "</p>";
+  result := !result ^ "</body></html>";
   !result;;
 
 let response (s_descr, sock_addr) =
@@ -552,7 +561,8 @@ let response (s_descr, sock_addr) =
     let command = my_input_line s_descr in
     let l = Str.split (Str.regexp "[/]") command in
     match List.nth l 0 with
-    | "GET " -> let result = generate_response () in 
+    | "GET " -> let protocol = List.nth l 2 in
+		let result = generate_response protocol in 
 		ignore (Unix.write s_descr result 0 (String.length result));
     | _ -> trace (command ^ "has been received on serverHTTP."); 
   with
