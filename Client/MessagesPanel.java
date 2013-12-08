@@ -171,6 +171,7 @@ public class MessagesPanel extends JPanel {
 				res = res + pstr.charAt(i);
 			i = i + 1;
 		}
+		System.out.println("MessagesPanel return : " + res);
 		return res;
 	}
 }
