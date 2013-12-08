@@ -227,7 +227,7 @@ public class Messenger {
 		synchronized (msgToServer)
 		{
 			System.out.println("Proposition du mot : " + word);
-			msgToServer.setMsg("GUESS/" + word + "/");
+			msgToServer.setMsg("GUESS/" + protectString(word) + "/");
 			msgToServer.notifyAll();
 		}
 	}
@@ -301,7 +301,7 @@ public class Messenger {
 	{
 		synchronized (msgToServer)
 		{
-			msgToServer.setMsg("TALK/" + chat + "/");
+			msgToServer.setMsg("TALK/" + protectString(chat)  + "/");
 			msgToServer.notifyAll();
 		}
 	}
@@ -341,9 +341,10 @@ public class Messenger {
 		{
 			if ( str.charAt(i) == '/' && str.charAt(i - 1) != '\\')
 				result = result + 1;
-			if ( str.charAt(i) == '/' && i == str.length() - 1)
-				result = result - 1;
+			//if ( str.charAt(i) == '/' && i == str.length() - 1)
+				//result = result - 1;
 		}
+		//System.out.println("Nombre de mot :" + result);
 		return result;
 	}
 
@@ -360,17 +361,22 @@ public class Messenger {
 		{
 			if ( str.charAt(i) == '/' && str.charAt(i - 1) != '\\')
 			{
+				//System.out.println(str.charAt(i) + " word1 = " + word);
 				tab[j] = word;
 				word = "";
 				j++;
 			}
 			else if ( i == str.length() - 1)
 			{
+				//System.out.println(str.charAt(i) + " word2 = " + word);
 				word = word + str.charAt(i);
 				tab[j] = word;
 			}
 			else
+			{
+				//System.out.println(str.charAt(i) + " word3 = " + word);
 				word = word + str.charAt(i);
+			}
 			i++;
 		}
 		return tab;
@@ -380,6 +386,20 @@ public class Messenger {
 	{
 		String[] tab = parse(str);
 		return (tab[0]);
+	}
+
+	public static String protectString(String str)
+	{
+		String res = new String();
+		int i;
+		for (i = 0; i < str.length(); i++)
+		{
+			if (str.charAt(i) == '/' || str.charAt(i) == '\\')
+				res = res + '\\';
+			res = res + str.charAt(i);
+		}
+		System.out.println("chaine protégée :" + res);
+		return res;
 	}
 }
 
