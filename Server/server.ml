@@ -93,10 +93,11 @@ let update_variables () =
   else
     if !score_round_drawer < 15 then
       score_round_drawer := !score_round_drawer + 1;
-  if !word_found = false then
+  incr word_finders;
+  word_found := true;
+  if !word_finders < !players_connected - 1 then
     begin
       notify_timeout ();
-      word_found :=true;
       timeout_on := true;
       thread_timeout := Thread.create (fun _ ->
 				       Thread.delay (float_of_int !timeout);
@@ -105,9 +106,8 @@ let update_variables () =
 				       trace ("Timeout has just ended.")
 				      ) ();
       trace ("Server has started the timeout.");
-    end;
-  incr word_finders;
-  if !word_finders = !players_connected - 1 then
+    end
+  else
     begin
       timeout_on := false;
       Condition.signal condition_end_round
