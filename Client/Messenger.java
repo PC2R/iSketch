@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
@@ -13,7 +14,7 @@ public class Messenger {
 	private Message msgToServer = new Message();
 	private Message msgFromServer = new Message();
 
-	private MainWindow mWindow = new MainWindow(this);
+	private MainWindow mWindow;
 
 	private String userPseudo;
 	private String drawerPseudo;
@@ -28,10 +29,72 @@ public class Messenger {
 		tListener = new ThreadListener(readStream, msgFromServer, this);
 	}
 
+	public int connexionChoice()
+	{
+		int res = -1;
+		System.out.println("Choisissez parmis les différents choix de connections possibles :");
+		System.out.println("1 - S'enregistrer");
+		System.out.println("2 - Se connecter avec identifiant/mot de passe");
+		System.out.println("3 - Jouer en anonyme");
+		System.out.print("Entrez votre choix : ");
+		BufferedReader entree = new BufferedReader(new InputStreamReader(System.in));
+		try 
+		{
+			String chaine = entree.readLine();
+			res = Integer.parseInt(chaine);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			return -1;
+		}
+		return res;
+	}
+	
+	public void connectUserWithChoice(String user)
+	{
+		int choice = this.connexionChoice();
+		while (choice == -1)
+			choice = this.connexionChoice();
+		BufferedReader entree = new BufferedReader(new InputStreamReader(System.in));
+		if(choice == 1)
+		{
+			System.out.print("Entrez un mot de passe : ");
+			try 
+			{
+				String chaine = entree.readLine();
+				System.out.println("C->S : REGISTER/" + protectString(user) + "/" + chaine + "/");
+				writeStream.println("REGISTER/" + protectString(user) + "/" + chaine + "/");
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		else if(choice == 2)
+		{
+			System.out.print("Entrez votre mot de passe : ");
+			try 
+			{
+				String chaine = entree.readLine();
+				System.out.println("C->S : LOGIN/" + protectString(user) + "/" + chaine + "/");
+				writeStream.println("LOGIN/" + protectString(user) + "/" + chaine + "/");
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		else
+		{
+			System.out.println("C->S : CONNECT/" + protectString(user) + "/");
+			writeStream.println("CONNECT/" + protectString(user) + "/");
+		}
+	}
+	
 	public boolean connectionUser(String usr)
 	{
-		System.out.println("C->S : CONNECT/" + protectString(usr) + "/");
-		writeStream.println("CONNECT/" + protectString(usr) + "/");
+		this.connectUserWithChoice(usr);
 		String answer = new String();
 		try
 		{
@@ -45,6 +108,7 @@ public class Messenger {
 		if (answer.equals("WELCOME/"+ protectString(usr) + "/"))
 		{
 			//this.addPlayer(usr, "0");
+			this.mWindow = new MainWindow(this);
 			this.userPseudo = protectString(usr);
 			return true;
 		}
@@ -401,5 +465,6 @@ public class Messenger {
 		//System.out.println("chaine protégée :" + res);
 		return res;
 	}
+
 }
 

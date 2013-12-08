@@ -108,7 +108,6 @@ public class Client extends Thread{
 			else
 			{
 				System.out.println("Connection au jeu refusée");
-				msg.closeWindow();
 				if (s != null)
 					try 
 				{
