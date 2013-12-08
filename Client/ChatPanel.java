@@ -80,11 +80,11 @@ public class ChatPanel extends JPanel implements ActionListener, KeyListener
 	
 	public void chat(String[] tab)
 	{
-		this.msgArea.append(tab[1] + ": ");
-		this.msgArea.append(tab[2] + "\n");
+		this.msgArea.append(cleanString(tab[1]) + ": ");
+		this.msgArea.append(cleanString(tab[2]) + "\n");
 	}
 	
-
+	
 	/* BUTTONS */
 	
 	public void disableZone()
@@ -129,4 +129,18 @@ public class ChatPanel extends JPanel implements ActionListener, KeyListener
 		}
 	}
 
+	static String cleanString(String pstr)
+	{
+		String res = new String();
+		int i = 1;
+		res = res + pstr.charAt(0);
+		while (i < pstr.length())
+		{
+			if (pstr.charAt(i) != '\\' ||
+					(pstr.charAt(i) == '\\' && pstr.charAt(i - 1) == '\\'))
+				res = res + pstr.charAt(i);
+			i = i + 1;
+		}
+		return res;
+	}
 }

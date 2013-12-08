@@ -86,7 +86,7 @@ public class MessagesPanel extends JPanel {
 	
 	public void addPlayer(String name, String score)
 	{
-		this.textListJoueur.append(name);
+		this.textListJoueur.append(cleanString(name));
 		this.textListJoueur.append("\t");
 		this.textListJoueur.append(score);
 		this.textListJoueur.append("\n");
@@ -103,20 +103,20 @@ public class MessagesPanel extends JPanel {
 	
 	public void newProp(String msg)
 	{
-		this.textMsg.append(msg);
+		this.textMsg.append(cleanString(msg));
 		this.textMsg.append("\n");
 	}
 	
 	public void newProp(String name, String msg)
 	{
-		this.textMsg.append(name + " : " + msg);
+		this.textMsg.append(cleanString(name) + " : " + cleanString(msg));
 		this.textMsg.append("\n");
 	}
 
 	public void wordFound(String name)
 	{
 		textMsg.append("\nLe mot a été trouvé par ");
-		textMsg.append(name);
+		textMsg.append(cleanString(name));
 		textMsg.append("!\n");
 	}
 
@@ -133,7 +133,7 @@ public class MessagesPanel extends JPanel {
 		if (tab[1].isEmpty())
 			textMsg.append("Le dessinateur choisit de passer son tour\n");
 		else
-			textMsg.append("Le gagnant est :\n" + tab[1] + "\n");
+			textMsg.append("Le gagnant est :\n" + cleanString(tab[1]) + "\n");
 		textMsg.append("Le mot a trouver était :\n" + tab[2] + "\n\n");
 	}
 	
@@ -144,7 +144,7 @@ public class MessagesPanel extends JPanel {
 		textListJoueur.setText("");
 		for (i = 0; i < list.size() ; i = i + 1)
 		{
-			textListJoueur.append(list.get(i).getPseudo() + "\t" + list.get(i).getScore());
+			textListJoueur.append(cleanString(list.get(i).getPseudo()) + "\t" + list.get(i).getScore());
 			textListJoueur.append("\n");
 		}
 	}
@@ -155,7 +155,22 @@ public class MessagesPanel extends JPanel {
 		textMsg.append("\n");
 	}
 	
-	public void exitFinder(String[] tab) { textMsg.append("\n" + tab[1] + " a quitté le jeu\n"); }
+	public void exitFinder(String[] tab) { textMsg.append("\n" + cleanString(tab[1]) + " a quitté le jeu\n"); }
 	
 	public void exitDrawer(String[] tab) { textMsg.append("\nLe dessinateur a quitté la partie\n"); }
+	
+	static String cleanString(String pstr)
+	{
+		String res = new String();
+		int i = 1;
+		res = res + pstr.charAt(0);
+		while (i < pstr.length())
+		{
+			if (pstr.charAt(i) != '\\' ||
+					(pstr.charAt(i) == '\\' && pstr.charAt(i - 1) == '\\'))
+				res = res + pstr.charAt(i);
+			i = i + 1;
+		}
+		return res;
+	}
 }
