@@ -58,6 +58,7 @@ public class Messenger {
 		String line = new String();
 
 		System.out.println("Attente de la liste des joueurs");
+		this.tSender.start();
 		while (true)
 		{
 			try
@@ -75,6 +76,8 @@ public class Messenger {
 				this.addPlayer(tab[1], "0");
 				this.listPlayers.add(new Player(tab[1]));
 			}
+			if (tab[0].equals("LISTEN"))
+				this.mWindow.listen(tab);
 			if (tab[0].equals("NEW_ROUND"))
 				break;
 		}
@@ -115,7 +118,7 @@ public class Messenger {
 	{
 		System.out.println("Lancement de threads");
 		tListener.start();
-		tSender.start();
+		//tSender.start();
 	}
 
 	public void stopThread()
@@ -131,9 +134,13 @@ public class Messenger {
 		if (!this.listPlayers.isEmpty())
 		{
 			for (i = 0; i < this.listPlayers.size(); i++)
+			{
 				if (name.equals(listPlayers.get(i).getPseudo()))
+				{
+					this.listPlayers.remove(i);
 					break;
-			this.listPlayers.remove(i);
+				}
+			}
 		}
 	}
 	
@@ -147,7 +154,6 @@ public class Messenger {
 				System.out.println(listPlayers.get(i).getPseudo());
 				if (name.equals(listPlayers.get(i).getPseudo()))
 				{
-					System.out.println("Mise a jour de " + name + ", i = " + i);
 					this.listPlayers.get(i).updateScore(to_add);
 					break;
 				}
@@ -170,16 +176,12 @@ public class Messenger {
 				this.mWindow.setDisableButton();
 		}
 		else if (tab[0].equals("WORD_FOUND_TIMEOUT"))
-		{
 			this.mWindow.wordFoundTimeOut(tab);
-			if (tab[1].equals(this.userPseudo))
-				this.mWindow.setDisableButton();
-		}
 		else if (tab[0].equals("SCORE_ROUND"))
 		{
 			for (int i = 1; i < tab.length - 1; i = i + 2)
 				this.updateScore(tab[i], Integer.parseInt(tab[i + 1]));
-			this.mWindow.scoreOut(listPlayers);
+			this.mWindow.scoreOut(this.listPlayers);
 		}
 		else if (tab[0].equals("END_ROUND"))
 		{
@@ -194,6 +196,7 @@ public class Messenger {
 		else if (tab[0].equals("EXITED"))
 		{
 			this.removePlayer(tab[1]);
+			this.mWindow.scoreOut(this.listPlayers);
 			if (tab[1].equals(this.drawerPseudo))
 				mWindow.exitDrawer(tab);
 			else
@@ -293,7 +296,7 @@ public class Messenger {
 			msgToServer.notifyAll();
 		}
 	}
-
+	
 	public void sendCommandTalk(String chat)
 	{
 		synchronized (msgToServer)
