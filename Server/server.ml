@@ -263,7 +263,7 @@ let notify_cheat name =
 let notify_talk name text =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    player#send_command ("LISTEN/" ^ name ^ text ^ "/\n");
+    player#send_command ("LISTEN/" ^ name ^ "/" ^ text ^ "/\n");
   done;;
   
 let send_connected_command () =
@@ -387,7 +387,7 @@ object (self)
 		      timeout_on := false;
 		    end;
 		  Condition.signal condition_end_round;
-      | "TALK" -> let text = String.sub command 5 (String.length command - 5) in
+      | "TALK" -> let text = List.nth l 1 in
 		  notify_talk name text;
       | _ -> trace (command ^ "has been received from " ^ name ^ ".");
     done;
@@ -557,8 +557,9 @@ let rec read_db in_channel =
 let generate_response protocol =
   let result = ref ("HTTP/" ^ protocol ^ " 200 OK\r\n" 
 	       ^ "Content-Type: text/html; charset=UTF-8\r\n\r\n" 
-	       ^ "<!DOCTYPE html><html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"fr\">
-	          <head><meta charset=\"utf-8\" /><title>Statistics of the game</title></head>") in
+	       ^ "<!DOCTYPE html><html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"fr\">" 
+	       ^ "<META HTTP-EQUIV=\"Refresh\">"
+	       ^ "<head><meta charset=\"utf-8\" /><title>Statistics of the game</title></head>") in
   result := !result ^ "<body><p1>Hello World !</p1>";
   result := !result ^ "<p>Players : </p>";
   let in_channel = open_in_gen[Open_creat] 0o666 registered_players in
@@ -586,9 +587,9 @@ object(self)
   val s_descr = Unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
 			    
   initializer
-  let host = Unix.gethostbyname (Unix.gethostname()) in
-      let h_addr = host.Unix.h_addr_list.(0) in
-      (*let h_addr = Unix.inet_addr_any in*)
+  (*let host = Unix.gethostbyname (Unix.gethostname()) in
+      let h_addr = host.Unix.h_addr_list.(0) in*)
+      let h_addr = Unix.inet_addr_any in
       let sock_addr = Unix.ADDR_INET (h_addr, port) in
       Unix.setsockopt s_descr Unix.SO_REUSEADDR true;
       Unix.bind s_descr sock_addr;
@@ -601,6 +602,7 @@ object(self)
 	Unix.accept s_descr in
       ignore (Thread.create response (service_sock, client_sock_addr));
     done;
+
 end;;
 
 let main () =
