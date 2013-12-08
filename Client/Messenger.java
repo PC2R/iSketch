@@ -30,8 +30,8 @@ public class Messenger {
 
 	public boolean connectionUser(String usr)
 	{
-		System.out.println("C->S : CONNECT/" + usr + "/");
-		writeStream.println("CONNECT/" + usr + "/");
+		System.out.println("C->S : CONNECT/" + protectString(usr) + "/");
+		writeStream.println("CONNECT/" + protectString(usr) + "/");
 		String answer = new String();
 		try
 		{
@@ -42,10 +42,10 @@ public class Messenger {
 		{
 			e.printStackTrace();
 		}
-		if (answer.equals("WELCOME/"+ usr + "/"))
+		if (answer.equals("WELCOME/"+ protectString(usr) + "/"))
 		{
 			//this.addPlayer(usr, "0");
-			this.userPseudo = usr;
+			this.userPseudo = protectString(usr);
 			return true;
 		}
 		else
@@ -398,7 +398,7 @@ public class Messenger {
 				res = res + '\\';
 			res = res + str.charAt(i);
 		}
-		System.out.println("chaine protégée :" + res);
+		//System.out.println("chaine protégée :" + res);
 		return res;
 	}
 }
