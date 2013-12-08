@@ -85,19 +85,33 @@ public class MainWindow extends JFrame implements WindowListener{
 	
 	public void guessed(String[] tab)
 	{
+		if (tab.length < 3)
+		{
+			System.out.println("Erreur dans MainWindow : guessed");
+			return;
+		}
 		System.out.println("Le mot " + tab[1] + " a été proposé par " + tab[2]);
-		this.messP.newProp(tab[2], tab[1]);
-		
+		this.messP.newProp(tab[2], tab[1]);	
 	}
 	
 	public void wordFound(String[] tab)
 	{
+		if (tab.length < 2)
+		{
+			System.out.println("Erreur dans MainWindow : wordFound");
+			return;
+		}
 		System.out.println("Le mot a été trouvé par " + tab[1]);
 		messP.wordFound(tab[1]);
 	}
 	
 	public void wordFoundTimeOut(String[] tab)
 	{
+		if (tab.length < 2)
+		{
+			System.out.println("Erreur dans MainWindow : wordFoundTimeOut");
+			return;
+		}
 		System.out.println("Il vous reste " + tab[1] + " secondes pour trouver le mot");
 		messP.wordFoundTimeOut(tab[1]);
 	}
@@ -110,6 +124,11 @@ public class MainWindow extends JFrame implements WindowListener{
 	
 	public void endRound(String[] tab)
 	{
+		if (tab.length < 3)
+		{
+			System.out.println("Erreur dans MainWindow : endRound");
+			return;
+		}
 		System.out.println("Le round est terminé");
 		System.out.println("Le gagnant est " + tab[1]);
 		System.out.println("Le mot à trouver était " + tab[2]);
@@ -129,8 +148,8 @@ public class MainWindow extends JFrame implements WindowListener{
 	}
 	
 	public void listen(String[] tab) { this.chatPanel.chat(tab); }
-
-
+	
+	
 	/* GRAPHICS */
 	
 	public void setPassiveMode()
@@ -144,7 +163,7 @@ public class MainWindow extends JFrame implements WindowListener{
 		this.drawPanel.setActifMode();
 		this.messP.setMode(true, word);
 	}
-
+	
 	public void setPassiveModeSilence()
 	{
 		this.drawPanel.setPassiveMode();

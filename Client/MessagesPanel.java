@@ -129,6 +129,11 @@ public class MessagesPanel extends JPanel {
 	
 	public void endRound(String[] tab)
 	{
+		if (tab.length < 3)
+		{
+			System.out.println("Erreur dans MessagesPanel : endRound");
+			return;
+		}
 		textMsg.append("\nLe round est terminé\n");
 		if (tab[1].isEmpty())
 			textMsg.append("Le dessinateur choisit de passer son tour\n");
@@ -151,13 +156,29 @@ public class MessagesPanel extends JPanel {
 	
 	public void broadcast(String[] tab)
 	{
+		if (tab.length < 2)
+		{
+			System.out.println("Erreur dans MessagesPanel : broadcast");
+			return;
+		}
 		textMsg.append(tab[1]);
 		textMsg.append("\n");
 	}
 	
-	public void exitFinder(String[] tab) { textMsg.append("\n" + cleanString(tab[1]) + " a quitté le jeu\n"); }
+	public void exitFinder(String[] tab)
+	{
+		if (tab.length < 2)
+		{
+			System.out.println("Erreur dans MessagesPanel : exitFinder");
+			return;
+		}
+		textMsg.append("\n" + cleanString(tab[1]) + " a quitté le jeu\n");
+	}
 	
-	public void exitDrawer(String[] tab) { textMsg.append("\nLe dessinateur a quitté la partie\n"); }
+	public void exitDrawer(String[] tab)
+	{
+		textMsg.append("\nLe dessinateur a quitté la partie\n");
+	}
 	
 	static String cleanString(String pstr)
 	{
@@ -171,7 +192,6 @@ public class MessagesPanel extends JPanel {
 				res = res + pstr.charAt(i);
 			i = i + 1;
 		}
-		System.out.println("MessagesPanel return : " + res);
 		return res;
 	}
 }

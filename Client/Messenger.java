@@ -466,6 +466,7 @@ public class Messenger {
 		int i;
 		for (i = 0; i < str.length(); i++)
 		{
+			System.out.println("car : " + str.charAt(i));
 			if (str.charAt(i) == '/' || str.charAt(i) == '\\')
 				res = res + '\\';
 			res = res + str.charAt(i);

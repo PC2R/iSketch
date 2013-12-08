@@ -80,6 +80,11 @@ public class ChatPanel extends JPanel implements ActionListener, KeyListener
 	
 	public void chat(String[] tab)
 	{
+		if (tab.length < 3)
+		{
+			System.out.println("Erreur dans ChatPanel : chat");
+			return;
+		}
 		this.msgArea.append(cleanString(tab[1]) + ": ");
 		this.msgArea.append(cleanString(tab[2]) + "\n");
 	}
