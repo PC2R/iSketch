@@ -170,7 +170,11 @@ public class Messenger {
 				this.mWindow.setDisableButton();
 		}
 		else if (tab[0].equals("WORD_FOUND_TIMEOUT"))
+		{
 			this.mWindow.wordFoundTimeOut(tab);
+			if (tab[1].equals(this.userPseudo))
+				this.mWindow.setDisableButton();
+		}
 		else if (tab[0].equals("SCORE_ROUND"))
 		{
 			for (int i = 1; i < tab.length - 1; i = i + 2)
@@ -209,6 +213,8 @@ public class Messenger {
 				this.mWindow.setAvailableButton();
 			}
 		}
+		else if (tab[0].equals("LISTEN"))
+			this.mWindow.listen(tab);
 		else
 			System.out.println("Commande inconnue : " + tab[0]);
 	}
@@ -284,6 +290,15 @@ public class Messenger {
 		{
 			System.out.println( this.userPseudo + " a quitté le jeu");
 			msgToServer.setMsg("EXIT/" + this.userPseudo + "/");
+			msgToServer.notifyAll();
+		}
+	}
+
+	public void sendCommandTalk(String chat)
+	{
+		synchronized (msgToServer)
+		{
+			msgToServer.setMsg("TALK/" + chat + "/");
 			msgToServer.notifyAll();
 		}
 	}

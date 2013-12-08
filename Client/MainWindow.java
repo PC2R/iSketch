@@ -15,7 +15,9 @@ public class MainWindow extends JFrame implements WindowListener{
 	private static int wWidth = 1100;
 	
 	private DrawPanel drawPanel;
+	private ChatPanel chatPanel;
 	private JPanel westPanel = new JPanel(null);
+	private JPanel eastPanel = new JPanel(null);
 	private JPanel globalPanel = new JPanel(null);
 	
 	private TextPanel textP = new TextPanel(wWidth, wHeight, this);
@@ -31,18 +33,27 @@ public class MainWindow extends JFrame implements WindowListener{
 		this.setLocationRelativeTo(null);
 		this.addWindowListener(this);
 		
-		drawPanel = new DrawPanel(wWidth / 2, wHeight, this);
+		drawPanel = new DrawPanel(wWidth / 2 - 10, (wHeight * 3) / 4 - 10, this);
 		drawPanel.setBackground(Color.white);
-		drawPanel.setPreferredSize(new Dimension(wWidth / 2 - 10, wHeight - 10));
+		drawPanel.setPreferredSize(new Dimension(wWidth / 2 - 10, (wHeight * 3) / 4 - 10));
+		
+		chatPanel = new ChatPanel(this, wWidth / 2 - 10, wHeight / 4 - 10);
 		
 		westPanel.setLayout(new BoxLayout(westPanel, BoxLayout.PAGE_AXIS));
 		westPanel.setPreferredSize(new Dimension(wWidth / 2, wHeight));
+		westPanel.setBackground(Color.DARK_GRAY);
 		westPanel.add(messP);
 		westPanel.add(textP, BorderLayout.SOUTH);
 		
+		eastPanel.setLayout(new BoxLayout(eastPanel, BoxLayout.PAGE_AXIS));
+		eastPanel.setPreferredSize(new Dimension(wWidth / 2, wHeight));
+		eastPanel.setBackground(Color.DARK_GRAY);
+		eastPanel.add(drawPanel);
+		eastPanel.add(chatPanel);
+		
 		globalPanel.setLayout(new BoxLayout(globalPanel, BoxLayout.LINE_AXIS));
 		globalPanel.add(westPanel);
-		globalPanel.add(drawPanel);
+		globalPanel.add(eastPanel);
 		
 		this.getContentPane().add(globalPanel);
 		this.setVisible(true);
@@ -57,6 +68,10 @@ public class MainWindow extends JFrame implements WindowListener{
 	
 	public void setDisableButton() { this.textP.setDisableButton(); }
 	
+	public void setAvailableChatZone() { this.chatPanel.availableZone(); }
+	
+	public void setDisableChatZone() { this.chatPanel.disableZone(); };
+	
 	
 	/* PLAYERS */
 	
@@ -64,12 +79,10 @@ public class MainWindow extends JFrame implements WindowListener{
 	{
 		this.messP.addPlayer(name, score);
 	}
-	
-	
-	/* MESSAGES */
-	
-	public void sendProposition(String prop) { msn.wordProposition(prop);}
 
+	
+	/* COMMAND TO READ */
+	
 	public void guessed(String[] tab)
 	{
 		System.out.println("Le mot " + tab[1] + " a été proposé par " + tab[2]);
@@ -114,8 +127,10 @@ public class MainWindow extends JFrame implements WindowListener{
 		this.messP.exitDrawer(tab);
 		this.drawPanel.cleanBoard();
 	}
-
 	
+	public void listen(String[] tab) { this.chatPanel.chat(tab); }
+
+
 	/* GRAPHICS */
 	
 	public void setPassiveMode()
@@ -134,6 +149,10 @@ public class MainWindow extends JFrame implements WindowListener{
 	
 	
 	/* COMMAND */
+	
+	public void sendProposition(String prop) { msn.wordProposition(prop);}
+	
+	public void talk(String chat) { msn.sendCommandTalk(chat); }
 	
 	public void sendCommandSetColor(int r, int g, int b)
 	{
