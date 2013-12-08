@@ -46,6 +46,9 @@ public class Messenger {
 		catch (IOException e)
 		{
 			e.printStackTrace();
+		}
+		catch (NumberFormatException e)
+		{
 			return -1;
 		}
 		return res;
@@ -54,8 +57,11 @@ public class Messenger {
 	public void connectUserWithChoice(String user)
 	{
 		int choice = this.connexionChoice();
-		while (choice == -1)
+		while (choice < 0 || choice > 3)
+		{
+			System.out.println("Vous n'avez pas saisis un chiffre valide.");
 			choice = this.connexionChoice();
+		}
 		BufferedReader entree = new BufferedReader(new InputStreamReader(System.in));
 		if(choice == 1)
 		{
@@ -96,6 +102,7 @@ public class Messenger {
 	{
 		this.connectUserWithChoice(usr);
 		String answer = new String();
+		String[] tab;
 		try
 		{
 			answer = readStream.readLine();
@@ -105,11 +112,12 @@ public class Messenger {
 		{
 			e.printStackTrace();
 		}
-		if (answer.equals("WELCOME/"+ protectString(usr) + "/"))
+		tab = parse(answer);
+		if (tab[0].equals("WELCOME"))
 		{
 			//this.addPlayer(usr, "0");
 			this.mWindow = new MainWindow(this);
-			this.userPseudo = protectString(usr);
+			this.userPseudo = tab[1];
 			return true;
 		}
 		else
