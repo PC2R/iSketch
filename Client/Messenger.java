@@ -186,7 +186,7 @@ public class Messenger {
 		else if (tab[0].equals("END_ROUND"))
 		{
 			this.mWindow.setDisableButton();
-			this.mWindow.setPassiveMode();
+			this.mWindow.setPassiveModeSilence();
 			this.mWindow.endRound(tab);
 		}
 		else if (tab[0].equals("LINE"))
