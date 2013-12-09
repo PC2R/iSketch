@@ -20,11 +20,12 @@ langage OCaml. Nous allons dans un premier temps expliquer quels ont
 été nos choix pour organiser notre serveur avant de s’attarder un peu
 plus en détail sur le code.
 
-\subsection {Lancement du serveur}
-Lorsque l'on lance l’exécutable, la première étape du programme est la
-création du serveur (pour qu’il soit prêt à recevoir les connexions
-des futurs clients) ainsi que l’initialisation de certaines variables
-qui seront utilisées une fois le jeu lancé.
+\subsection {Lancement du serveur et de la partie}
+Lorsque l'exécutable est lancé avec les paramètres qui vont bien, la
+première étape du programme est la création du serveur (pour qu’il
+soit prêt à recevoir les connexions des futurs clients) ainsi que
+l’initialisation de certaines variables qui seront utilisées une fois
+le jeu lancé.
 
 \bigskip La création de notre objet serveur reprend les étapes
 classiques vues en cours : on crée une \textbf{une prise} (en
@@ -45,8 +46,17 @@ solution pour éviter de devoir ouvrir et fermer le dictionnaire à
 chaque tour de round pour piocher un mot. 
 
 \bigskip En parallèle des demandes de connexions des joueurs, on lance
-un thread qui va gérer une partie de la manière suivante :
-\bigskip
+un thread qui va commencer par attendre que tous les joueurs soient
+connectés. Une fois cette condition remplie, le premier round
+s’exécute : un mot est choisi (et retiré de la liste pour éviter de le
+tirer plus tard) ainsi qu’un dessinateur et ces informations sont
+envoyées à tous les joueurs via la commande \verb+NEW_ROUND+. Ensuite,
+le serveur attend cette fois-ci qu’un mot soit trouvé et une fois
+cette condition remplie, il envoie à tous les joueurs les commandes
+\verb+END_ROUND+ et \verb+SCORE_ROUND+ qui donnent respectivement le
+nom du vainqueur et le mot qu’il fallait trouver et le score de tous
+les joueurs. Enfin, un nouveau round peut commencer en suivant le même
+schéma qui vient d’être décrit.
 
 \subsection {Connexion d’un joueur}
 
@@ -83,10 +93,24 @@ thread, nous avons protégé cette série d’opérations par un
 \item Le serveur se charge d’envoyer la commande
   \verb+WORD_FOUND/joueur/+ à tous les joueurs de la partie.
 \item Le serveur attribue le nombre de points qui va bien au joueur
-\item 
+  qui a trouvé le mot
+\item Un timeout est lancé si et seulement si le joueur en question
+  est le premier à trouver le mot et il reste des joueurs connectés
+  (sinon, s’il est le seul, alors un nouveau round peut commencer si
+  la partie n’est pas terminée)
 \end{enumerate}
 
 \subsection {Extensions}
+
+\subsubsection{Discussion instantanée}
+
+La mise en place de la discussion instantanée côté serveur n’a pas
+été trop compliquée étant donné qu’il suffit de récupérer la chaîne de
+caractère contenue dans la commande \verb+TALK+ pour la renvoyer à
+tous les joueurs via la commande \verb+LISTEN+. Par ailleurs, comme
+suggéré dans l’énoncé, nous avons utilisé la commande
+\verb+BROADCAST+ pour annoncer à tous les joueurs qu’un acte de triche
+avait été signalé par l’un d’entre eux.
 
 \subsubsection {Comptes utilisateurs}
 
@@ -101,7 +125,7 @@ Ainsi, à chaque inscription, on ajoute une ligne contenant le nom du
 joueur, le mot de passé hashé et salé et le sel.
 
 \bigskip Par ailleurs, notons que pour l’instant, les mots de passe
-circulent en clair lorsqu’il est envoyé depuis le client.
+circulent en clair lorsqu’ils sont envoyés depuis le client.
 
 \subsubsection {Serveur HTTP de statistiques}
 
