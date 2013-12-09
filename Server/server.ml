@@ -166,6 +166,19 @@ let unescaped s =
   done;
   !string;;
 
+let escaped s =
+  let string = ref "" in
+  let i = ref 0 in
+  while (!i < String.length s) do
+    if String.sub s !i 1 = "\\" then
+	string := !string ^ "\\"
+    else if String.sub s !i 1 = "/" then
+      string := !string ^ "\\";
+    string := !string ^ (String.sub s !i 1);
+    i := !i + 1;
+  done;
+  !string;;		  
+
 let exists_in_db name =
   let is_registered = ref false in
   let in_channel = open_in_gen[Open_creat] 0o666 registered_players in
@@ -411,8 +424,8 @@ object (self)
       let l = Str.split (Str.regexp "[/]") command in
       match List.nth l 0 with
       | "GUESS" -> Mutex.lock mutex_guessed_word;
-		   let guessed_word = String.sub command 6 (String.length command - 7) in
-		   if guessed_word = !word then
+		   let guessed_word = my_nth command 1 in
+		   if (unescaped guessed_word) = !word then
 		     begin
 		       notify_word_found name;
 		       score <- !score_round_finder;
@@ -430,12 +443,13 @@ object (self)
       | "SET_LINE" -> let new_line = String.sub command 9 (String.length command - 9) in
 		      trace (name ^ " has just proposed a line.");
 		      notify_line new_line;
-      | "EXIT" -> let name = String.sub command 5 (String.length command - 5) in
+      | "EXIT" -> let name = my_nth command 1 in
 		  connected <- false;
 		  decr players_connected;
 		  notify_exit name;
-      | "CHEAT" -> cheat_counter := !cheat_counter + 1;
-		   trace (name ^ " has reported cheating behavior.");
+      | "CHEAT" -> let name = my_nth command 1 in
+		   cheat_counter := !cheat_counter + 1;
+		   trace ((unescaped name) ^ " has reported cheating behavior.");
 		   notify_cheat name;
 		   if !cheat_counter = !cheat_parameter then
 		     trace (string_of_int (!cheat_parameter) ^ " players have reported cheating behavior.");
