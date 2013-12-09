@@ -103,6 +103,27 @@ joueur, le mot de passé hashé et salé et le sel.
 \bigskip Par ailleurs, notons que pour l’instant, les mots de passe
 circulent en clair lorsqu’il est envoyé depuis le client.
 
+\subsubsection {Serveur HTTP de statistiques}
+
+Afin de rendre les statistiques de iSketch (nombre de parties gagnées
+et perdues pour les joueurs enregistrés dans la base de données)
+disponibles via un navigateur internet, nous avons repris la base de
+notre serveur acceptant les connexions des joueurs mais en fixant
+cette fois-ci le port 2092 comme énoncé dans le sujet. Il nous a
+ensuite fallu trouver le moyen de répondre aux requêtes \verb+GET+ du
+navigateur envoyées lorsque le joueur entre l’URL
+\textit{adresse\_du\_serveur:2092}. Pour cela, lorsque nous recevons
+une requête \verb+GET+ (de la forme \textit{GET / HTTP/protocole})
+nous commençons par récupérer le protocole pour construire notre
+requête qui sera construite de la manière suivante : une première
+ligne de la forme \textit{HTTP/protocole 200 OK}, suivie de quelques
+headers, une ligne vide et enfin notre page HTML contenant les
+informations des joueurs.
+
+\bigskip Par ailleurs, nous avons muni la page HTML d’une balise qui
+permet le rafraîchissement de la page toutes les minutes pour ainsi
+actualiser les statistiques.
+
 \section{Côté client}
 
 \end{document}
