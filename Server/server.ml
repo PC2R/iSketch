@@ -141,6 +141,31 @@ let init_dict () =
   let in_channel = open_in !dictionary_filename in
   read_file in_channel;;
 
+let unescaped s =
+  let string = ref "" in
+  let i = ref 0 in
+  while (!i < String.length s) do
+    if String.sub s !i 1 = "\\" then
+      begin
+	if String.sub s (!i + 1) 1 = "/" then
+	  begin
+	    string := !string ^ "/";
+	    i := !i + 1
+	  end
+	else if String.sub s (!i + 1) 1 = "\\" then
+	  begin
+	    string := !string ^ "\\";
+	    i := !i + 1
+	  end
+	else
+	  string := !string ^ (String.sub s !i 1);
+      end
+    else
+      string := !string ^ (String.sub s !i 1);
+    i := !i + 1;
+  done;
+  !string;;
+
 let exists_in_db name =
   let is_registered = ref false in
   let in_channel = open_in_gen[Open_creat] 0o666 registered_players in
@@ -191,12 +216,16 @@ let exists name =
 
 let generate_name n =
   let found = ref false
-  and name = ref n
+  and back_up_name = ref n
+  and name = ref (unescaped n)
   and i = ref 1 in
   while !found = false do
-    name := n ^ string_of_int !i;
+    name := !name ^ string_of_int !i;
     if exists !name = false then
-      found := true;
+      begin
+	found := true;
+	name := !back_up_name ^ string_of_int !i;
+      end;
     i := !i + 1;
   done;
   !name;;
@@ -228,6 +257,35 @@ let notify_players keyword name =
     let player = List.nth !players i in
     player#send_command (keyword ^ "/" ^ name ^ "/\n");
   done;;
+
+let my_nth s n =
+  let string = ref ""
+  and i = ref 0
+  and j = ref 0 in
+  while (!j != n) do
+    if String.sub s !i 1 = "/" then
+      if String.sub s (!i - 1) 1 <> "\\" then
+	j := !j + 1;
+    i := !i + 1;
+  done;
+  while (!i < String.length s) do
+    if (String.sub s !i 1 = "/") then
+      begin
+	if String.sub s (!i - 1) 1 <> "\\" then
+	  i := String.length s
+	else
+	  begin
+	    string := !string ^ (String.sub s !i 1);
+	    i := !i + 1
+	  end
+      end
+    else
+      begin
+	string := !string ^ (String.sub s !i 1);
+	i := !i + 1;
+      end
+  done;
+  !string;;
 
 let notify_exit name =
   for i = 0 to (List.length !players - 1) do
@@ -353,7 +411,7 @@ object (self)
       let l = Str.split (Str.regexp "[/]") command in
       match List.nth l 0 with
       | "GUESS" -> Mutex.lock mutex_guessed_word;
-		   let guessed_word = List.nth l 1 in
+		   let guessed_word = String.sub command 6 (String.length command - 7) in
 		   if guessed_word = !word then
 		     begin
 		       notify_word_found name;
@@ -406,13 +464,13 @@ object (self)
 
 end;;
 
-let welcome_player name s_descr =					       
+let welcome_player name s_descr =
   let result = "WELCOME/" ^ name ^ "/\n" in
   ignore (Unix.write s_descr result 0 (String.length result));
-  let player = new player name s_descr in
+  let player = new player (unescaped name) s_descr in
   players := player::!players;
   incr players_connected;
-  trace (name
+  trace (unescaped (name)
 	 ^ " has been successfully welcomed to the game.");
   if ((List.length !players) = !max_players) then
     begin
@@ -426,26 +484,26 @@ let connection_player (s_descr, sock_addr) =
     let l = Str.split (Str.regexp "[/]") command in
     match List.nth l 0 with
     | "CONNECT" -> Mutex.lock mutex_players;
-		   let name = ref (List.nth l 1) in
+		   let name = ref (my_nth command 1) in
 		   if ((List.length !players) = !max_players) then
 		     begin
 		       let result = "ACCESSDENIED/"
 				    ^ !name ^ "maximum_capacity_reached/\n" in
 		       ignore (Unix.write s_descr result 0 (String.length result));
-		       trace (!name
+		       trace (unescaped (!name)
 			      ^ " tried to join the game but maximum capacity was reached.")
 		     end
 		   else
 		     begin
-		       if (exists !name) or (exists_in_db !name) then
+		       if (exists (unescaped (!name)) or exists_in_db (unescaped (!name))) then
 			 name := generate_name !name;
 		       welcome_player !name s_descr
 		     end;
 		   Mutex.unlock mutex_players;
 		   Thread.exit ()
     | "REGISTER" -> Mutex.lock mutex_players;
-		    let name = List.nth l 1
-		    and password = List.nth l 2 in
+		    let name = my_nth command 1
+		    and password = my_nth command 2 in
 		    if (exists_in_db name) then
 		      let result = "ACCESSDENIED/\n" in
 		      ignore (Unix.write s_descr result 0 (String.length result));
@@ -467,7 +525,7 @@ let connection_player (s_descr, sock_addr) =
 		   let result = "ACCESSDENIED/\n" in
 		   ignore (Unix.write s_descr result 0 (String.length result));
 		   trace (name
-			 ^ "has tried to log in but it failed.");
+			 ^ " has tried to log in but it failed.");
 		 else
 		   begin
 		     if (exists name) then
@@ -575,6 +633,7 @@ let response (s_descr, sock_addr) =
     | "GET " -> let protocol = List.nth l 2 in
 		let result = generate_response protocol in
 		ignore (Unix.write s_descr result 0 (String.length result));
+		Unix.shutdown s_descr Unix.SHUTDOWN_ALL;
     | _ -> trace (command ^ "has been received on serverHTTP."); 
   with
   | exn -> trace (Printexc.to_string exn);;
@@ -587,9 +646,9 @@ object(self)
   val s_descr = Unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
 			    
   initializer
-  (*let host = Unix.gethostbyname (Unix.gethostname()) in
-      let h_addr = host.Unix.h_addr_list.(0) in*)
-      let h_addr = Unix.inet_addr_any in
+  let host = Unix.gethostbyname (Unix.gethostname()) in
+      let h_addr = host.Unix.h_addr_list.(0) in
+      (*let h_addr = Unix.inet_addr_any in*)
       let sock_addr = Unix.ADDR_INET (h_addr, port) in
       Unix.setsockopt s_descr Unix.SO_REUSEADDR true;
       Unix.bind s_descr sock_addr;
