@@ -507,37 +507,37 @@ let connection_player (s_descr, sock_addr) =
 		    if (exists_in_db name) then
 		      let result = "ACCESSDENIED/\n" in
 		      ignore (Unix.write s_descr result 0 (String.length result));
-		      trace (name
+		      trace ((unescaped name)
 			     ^ " has tried to register but username was already in the database.");
 		    else
 		      begin
-			register_in_db name password;
-			trace (name
+			register_in_db (unescaped name) password;
+			trace ((unescaped name)
 			       ^ " has been successfully registered to the game.");
 			welcome_player name s_descr
 		      end;
 		    Mutex.unlock mutex_players;
 		    Thread.exit ()
     | "LOGIN" -> Mutex.lock mutex_players;
-		 let name = List.nth l 1
-		 and password = List.nth l 2 in
-		 if is_ok name password = false then
+		 let name = my_nth command 1
+		 and password = my_nth command 2 in
+		 if is_ok (unescaped name) password = false then
 		   let result = "ACCESSDENIED/\n" in
 		   ignore (Unix.write s_descr result 0 (String.length result));
-		   trace (name
+		   trace ((unescaped name)
 			 ^ " has tried to log in but it failed.");
 		 else
 		   begin
-		     if (exists name) then
+		     if (exists (unescaped name)) then
 		       begin
 			 let result = "ACCESSDENIED/\n" in
 			 ignore (Unix.write s_descr result 0 (String.length result));
-			 trace (name
+			 trace ((unescaped name)
 				^ " has tried to log in but was already connected.")
 		       end
 		     else
 		       begin
-			 trace (name
+			 trace ((unescaped name)
 				^ " has been successfully logged in.");
 			 welcome_player name s_descr
 		       end
