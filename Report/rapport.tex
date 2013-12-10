@@ -67,14 +67,14 @@ Plusieurs possibilités sont offertes au joueur pour accéder au jeu :
   que le nom \textit{user} n’a pas déjà été choisi (en vérifiant la
   base de données des comptes utilisateurs ainsi que les joueurs déjà
   connectés à la partie en cours) et crée un nouveau nom si ce n’est
-  pas le cas (en concaténant un nombre à la fin de \textit{user}).
+  pas le cas (en concaténant un nombre à la fin de \textit{user})
 \item Avec la commande \verb+REGISTER/user/password/+ : le serveur
   vérifie alors que le nom \textit{user} n’a pas déjà été choisi et
-  l’ajoute à la base de données si c’est le cas.
+  l’ajoute à la base de données si c’est le cas
 \item Avec la commande \verb+LOGIN/user/password/+ : le serveur
   vérifie alors que les noms \textit{user} et \textit{password} sont
   corrects et s’ils le sont, le serveur vérifie également que le
-  joueur n’est pas déjà en train de jouer.
+  joueur n’est pas déjà en train de jouer
 \end{itemize}
 \bigskip Enfin, notons qu’une commande \verb+ACCESSDENIED/+ est
 envoyée ou bien si le nombre maximum de joueurs pour une partie est
@@ -91,7 +91,7 @@ thread, nous avons protégé cette série d’opérations par un
 
 \begin{enumerate}
 \item Le serveur se charge d’envoyer la commande
-  \verb+WORD_FOUND/joueur/+ à tous les joueurs de la partie.
+  \verb+WORD_FOUND/joueur/+ à tous les joueurs de la partie
 \item Le serveur attribue le nombre de points qui va bien au joueur
   qui a trouvé le mot
 \item Un timeout est lancé si et seulement si le joueur en question
@@ -122,7 +122,10 @@ fonction de hashage MD5 (cette fonction de hachage n'est certes plus
 fiable depuis longtemps mais nous n’avons pas trouvé dans la librairie
 standard d'OCaml d’autres fonctions plus performantes telle SHA-256).
 Ainsi, à chaque inscription, on ajoute une ligne contenant le nom du
-joueur, le mot de passé hashé et salé et le sel.
+joueur, le mot de passé hashé et salé et le sel (ainsi que deux 0
+symbolisant respectivement le nombre de parties gagnées et perdues et
+qui seront incrémentés au fur et à mesure des parties et utilisés par
+le serveur HTTP de statistiques).
 
 \bigskip Par ailleurs, notons que pour l’instant, les mots de passe
 circulent en clair lorsqu’ils sont envoyés depuis le client.
