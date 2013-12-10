@@ -155,16 +155,18 @@ actualiser les statistiques.
 
 \subsection {L'interface graphique}
 
-Le langage JAVA a semblé le plus adapté pour gérer l'interface graphique
-avec l'utilisateur. En effet, les packages swing, et  awt permettent une
-grande variétés de composant simple à appréhender.
-La fenetre principale est donc divisé en 4 zones :
- - en haut à droite, la zone de dessin, active ou non selon le rôle du joueur durant le round
- - en bas à droite, une zone de chat qui fonctionne en permanence pour tous les joueurs
- - à gauche, la majeur partie de l’écran correspond au fenêtre de dialogues
-entre le client et le serveur : on peut y lire la liste des joueurs et les différentes actions de la partie en cours
- - en bas à gauche, un champ pour envoyer des proposition de mots
-   au serveur. Ce champ n'est actif que lorsque le joueur n'est pas le dessinateur du round.
+Le langage JAVA a semblé le plus adapté pour gérer l'interface
+graphique avec l'utilisateur. En effet, les packages swing, et awt
+permettent une grande variétés de composant simple à appréhender.  La
+fenetre principale est donc divisé en 4 zones : - en haut à droite, la
+zone de dessin, active ou non selon le rôle du joueur durant le round
+- en bas à droite, une zone de chat qui fonctionne en permanence pour
+tous les joueurs - à gauche, la majeur partie de l’écran correspond au
+fenêtre de dialogues entre le client et le serveur : on peut y lire la
+liste des joueurs et les différentes actions de la partie en cours -
+en bas à gauche, un champ pour envoyer des proposition de mots au
+serveur. Ce champ n'est actif que lorsque le joueur n'est pas le
+dessinateur du round.
 
 L'interface graphique transmet les informations entre les différentes
 hiérarchie de classes jusqu'au classes principales qui font envoyer
@@ -173,77 +175,84 @@ et recevoir les information du serveur.
 \subsection{Les classes principales}
 
 La principale classe du Client n'est pas \textit{Client.java} comme
-l'on pourrait le supposer.
-Néanmoins elle contient des éléments essentiels comme : la
-fonction main du programme, la lecture des arguments du programme
-et l'initialisation de la connexion à l'aide de la socket avec la bonne adresse
-et le bon port. Une fois la socket crée, elle peut lancer un canal de
-lecture et un canal d'écriture tous les deux lié au serveur qui vont
-être donné à la classe qui va gérer tous les messages : \textit{Messenger.java}
-Tous les envois et réception de message transitent par cette classe où
-ils sont traité et envoyé au serveur si c'est le destinataire, ou vers
-la zone de l'interface graphique appropriée. 
-Pour cela la classe \textit{MainWindow.java} qui contient tous les composant graphiques
-traitent également transmet quasiment tous les messages entre l'interface et
-la classe \textit{Messenger.java}. Elle fait remonter toutes les actions de
-l'utilisateur vers la classe \textit{Messenger.java} et redistribue toutes les
-informations du serveur vers les composants graphiques concernés.
-Mais cette la classe MainWindow est crée uniquement si le joueur à
-réussi à se connecter correctement. Pour cela, \textit{Messenger.java} propose
-un choix au joueur sur la manière de se connecter (anonymement, en
+l'on pourrait le supposer.  Néanmoins elle contient des éléments
+essentiels comme : la fonction main du programme, la lecture des
+arguments du programme et l'initialisation de la connexion à l'aide de
+la socket avec la bonne adresse et le bon port. Une fois la socket
+crée, elle peut lancer un canal de lecture et un canal d'écriture tous
+les deux lié au serveur qui vont être donné à la classe qui va gérer
+tous les messages : \textit{Messenger.java} Tous les envois et
+réception de message transitent par cette classe où ils sont traité et
+envoyé au serveur si c'est le destinataire, ou vers la zone de
+l'interface graphique appropriée.  Pour cela la classe
+\textit{MainWindow.java} qui contient tous les composant graphiques
+traitent également transmet quasiment tous les messages entre
+l'interface et la classe \textit{Messenger.java}. Elle fait remonter
+toutes les actions de l'utilisateur vers la classe
+\textit{Messenger.java} et redistribue toutes les informations du
+serveur vers les composants graphiques concernés.  Mais cette la
+classe MainWindow est crée uniquement si le joueur à réussi à se
+connecter correctement. Pour cela, \textit{Messenger.java} propose un
+choix au joueur sur la manière de se connecter (anonymement, en
 s'enregistrant ou en utilisant son identifiant et son mot de passe),
 puis écrit sur le canal d'écriture du serveur la commande connexion
-correspondante. Elle attend ensuite sur le canal de lecture une réponse.
-Si cette réponse commence bien par \verb+WELCOME+ ce qui signifie que, la
-connexion a réussi, l'interface graphique se lance ainsi que le
-système d'écoute et d'envoi de messages. Si n'importe quelle autre
-réponse en récupérée, nous considérons que la connexion a échouée,
-aucun autre objet n'est créé et la classe \textit{Client.java} referme la socket.
+correspondante. Elle attend ensuite sur le canal de lecture une
+réponse.  Si cette réponse commence bien par \verb+WELCOME+ ce qui
+signifie que, la connexion a réussi, l'interface graphique se lance
+ainsi que le système d'écoute et d'envoi de messages. Si n'importe
+quelle autre réponse en récupérée, nous considérons que la connexion a
+échouée, aucun autre objet n'est créé et la classe
+\textit{Client.java} referme la socket.
 
 
 \subsection{Le système d'écoute et de d'envoi de message au serveur}
 
-Le client ayant moins de demandes en parallèle à traiter que le serveur,
-nous avons pus traiter la principale difficulté avec deux thread
-lancé tous les deux en même temps dont les rôle respectifs sont d'écouter
-toutes les commandes du serveur pour l'un et d'envoyer toute les commandes
-au serveur pour l'autre.
-Pour que le thread d'envoi de message ne soit actif que lorsqu'un message
-doit être envoyé, on le le fait s'endormir sur une variable déclarée dans
-\textit{Messenger.java} qui lorsqu'elle est modifiée, notifie le thread concerné à
-l'aide de la méthode notify(), qui l'envoie alors au serveur avant de se
-rendormir.
-Le thread de réception des messages, lui, lit en permanence sur le canal
-de lecture du serveur et renvoie l'interprétation de la commande à la
-classe \textit{Messenger.java} lorsqu'il en reçoit une par l'intermédiaire d'une
-variable dans lequel il a le droit d'écrire.
-Ces deux variables sont de type \textit{Message.java} et permettent des actions
-simple comme écrire un message ou récupérer le message présent.
-Pour ne pas que les commandes se chevauchent et que des informations soient
-perdues, toutes les actions des thread, d'écriture ou de lecture dans
-les variable sont effectuées dans des blocs synchronized ce qui empêche
+Le client ayant moins de demandes en parallèle à traiter que le
+serveur, nous avons pus traiter la principale difficulté avec deux
+thread lancé tous les deux en même temps dont les rôle respectifs sont
+d'écouter toutes les commandes du serveur pour l'un et d'envoyer toute
+les commandes au serveur pour l'autre.  Pour que le thread d'envoi de
+message ne soit actif que lorsqu'un message doit être envoyé, on le le
+fait s'endormir sur une variable déclarée dans \textit{Messenger.java}
+qui lorsqu'elle est modifiée, notifie le thread concerné à l'aide de
+la méthode notify(), qui l'envoie alors au serveur avant de se
+rendormir.  Le thread de réception des messages, lui, lit en
+permanence sur le canal de lecture du serveur et renvoie
+l'interprétation de la commande à la classe \textit{Messenger.java}
+lorsqu'il en reçoit une par l'intermédiaire d'une variable dans lequel
+il a le droit d'écrire.  Ces deux variables sont de type
+\textit{Message.java} et permettent des actions simple comme écrire un
+message ou récupérer le message présent.  Pour ne pas que les
+commandes se chevauchent et que des informations soient perdues,
+toutes les actions des thread, d'écriture ou de lecture dans les
+variable sont effectuées dans des blocs synchronized ce qui empêche
 tout écrasement d'information avant qu'elle ne soit traitée.
 
 \subsection{Le système de dessin}
 
 Lorsque le joueur est le dessinateur du round, la zone de dessin de
-l'interface devient active. Les lignes simples ont été implémentées avec
-plusieurs tailles et plusieurs couleur différentes. Pour tracer un trait,
-l'utilisateur clique sur la zone de dessin d'où il souhaite faire commencer
-l’extrémité de son trait et relâche la souris à l'endroit souhaité de l'autre
-extrémité du trait.
-Grâce à l'interface \textit{MouseListener.java} implémentée par la classe \textit{BoardPanel.java},
-nous pouvons récupérer les deux point distinct pour tracer un trait entre
-les deux, un point étant distingué par sa position, sa  couleur et sa taille.
-Pour pouvoir dessiner plusieurs traits, chaque point est stocké dans une liste
-qui lorsque nous faisons appel à la méthode repaint() retrace les anciens traits
-ainsi que les nouveaux qui auraient pu être ajoutés.
-Pour détecter les changements de couleurs ou de taille sélectionnés par l'utilisateur,
-on a utilisé des classe implémentant l'interface \textit{ActionListener.java}.
-Ainsi lorsque le joueur trace un trait, effectue un changement de taille
-ou de couleur, l'action en renvoyée jusqu'à la classe \textit{Messenger.java} qui va
-transmettre l'information au serveur à l'aide de la commande correspondante.
+l'interface devient active. Les lignes simples ont été implémentées
+avec plusieurs tailles et plusieurs couleur différentes. Pour tracer
+un trait, l'utilisateur clique sur la zone de dessin d'où il souhaite
+faire commencer l’extrémité de son trait et relâche la souris à
+l'endroit souhaité de l'autre extrémité du trait.  Grâce à l'interface
+\textit{MouseListener.java} implémentée par la classe
+\textit{BoardPanel.java}, nous pouvons récupérer les deux point
+distinct pour tracer un trait entre les deux, un point étant distingué
+par sa position, sa couleur et sa taille.  Pour pouvoir dessiner
+plusieurs traits, chaque point est stocké dans une liste qui lorsque
+nous faisons appel à la méthode repaint() retrace les anciens traits
+ainsi que les nouveaux qui auraient pu être ajoutés.  Pour détecter
+les changements de couleurs ou de taille sélectionnés par
+l'utilisateur, on a utilisé des classe implémentant l'interface
+\textit{ActionListener.java}.  Ainsi lorsque le joueur trace un trait,
+effectue un changement de taille ou de couleur, l'action en renvoyée
+jusqu'à la classe \textit{Messenger.java} qui va transmettre
+l'information au serveur à l'aide de la commande correspondante.
 
-Si le joueur n'est pas dessinateur, cette zone n'est pas active mais, il reçoit toutes les informations du serveur qui lui permettent de redessiner sur sa propre zone tous les traits tracé par le dessinateur.
+Si le joueur n'est pas dessinateur, cette zone n'est pas active mais,
+il reçoit toutes les informations du serveur qui lui permettent de
+redessiner sur sa propre zone tous les traits tracé par le
+dessinateur.
 
 \end{document}
