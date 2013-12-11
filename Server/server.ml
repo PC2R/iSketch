@@ -189,23 +189,19 @@ let escaped s =
   !string;;		  
 
 let exists_in_db name =
-  print_endline ("début exists in db pour : " ^ name);
   let is_registered = ref false in
   let in_channel = open_in_gen[Open_creat] 0o666 registered_players in
   try
     while true do
       let line = (input_line in_channel) in
       let l = Str.split (Str.regexp " ") line in
-      print_endline ("essai :" ^ (List.nth l 0));
       if List.nth l 0 = name then
 	begin
 	  is_registered := true;
-	  print_endline "ça fit pas";
 	end
     done;
     !is_registered;
   with End_of_file -> close_in in_channel;
-		      print_endline "fin exists in db ";
 		      !is_registered;;
 
 let is_ok name password =
@@ -234,18 +230,14 @@ let gen_salt n =
   (str) ;;
 
 let exists name =
-  print_endline ("début exists pour : " ^ name);
   let b = ref false in
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    print_endline ("essai : " ^ player#get_name ());
     if player#get_name () = name then
       begin
 	b := true;
-	print_endline "ça fit pas";
       end
   done;
-  print_endline "fin exists ";
   !b;;
 
 let generate_name n =
@@ -575,7 +567,6 @@ let connection_player (s_descr, sock_addr) =
 		       if (exists (unescaped (!name)) 
 			   or exists_in_db (unescaped (!name))) then
 			 begin
-			   print_endline "début generate :";
 			   name := generate_name !name;	
 			 end;       
 		       welcome_player !name s_descr
