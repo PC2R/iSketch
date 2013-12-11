@@ -373,12 +373,14 @@ let send_new_round_command name_drawer =
 
 let choose_drawer () =
   let j = ref 0
-  and i = ref 0 in
+  and i = ref !round in
   while (!i < List.length !players) do
     let player = List.nth !players !round in
     if player#get_status () != false then
       begin
 	player#set_role DRAWER;
+	trace ("The drawer for the round n°" ^ (string_of_int (!round + 1))
+	       ^ " is " ^ player#get_name () ^ ".");
 	j := !i;
 	i := List.length !players
       end
@@ -391,18 +393,9 @@ let send_score_round_command () =
   let result = ref "SCORE_ROUND/" in
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    if (player#get_role () = DRAWER)then
-      begin
-	result := !result ^ player#get_name () ^ "/"
-		  ^ string_of_int (!score_round_drawer) ^ "/";
-	player#update_score_game DRAWER
-      end						  
-    else
-      begin
-	result := !result ^ player#get_name () ^ "/"
-		  ^ string_of_int (player#get_score_round ()) ^ "/";
-	player#update_score_game FINDER
-      end
+    result := !result ^ player#get_name () ^ "/"
+	      ^ string_of_int (player#get_score_round ()) ^ "/";
+    player#update_score_game;
   done;
   result := !result ^ "\n";
   for i = 0 to (List.length !players - 1) do
@@ -427,6 +420,8 @@ let send_end_round_command () =
 	    score := player1#get_score_round ();
 	    name := player1#get_name ()
 	  end
+	else if player1#get_role () = DRAWER then
+	  player1#set_role FINDER
       done;
       for i = 0 to (List.length !players - 1) do
 	let player2 = List.nth !players i in
@@ -516,14 +511,9 @@ object (self)
   method set_role r = role <- r;
   method set_score_round s = score_round <- s;
 
-  method update_score_game role =
-    if role = FINDER then
-      begin
-	score_game <- score_game + score_round;
-	score_round <- 0
-      end
-    else if role = DRAWER then
-      score_game <- score_game + !score_round_drawer;
+  method update_score_game =
+    score_game <- score_game + score_round;
+    score_round <- 0;
 
   method send_command result =
     ignore (Unix.write s_descr result 0 (String.length result));
@@ -581,7 +571,7 @@ let connection_player (s_descr, sock_addr) =
 		      ignore (Unix.write s_descr result 0
 					 (String.length result));
 		      trace ((unescaped name)
-			     ^ " has tried to register\
+			     ^ " has tried to register \
 				but username was already in the database.");
 		    else
 		      begin
