@@ -30,7 +30,7 @@ let word = ref ""
 let word_found = ref false
 let word_finders = ref 0
 
-type role = DRAWER | FINDER | NOT_DEFINED
+type role = DRAWER | FINDER
 
 let players = ref []
 
@@ -55,9 +55,9 @@ let line = ref ""
 let score_round_finder = ref 0
 let score_round_drawer = ref 0
 
-let back_up = ref ""
-
 let timeout_on = ref false
+
+let round_canceled = ref false
 
 let thread_timeout = ref (Thread.create (fun _ ->
 					 while true do
@@ -90,9 +90,18 @@ let notify_timeout () =
 let update_variables () =
   if !score_round_finder > 5 then score_round_finder := !score_round_finder -1;
   if !score_round_drawer = 0 then score_round_drawer := 10
-  else
-    if !score_round_drawer < 15 then
-      score_round_drawer := !score_round_drawer + 1;
+  else if !score_round_drawer < 15 then
+    score_round_drawer := !score_round_drawer + 1;
+  let i = ref 0 in
+  while (!i < List.length !players) do
+    let player = List.nth !players !i in
+    if player#get_role () = DRAWER then
+      begin
+	player#set_score_round !score_round_drawer;
+	i := List.length !players
+      end;
+    i := !i + 1;
+  done;
   incr word_finders;
   word_found := true;
   if !word_finders < !players_connected - 1 then
@@ -180,17 +189,23 @@ let escaped s =
   !string;;		  
 
 let exists_in_db name =
+  print_endline ("début exists in db pour : " ^ name);
   let is_registered = ref false in
   let in_channel = open_in_gen[Open_creat] 0o666 registered_players in
   try
     while true do
       let line = (input_line in_channel) in
       let l = Str.split (Str.regexp " ") line in
+      print_endline ("essai :" ^ (List.nth l 0));
       if List.nth l 0 = name then
-	is_registered := true;
+	begin
+	  is_registered := true;
+	  print_endline "ça fit pas";
+	end
     done;
     !is_registered;
   with End_of_file -> close_in in_channel;
+		      print_endline "fin exists in db ";
 		      !is_registered;;
 
 let is_ok name password =
@@ -219,28 +234,33 @@ let gen_salt n =
   (str) ;;
 
 let exists name =
+  print_endline ("début exists pour : " ^ name);
   let b = ref false in
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
+    print_endline ("essai : " ^ player#get_name ());
     if player#get_name () = name then
-      b := true
+      begin
+	b := true;
+	print_endline "ça fit pas";
+      end
   done;
+  print_endline "fin exists ";
   !b;;
 
 let generate_name n =
   let found = ref false
-  and back_up_name = ref n
-  and name = ref (unescaped n)
-  and i = ref 1 in
+  and name = ref ""
+  and i = ref 0 in
   while !found = false do
-    name := !name ^ string_of_int !i;
-    if exists !name = false then
+    i := !i + 1;
+    name := (unescaped n) ^ string_of_int !i;
+    if (not (exists !name)) && (not(exists_in_db !name)) then
       begin
 	found := true;
-	name := !back_up_name ^ string_of_int !i;
       end;
-    i := !i + 1;
   done;
+  trace ("The name " ^ !name ^ " has been generated.");
   !name;;
 
 let register_in_db name password =
@@ -248,9 +268,13 @@ let register_in_db name password =
   let out_channel =
     open_out_gen [Open_append;Open_creat] 0o666 registered_players
   and md5sum_hexa = Digest.to_hex (Digest.string password ^ salt) in
-  output_string out_channel (name ^ " " ^ md5sum_hexa ^ " " ^ salt ^ " " ^ string_of_int 0 ^ " " ^ string_of_int 0 ^ "\n");
+  output_string out_channel (name ^ " " 
+			     ^ md5sum_hexa ^ " " 
+			     ^ salt ^ " " 
+			     ^ string_of_int 0 ^ " " 
+			     ^ string_of_int 0 ^ "\n");
   close_out out_channel;;
-  
+    
 let choose_word () =
   word := List.nth !dictionary_words
 		   (Random.int (List.length !dictionary_words));
@@ -347,30 +371,46 @@ let send_connected_command () =
     done;
   done;;
 
-let send_new_round_command () =
-  let player = List.nth !players !round in
-  if player#get_status () != false then
-    begin
-      player#set_role "drawer";
-      let name = player#get_name () in
-      for i = 0 to (List.length !players - 1) do
-	let player2 = List.nth !players i in
-	let name2 = player2#get_name () in
-	let result = "NEW_ROUND/" ^ name ^ "/" ^ name2 ^ "/" ^ !word ^ "/\n" in
-	player2#send_command result
-      done;
-    end;;
+let send_new_round_command name_drawer =
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    let name = player#get_name () in
+    let result = "NEW_ROUND/" ^ name_drawer ^ "/" ^ name ^ "/" ^ !word ^ "/\n" in
+    player#send_command result
+  done;;
+
+let choose_drawer () =
+  let j = ref 0
+  and i = ref 0 in
+  while (!i < List.length !players) do
+    let player = List.nth !players !round in
+    if player#get_status () != false then
+      begin
+	player#set_role DRAWER;
+	j := !i;
+	i := List.length !players
+      end
+    else
+      i := !i + 1;
+  done;
+  !j;;
 
 let send_score_round_command () =
   let result = ref "SCORE_ROUND/" in
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    if (player#get_role () = "drawer")then
-      result := !result ^ player#get_name () ^ "/"
-		^ string_of_int (!score_round_drawer) ^ "/"
+    if (player#get_role () = DRAWER)then
+      begin
+	result := !result ^ player#get_name () ^ "/"
+		  ^ string_of_int (!score_round_drawer) ^ "/";
+	player#update_score_game DRAWER
+      end						  
     else
-      result := !result ^ player#get_name () ^ "/"
-		^ string_of_int (player#get_score ()) ^ "/"
+      begin
+	result := !result ^ player#get_name () ^ "/"
+		  ^ string_of_int (player#get_score_round ()) ^ "/";
+	player#update_score_game FINDER
+      end
   done;
   result := !result ^ "\n";
   for i = 0 to (List.length !players - 1) do
@@ -379,28 +419,34 @@ let send_score_round_command () =
   done;;
   
 let send_end_round_command () =
-  let score = ref 0 and name = ref "" in
-  for i = 0 to (List.length !players - 1) do
-    let player1 = List.nth !players i in
-    if (player1#get_score () > !score) then
-      begin
-	score := player1#get_score ();
-	name := player1#get_name ()
-      end
-  done;
-  for i = 0 to (List.length !players - 1) do
-    let player2 = List.nth !players i in
-    if !name = "" then
-      player2#send_command ("END_ROUND/" ^ "/" ^ !word ^ "/\n")
-    else
-      player2#send_command ("END_ROUND/" ^ !name ^ "/" ^ !word ^ "/\n")
-  done;;
+  if !round_canceled then
+    for i = 0 to (List.length !players - 1) do
+      (List.nth !players i)#send_command ("END_ROUND//" ^ !word ^ "/\n")
+    done
+  else
+    begin
+      let score = ref 0
+      and name = ref "" in
+      for i = 0 to (List.length !players - 1) do
+	let player1 = List.nth !players i in
+	if (player1#get_role () != DRAWER)
+	   && (player1#get_score_round () > !score) then
+	  begin
+	    score := player1#get_score_round ();
+	    name := player1#get_name ()
+	  end
+      done;
+      for i = 0 to (List.length !players - 1) do
+	let player2 = List.nth !players i in
+	player2#send_command ("END_ROUND/" ^ !name ^ "/" ^ !word ^ "/\n")
+      done
+    end;;
     
 let reset_score_players () =
   score_round_drawer := 0;
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
-    player#set_score 0;
+    player#set_score_round 0;
   done;;
 
 class player pseudo s_descr =
@@ -408,9 +454,10 @@ object (self)
 
   val s_descr = s_descr
   val mutable name = ""
-  val mutable score = 0
+  val mutable score_round = 0
+  val mutable score_game = 0
   val mutable connected = true
-  val mutable role = ""
+  val mutable role = FINDER
 
   initializer
     name <- pseudo;
@@ -428,19 +475,22 @@ object (self)
 		   if (unescaped guessed_word) = !word then
 		     begin
 		       notify_word_found name;
-		       score <- !score_round_finder;
+		       score_round <- !score_round_finder;
 		       update_variables ()
 		     end
 		   else
 		     notify_guess guessed_word name;
 		   Mutex.unlock mutex_guessed_word;
-      | "SET_COLOR" -> let new_color = String.sub command 10 (String.length command - 10) in
+      | "SET_COLOR" -> let new_color = 
+			 String.sub command 10 (String.length command - 10) in
 		       rgb := new_color;
 		       trace (name ^ " has just changed the color of the line.");
-      | "SET_SIZE" -> let new_size = String.sub command 9 (String.length command - 9) in
+      | "SET_SIZE" -> let new_size =
+			String.sub command 9 (String.length command - 9) in
 		      size := new_size;
 		      trace (name ^ " has just changed the color of the line.");
-      | "SET_LINE" -> let new_line = String.sub command 9 (String.length command - 9) in
+      | "SET_LINE" -> let new_line =
+			String.sub command 9 (String.length command - 9) in
 		      trace (name ^ " has just proposed a line.");
 		      notify_line new_line;
       | "EXIT" -> let name = my_nth command 1 in
@@ -452,7 +502,8 @@ object (self)
 		   trace ((unescaped name) ^ " has reported cheating behavior.");
 		   notify_cheat name;
 		   if !cheat_counter = !cheat_parameter then
-		     trace (string_of_int (!cheat_parameter) ^ " players have reported cheating behavior.");
+		     trace (string_of_int (!cheat_parameter)
+			    ^ " players have reported cheating behavior.");
       | "PASS" -> if !word_found = true then
 		    begin
 		      reset_score_players ();
@@ -466,15 +517,26 @@ object (self)
 
 
   method get_name () = name;
-  method get_score () = score;
+  method get_score_round () = score_round;
+  method get_score_game () = score_game;
   method get_status () = connected;
   method get_role () = role;
   method set_role r = role <- r;
-  method set_score s = score <- s;
+  method set_score_round s = score_round <- s;
+
+  method update_score_game role =
+    if role = FINDER then
+      begin
+	score_game <- score_game + score_round;
+	score_round <- 0
+      end
+    else if role = DRAWER then
+      score_game <- score_game + !score_round_drawer;
 
   method send_command result =
     ignore (Unix.write s_descr result 0 (String.length result));
-    trace (String.sub result 0 (String.length result - 1) ^ " has been sent to " ^ name ^ ".");
+    trace (String.sub result 0 (String.length result - 1)
+	   ^ " has been sent to " ^ name ^ ".");
 
 end;;
 
@@ -501,16 +563,21 @@ let connection_player (s_descr, sock_addr) =
 		   let name = ref (my_nth command 1) in
 		   if ((List.length !players) = !max_players) then
 		     begin
-		       let result = "ACCESSDENIED/"
-				    ^ !name ^ "maximum_capacity_reached/\n" in
-		       ignore (Unix.write s_descr result 0 (String.length result));
+		       let r = "ACCESSDENIED/"
+			       ^ !name ^ "maximum_capacity_reached/\n" in
+		       ignore (Unix.write s_descr r 0 (String.length r));
 		       trace (unescaped (!name)
-			      ^ " tried to join the game but maximum capacity was reached.")
+			      ^ " tried to join the game \
+				 but maximum capacity was reached.")
 		     end
 		   else
 		     begin
-		       if (exists (unescaped (!name)) or exists_in_db (unescaped (!name))) then
-			 name := generate_name !name;
+		       if (exists (unescaped (!name)) 
+			   or exists_in_db (unescaped (!name))) then
+			 begin
+			   print_endline "début generate :";
+			   name := generate_name !name;	
+			 end;       
 		       welcome_player !name s_descr
 		     end;
 		   Mutex.unlock mutex_players;
@@ -520,14 +587,17 @@ let connection_player (s_descr, sock_addr) =
 		    and password = my_nth command 2 in
 		    if (exists_in_db name) then
 		      let result = "ACCESSDENIED/\n" in
-		      ignore (Unix.write s_descr result 0 (String.length result));
+		      ignore (Unix.write s_descr result 0
+					 (String.length result));
 		      trace ((unescaped name)
-			     ^ " has tried to register but username was already in the database.");
+			     ^ " has tried to register\
+				but username was already in the database.");
 		    else
 		      begin
 			register_in_db (unescaped name) password;
 			trace ((unescaped name)
-			       ^ " has been successfully registered to the game.");
+			       ^ " has been successfully \
+				  registered to the game.");
 			welcome_player name s_descr
 		      end;
 		    Mutex.unlock mutex_players;
@@ -545,9 +615,11 @@ let connection_player (s_descr, sock_addr) =
 		     if (exists (unescaped name)) then
 		       begin
 			 let result = "ACCESSDENIED/\n" in
-			 ignore (Unix.write s_descr result 0 (String.length result));
+			 ignore (Unix.write s_descr result 0
+					    (String.length result));
 			 trace ((unescaped name)
-				^ " has tried to log in but was already connected.")
+				^ " has tried to log in but \
+				   was already connected.")
 		       end
 		     else
 		       begin
@@ -599,16 +671,20 @@ object (self)
     Condition.wait condition_players mutex_maximum_players;
     trace ("All players are now connected, let the game begin !");
     send_connected_command ();
+    let i = ref 0 in
     while (!round < !max_players ) do
-      trace ("Round " ^ string_of_int (!round + 1) ^ "/" ^ string_of_int (!max_players) ^" has just begun.");
+      trace ("Round " ^ string_of_int (!round + 1) ^ "/"
+	     ^ string_of_int (!max_players) ^" has just begun.");
       init_variables ();
       choose_word ();
-      send_new_round_command ();
+      i := choose_drawer ();
+      send_new_round_command ((List.nth !players !i)#get_name ());
       Condition.wait condition_end_round mutex_end_round;
       send_end_round_command ();
       send_score_round_command ();
       incr round;
-    done
+    done;
+    (*update_statistics ();*)
 
 end;;
 
@@ -618,22 +694,29 @@ let rec read_db in_channel =
     while true do
       let line = (input_line in_channel) in
       let l = Str.split (Str.regexp " ") line in
-      result := !result ^ "<li>" ^ List.nth l 0 ^ " has " ^ List.nth l 3 ^ " wins and " ^ List.nth l 4 ^ " defeats.</li>";
+      result := !result ^ "<li>" ^ List.nth l 0 
+		^ " has " ^ List.nth l 3 ^ " wins and " 
+		^ List.nth l 4 ^ " defeats.</li>\n";
     done;
     !result;
   with End_of_file -> close_in in_channel;
-		      result := !result ^ "</ul></body></html>";
+		      result := !result ^ "\n</ul>\n</body>\n</html>";
 		      !result;;
 
 
 let generate_response protocol =
   let result = ref ("HTTP/" ^ protocol ^ " 200 OK\r\n" 
 	       ^ "Content-Type: text/html; charset=UTF-8\r\n\r\n" 
-	       ^ "<!DOCTYPE html><html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"fr\">" 
-	       ^ "<META HTTP-EQUIV=\"Refresh\">"
-	       ^ "<head><meta charset=\"utf-8\" /><title>Statistics of the game</title></head>") in
-  result := !result ^ "<body><p1>Hello World !</p1>";
-  result := !result ^ "<p>Players : </p>";
+	       ^ "<!DOCTYPE html>\n"
+	       ^ "<html lang=\"fr\">\n"
+	       ^ "<head>\n"
+	       ^ "<meta http-equiv=\"Content-Type\" \
+		  content=\"text/html; charset=utf-8\" />\n"
+	       ^ "<meta http-equiv=\"Refresh\" content=\"60\">\n"
+	       ^ "<title>Statistics of the game</title>\n"
+	       ^ "</head>\n") in
+  result := !result ^ "<body>\n<h1>Hello World !</h1>\n";
+  result := !result ^ "<p>Players : </p>\n";
   let in_channel = open_in_gen[Open_creat] 0o666 registered_players in
   result := !result ^ (read_db in_channel);
   !result;;
