@@ -59,6 +59,8 @@ let timeout_on = ref false
 
 let round_canceled = ref false
 
+let cheat_counter = ref 0
+
 let thread_timeout = ref (Thread.create (fun _ ->
 					 while true do
 					   Thread.yield ()
@@ -121,8 +123,6 @@ let update_variables () =
       timeout_on := false;
       Condition.signal condition_end_round
     end;;
-
-let cheat_counter = ref 0
 
 let init_variables () =
   word_found := false;
@@ -492,8 +492,11 @@ object (self)
 		   trace ((unescaped name) ^ " has reported cheating behavior.");
 		   notify_cheat name;
 		   if !cheat_counter = !cheat_parameter then
-		     trace (string_of_int (!cheat_parameter)
-			    ^ " players have reported cheating behavior.");
+		     begin
+		       timeout_on := false;
+		       reset_score_players ();
+		       Condition.signal condition_end_round
+		     end;
       | "PASS" -> if !word_found = true then
 		    begin
 		      reset_score_players ();
