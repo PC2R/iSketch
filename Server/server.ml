@@ -263,7 +263,6 @@ let register_in_db name password =
   let out_channel =
     open_out_gen [Open_append;Open_creat] 0o666 registered_players
   and md5sum_hexa = Digest.to_hex (Digest.string (password ^ salt)) in
-  print_endline md5sum_hexa;
   output_string out_channel (name ^ " " 
 			     ^ md5sum_hexa ^ " " 
 			     ^ salt ^ " " 
