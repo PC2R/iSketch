@@ -211,8 +211,11 @@ let is_ok name password =
     while true do
       let line = (input_line in_channel) in
       let l = Str.split (Str.regexp " ") line in
-      if List.nth l 0 = name then
-	if List.nth l 1 = Digest.to_hex (Digest.string password) then
+      let db_name = List.nth l 0
+      and db_password = List.nth l 1
+      and db_salt = List.nth l 2 in
+      if db_name = name then
+	if db_password = Digest.to_hex (Digest.string (password ^ db_salt)) then
 	  valid := true;
     done;
     !valid;
@@ -256,10 +259,11 @@ let generate_name n =
   !name;;
 
 let register_in_db name password =
-  let salt = gen_salt (String.length (name ^ password)) in
+  let salt = gen_salt 10 in
   let out_channel =
     open_out_gen [Open_append;Open_creat] 0o666 registered_players
-  and md5sum_hexa = Digest.to_hex (Digest.string password ^ salt) in
+  and md5sum_hexa = Digest.to_hex (Digest.string (password ^ salt)) in
+  print_endline md5sum_hexa;
   output_string out_channel (name ^ " " 
 			     ^ md5sum_hexa ^ " " 
 			     ^ salt ^ " " 
@@ -279,13 +283,6 @@ let my_input_line file_descr =
     r := !r ^ s;
   done;
   !r;;
-
-(* function for EXITED / GUESSED / WORD_FOUND *)
-let notify_players keyword name =
-  for i = 0 to (List.length !players - 1) do
-    let player = List.nth !players i in
-    player#send_command (keyword ^ "/" ^ name ^ "/\n");
-  done;;
 
 let my_nth s n =
   let string = ref ""
@@ -315,6 +312,13 @@ let my_nth s n =
       end
   done;
   !string;;
+
+(* function for EXITED / GUESSED / WORD_FOUND *)
+let notify_players keyword name =
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    player#send_command (keyword ^ "/" ^ name ^ "/\n");
+  done;;
 
 let notify_exit name =
   for i = 0 to (List.length !players - 1) do
@@ -501,7 +505,6 @@ object (self)
 		  notify_talk name text;
       | _ -> trace (command ^ "has been received from " ^ name ^ ".");
     done;
-
 
   method get_name () = name;
   method get_score_round () = score_round;
