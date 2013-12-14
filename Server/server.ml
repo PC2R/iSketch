@@ -269,7 +269,66 @@ let register_in_db name password =
 			     ^ string_of_int 0 ^ " " 
 			     ^ string_of_int 0 ^ "\n");
   close_out out_channel;;
-    
+
+let update_statistics () =
+  let winner = ref ""
+  and losers = ref [] 
+  and score = ref 0 in
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    if player#get_score_game () > !score then
+      begin
+	score := player#get_score_game ();
+	winner := player#get_name ();
+      end
+  done;
+  for i = 0 to (List.length !players - 1) do
+    let player = List.nth !players i in
+    if player#get_name () != !winner then
+      losers := player#get_name ()::!losers;
+  done;
+  let in_channel = 
+    open_in_gen[Open_creat] 0o666 registered_players
+  and new_db = ref "" in
+  try
+    while true do
+      let line = (input_line in_channel) in
+      let l = Str.split (Str.regexp " ") line in
+      let db_name = List.nth l 0
+      and db_password = List.nth l 1
+      and db_salt = List.nth l 2
+      and db_wins = List.nth l 3
+      and db_defeats = List.nth l 4 in
+      if db_name = !winner then
+	new_db := !new_db
+		  ^ db_name ^ " "
+		  ^ db_password ^ " "
+		  ^ db_salt ^ " "
+		  ^ string_of_int ((int_of_string db_wins) + 1) ^ " "
+		  ^ db_defeats ^ "\n"
+      else if List.mem db_name !losers then
+	begin
+	  losers := remove db_name !losers;
+	  new_db := !new_db 
+		    ^ db_name ^ " "
+		    ^ db_password ^ " "
+		    ^ db_salt ^ " "
+		    ^ db_wins ^ " "
+		    ^ string_of_int ((int_of_string db_defeats) + 1) ^ "\n";
+	end
+      else
+	new_db := !new_db
+		  ^ db_name ^ " "
+		  ^ db_password ^ " "
+		  ^ db_salt ^ " "
+		  ^ db_wins ^ " "
+		  ^ db_defeats ^ "\n";
+    done;
+  with End_of_file -> close_in in_channel;
+		      let out_channel = open_out registered_players in
+		      output_string out_channel !new_db;
+		      close_out out_channel;;
+  
 let choose_word () =
   word := List.nth !dictionary_words
 		   (Random.int (List.length !dictionary_words));
@@ -670,7 +729,7 @@ object (self)
       send_score_round_command ();
       incr round;
     done;
-    (*update_statistics ();*)
+    update_statistics ();
 
 end;;
 
