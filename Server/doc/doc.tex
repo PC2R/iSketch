@@ -175,11 +175,19 @@ Backs up the number of people who have found the word at each round
 \label{type:Server.role}\begin{ocamldoccode}
 type role =
   | DRAWER
+\end{ocamldoccode}
+\begin{ocamldoccomment}
+The drawer needs to draw the word that is chosen at each round
+\end{ocamldoccomment}
+\begin{ocamldoccode}
   | FINDER
 \end{ocamldoccode}
+\begin{ocamldoccomment}
+A finder has to find the word the drawer is trying to draw
+\end{ocamldoccomment}
 \index{role@\verb`role`}
 \begin{ocamldocdescription}
-At each round, each player is either a « drawer » or a « finder »
+At each round, each player is either a drawer or a finder
 
 
 \end{ocamldocdescription}
@@ -255,6 +263,11 @@ val mutex_end_round : Mutex.t
 val mutex_guessed_word : Mutex.t
 \end{ocamldoccode}
 \index{mutex-underscoreguessed-underscoreword@\verb`mutex_guessed_word`}
+\begin{ocamldocdescription}
+Mutex to prevent multiple players to guess a word simultaneously
+
+
+\end{ocamldocdescription}
 
 
 
@@ -263,6 +276,11 @@ val mutex_guessed_word : Mutex.t
 val players_connected : int Pervasives.ref
 \end{ocamldoccode}
 \index{players-underscoreconnected@\verb`players_connected`}
+\begin{ocamldocdescription}
+Gives the number of connected players
+
+
+\end{ocamldocdescription}
 
 
 
@@ -271,6 +289,11 @@ val players_connected : int Pervasives.ref
 val round : int Pervasives.ref
 \end{ocamldoccode}
 \index{round@\verb`round`}
+\begin{ocamldocdescription}
+Number of the current round
+
+
+\end{ocamldocdescription}
 
 
 
@@ -279,6 +302,11 @@ val round : int Pervasives.ref
 val rgb : string Pervasives.ref
 \end{ocamldoccode}
 \index{rgb@\verb`rgb`}
+\begin{ocamldocdescription}
+The string that symbolizes the current color used by the drawer
+
+
+\end{ocamldocdescription}
 
 
 
@@ -287,6 +315,11 @@ val rgb : string Pervasives.ref
 val size : string Pervasives.ref
 \end{ocamldoccode}
 \index{size@\verb`size`}
+\begin{ocamldocdescription}
+The string that symbolizes the current size used by the drawer
+
+
+\end{ocamldocdescription}
 
 
 
@@ -295,6 +328,11 @@ val size : string Pervasives.ref
 val line : string Pervasives.ref
 \end{ocamldoccode}
 \index{line@\verb`line`}
+\begin{ocamldocdescription}
+The string that symbolizes the current line drawn by the drawer
+
+
+\end{ocamldocdescription}
 
 
 
@@ -319,6 +357,11 @@ val score_round_drawer : int Pervasives.ref
 val timeout_on : bool Pervasives.ref
 \end{ocamldoccode}
 \index{timeout-underscoreon@\verb`timeout_on`}
+\begin{ocamldocdescription}
+Says whether or not the timeout is on
+
+
+\end{ocamldocdescription}
 
 
 
@@ -327,6 +370,11 @@ val timeout_on : bool Pervasives.ref
 val round_canceled : bool Pervasives.ref
 \end{ocamldoccode}
 \index{round-underscorecanceled@\verb`round_canceled`}
+\begin{ocamldocdescription}
+A round is canceled if the drawer decides to pass or if a cheating behavior is reported
+
+
+\end{ocamldocdescription}
 
 
 
@@ -335,6 +383,11 @@ val round_canceled : bool Pervasives.ref
 val cheat_counter : int Pervasives.ref
 \end{ocamldoccode}
 \index{cheat-underscorecounter@\verb`cheat_counter`}
+\begin{ocamldocdescription}
+Counts how many players have reported cheating behavior
+
+
+\end{ocamldocdescription}
 
 
 
@@ -351,6 +404,11 @@ val thread_timeout : Thread.t Pervasives.ref
 val trace : string -> unit
 \end{ocamldoccode}
 \index{trace@\verb`trace`}
+\begin{ocamldocdescription}
+trace message writes the message in the log file
+
+
+\end{ocamldocdescription}
 
 
 
@@ -359,6 +417,11 @@ val trace : string -> unit
 val notify_timeout : unit -> unit
 \end{ocamldoccode}
 \index{notify-underscoretimeout@\verb`notify_timeout`}
+\begin{ocamldocdescription}
+Sends the WORD\_FOUND\_TIMEOUT command to all players
+
+
+\end{ocamldocdescription}
 
 
 
@@ -383,6 +446,11 @@ val init_variables : unit -> unit
 val remove : 'a -> 'a list -> 'a list
 \end{ocamldoccode}
 \index{remove@\verb`remove`}
+\begin{ocamldocdescription}
+remove e l removes the element e from the list l
+
+
+\end{ocamldocdescription}
 
 
 
@@ -423,6 +491,11 @@ val escaped : string -> string
 val exists_in_db : string -> bool
 \end{ocamldoccode}
 \index{exists-underscorein-underscoredb@\verb`exists_in_db`}
+\begin{ocamldocdescription}
+exists\_in\_db user returns true if user is already registered in the database
+
+
+\end{ocamldocdescription}
 
 
 
@@ -431,6 +504,11 @@ val exists_in_db : string -> bool
 val is_ok : string -> string -> bool
 \end{ocamldoccode}
 \index{is-underscoreok@\verb`is_ok`}
+\begin{ocamldocdescription}
+is\_ok user password returns true if user and password is a correct couple registered in the database
+
+
+\end{ocamldocdescription}
 
 
 
@@ -439,6 +517,11 @@ val is_ok : string -> string -> bool
 val gen_salt : int -> string
 \end{ocamldoccode}
 \index{gen-underscoresalt@\verb`gen_salt`}
+\begin{ocamldocdescription}
+gen\_salt n generates a salt of size n
+
+
+\end{ocamldocdescription}
 
 
 
@@ -447,6 +530,11 @@ val gen_salt : int -> string
 val exists : string -> bool
 \end{ocamldoccode}
 \index{exists@\verb`exists`}
+\begin{ocamldocdescription}
+exists user returns true if user is already connected that is to say is in the players list
+
+
+\end{ocamldocdescription}
 
 
 
@@ -455,6 +543,11 @@ val exists : string -> bool
 val generate_name : string -> string
 \end{ocamldoccode}
 \index{generate-underscorename@\verb`generate_name`}
+\begin{ocamldocdescription}
+generate\_name name returns a name of the form (name \textasciicircum  number) different from those that already exist
+
+
+\end{ocamldocdescription}
 
 
 
@@ -463,6 +556,11 @@ val generate_name : string -> string
 val register_in_db : string -> string -> unit
 \end{ocamldoccode}
 \index{register-underscorein-underscoredb@\verb`register_in_db`}
+\begin{ocamldocdescription}
+register\_in\_db name password registers the couple in the database
+
+
+\end{ocamldocdescription}
 
 
 
@@ -479,6 +577,11 @@ val update_statistics : unit -> unit
 val choose_word : unit -> unit
 \end{ocamldoccode}
 \index{choose-underscoreword@\verb`choose_word`}
+\begin{ocamldocdescription}
+Sets the word variable by choosing a word in the dictionary
+
+
+\end{ocamldocdescription}
 
 
 
@@ -487,6 +590,11 @@ val choose_word : unit -> unit
 val my_input_line : Unix.file_descr -> string
 \end{ocamldoccode}
 \index{my-underscoreinput-underscoreline@\verb`my_input_line`}
+\begin{ocamldocdescription}
+my\_input\_line file\_descr returs the string read on file\_descr
+
+
+\end{ocamldocdescription}
 
 
 
@@ -495,6 +603,11 @@ val my_input_line : Unix.file_descr -> string
 val my_nth : string -> int -> string
 \end{ocamldoccode}
 \index{my-underscorenth@\verb`my_nth`}
+\begin{ocamldocdescription}
+my\_nth s n returns the n-th element in the string s of the form element\_0/element\_1/$\ldots$/element\_n
+
+
+\end{ocamldocdescription}
 
 
 
@@ -503,6 +616,11 @@ val my_nth : string -> int -> string
 val notify_players : string -> string -> unit
 \end{ocamldoccode}
 \index{notify-underscoreplayers@\verb`notify_players`}
+\begin{ocamldocdescription}
+notify\_players keyword name sends the keyword command (such as EXITED / GUESSED / WORD\_FOUND) to all players
+
+
+\end{ocamldocdescription}
 
 
 
