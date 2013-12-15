@@ -114,7 +114,7 @@ let update_variables () =
 				       Thread.delay (float_of_int !timeout);
 				       if !timeout_on then
 					 Condition.signal condition_end_round;
-				       trace ("Timeout has just ended.")
+				       trace ("Timeout has just ended.");
 				      ) ();
       trace ("Server has started the timeout.");
     end
@@ -626,7 +626,6 @@ let connection_player (s_descr, sock_addr) =
 		       welcome_player !name s_descr
 		     end;
 		   Mutex.unlock mutex_players;
-		   Thread.exit ()
     | "REGISTER" -> Mutex.lock mutex_players;
 		    let name = my_nth command 1
 		    and password = my_nth command 2 in
@@ -646,7 +645,6 @@ let connection_player (s_descr, sock_addr) =
 			welcome_player name s_descr
 		      end;
 		    Mutex.unlock mutex_players;
-		    Thread.exit ()
     | "LOGIN" -> Mutex.lock mutex_players;
 		 let name = my_nth command 1
 		 and password = my_nth command 2 in
@@ -674,10 +672,9 @@ let connection_player (s_descr, sock_addr) =
 		       end
 		   end;
 		 Mutex.unlock mutex_players;
-		 Thread.exit ()
     | _ -> trace (command ^ "has been received."); 
   with
-  | exn -> trace (Printexc.to_string exn)
+  | exn -> trace (Printexc.to_string exn);
 	 
 class server port n =
 object (self)
@@ -730,7 +727,6 @@ object (self)
       incr round;
     done;
     update_statistics ();
-
 end;;
 
 let rec read_db in_channel =
