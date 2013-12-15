@@ -6,10 +6,833 @@
 \usepackage{ocamldoc}
 \begin{document}
 \tableofcontents
-\section{Module {\tt{Server}}}
+\section{Module {\tt{Server}} : Server-side from the iSketch game}
 \label{module:Server}\index{Server@\verb`Server`}
 
 
+
+
 \ocamldocvspace{0.5cm}
+
+
+
+\label{val:Server.max-underscoreplayers}\begin{ocamldoccode}
+val max_players : int Pervasives.ref
+\end{ocamldoccode}
+\index{max-underscoreplayers@\verb`max_players`}
+\begin{ocamldocdescription}
+Maximum players capacity
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.timeout}\begin{ocamldoccode}
+val timeout : int Pervasives.ref
+\end{ocamldoccode}
+\index{timeout@\verb`timeout`}
+\begin{ocamldocdescription}
+Timeout when a word is found
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.port}\begin{ocamldoccode}
+val port : int Pervasives.ref
+\end{ocamldoccode}
+\index{port@\verb`port`}
+\begin{ocamldocdescription}
+Server port number
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.cheat-underscoreparameter}\begin{ocamldoccode}
+val cheat_parameter : int Pervasives.ref
+\end{ocamldoccode}
+\index{cheat-underscoreparameter@\verb`cheat_parameter`}
+\begin{ocamldocdescription}
+Number of players needed to report a cheating behavior
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.verbose-underscoremode}\begin{ocamldoccode}
+val verbose_mode : bool Pervasives.ref
+\end{ocamldoccode}
+\index{verbose-underscoremode@\verb`verbose_mode`}
+\begin{ocamldocdescription}
+Verbose mode enabled or not
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.dictionary-underscorefilename}\begin{ocamldoccode}
+val dictionary_filename : string Pervasives.ref
+\end{ocamldoccode}
+\index{dictionary-underscorefilename@\verb`dictionary_filename`}
+\begin{ocamldocdescription}
+Dictionary filename
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.dictionary-underscorewords}\begin{ocamldoccode}
+val dictionary_words : string list Pervasives.ref
+\end{ocamldoccode}
+\index{dictionary-underscorewords@\verb`dictionary_words`}
+\begin{ocamldocdescription}
+List of words from the dictionary
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.logfile}\begin{ocamldoccode}
+val logfile : string
+\end{ocamldoccode}
+\index{logfile@\verb`logfile`}
+\begin{ocamldocdescription}
+Log file
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.registered-underscoreplayers}\begin{ocamldoccode}
+val registered_players : string
+\end{ocamldoccode}
+\index{registered-underscoreplayers@\verb`registered_players`}
+\begin{ocamldocdescription}
+Single file which stands for database
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.word}\begin{ocamldoccode}
+val word : string Pervasives.ref
+\end{ocamldoccode}
+\index{word@\verb`word`}
+\begin{ocamldocdescription}
+Word to find at each round
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.word-underscorefound}\begin{ocamldoccode}
+val word_found : bool Pervasives.ref
+\end{ocamldoccode}
+\index{word-underscorefound@\verb`word_found`}
+\begin{ocamldocdescription}
+Says whether or not the word has been found
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.word-underscorefinders}\begin{ocamldoccode}
+val word_finders : int Pervasives.ref
+\end{ocamldoccode}
+\index{word-underscorefinders@\verb`word_finders`}
+\begin{ocamldocdescription}
+Backs up the number of people who have found the word at each round
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{type:Server.role}\begin{ocamldoccode}
+type role =
+  | DRAWER
+  | FINDER
+\end{ocamldoccode}
+\index{role@\verb`role`}
+\begin{ocamldocdescription}
+At each round, each player is either a « drawer » or a « finder »
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.players}\begin{ocamldoccode}
+val players :
+  < get_name : unit -> string; get_role : unit -> role;
+    get_score_game : unit -> int; get_score_round : unit -> int;
+    get_status : unit -> bool; send_command : string -> unit;
+    set_role : role -> unit; set_score_round : int -> unit;
+    start_game : unit -> unit; update_score_game : unit >
+  list Pervasives.ref
+\end{ocamldoccode}
+\index{players@\verb`players`}
+\begin{ocamldocdescription}
+List of all the players
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.mutex-underscoreplayers}\begin{ocamldoccode}
+val mutex_players : Mutex.t
+\end{ocamldoccode}
+\index{mutex-underscoreplayers@\verb`mutex_players`}
+\begin{ocamldocdescription}
+Mutex to prevent multiple players to connect/register/login simultaneously
+
+
+\end{ocamldocdescription}
+
+
+
+
+\label{val:Server.mutex-underscoremaximum-underscoreplayers}\begin{ocamldoccode}
+val mutex_maximum_players : Mutex.t
+\end{ocamldoccode}
+\index{mutex-underscoremaximum-underscoreplayers@\verb`mutex_maximum_players`}
+
+
+
+
+\label{val:Server.condition-underscoreplayers}\begin{ocamldoccode}
+val condition_players : Condition.t
+\end{ocamldoccode}
+\index{condition-underscoreplayers@\verb`condition_players`}
+
+
+
+
+\label{val:Server.condition-underscoreend-underscoreround}\begin{ocamldoccode}
+val condition_end_round : Condition.t
+\end{ocamldoccode}
+\index{condition-underscoreend-underscoreround@\verb`condition_end_round`}
+
+
+
+
+\label{val:Server.mutex-underscoreend-underscoreround}\begin{ocamldoccode}
+val mutex_end_round : Mutex.t
+\end{ocamldoccode}
+\index{mutex-underscoreend-underscoreround@\verb`mutex_end_round`}
+
+
+
+
+\label{val:Server.mutex-underscoreguessed-underscoreword}\begin{ocamldoccode}
+val mutex_guessed_word : Mutex.t
+\end{ocamldoccode}
+\index{mutex-underscoreguessed-underscoreword@\verb`mutex_guessed_word`}
+
+
+
+
+\label{val:Server.players-underscoreconnected}\begin{ocamldoccode}
+val players_connected : int Pervasives.ref
+\end{ocamldoccode}
+\index{players-underscoreconnected@\verb`players_connected`}
+
+
+
+
+\label{val:Server.round}\begin{ocamldoccode}
+val round : int Pervasives.ref
+\end{ocamldoccode}
+\index{round@\verb`round`}
+
+
+
+
+\label{val:Server.rgb}\begin{ocamldoccode}
+val rgb : string Pervasives.ref
+\end{ocamldoccode}
+\index{rgb@\verb`rgb`}
+
+
+
+
+\label{val:Server.size}\begin{ocamldoccode}
+val size : string Pervasives.ref
+\end{ocamldoccode}
+\index{size@\verb`size`}
+
+
+
+
+\label{val:Server.line}\begin{ocamldoccode}
+val line : string Pervasives.ref
+\end{ocamldoccode}
+\index{line@\verb`line`}
+
+
+
+
+\label{val:Server.score-underscoreround-underscorefinder}\begin{ocamldoccode}
+val score_round_finder : int Pervasives.ref
+\end{ocamldoccode}
+\index{score-underscoreround-underscorefinder@\verb`score_round_finder`}
+
+
+
+
+\label{val:Server.score-underscoreround-underscoredrawer}\begin{ocamldoccode}
+val score_round_drawer : int Pervasives.ref
+\end{ocamldoccode}
+\index{score-underscoreround-underscoredrawer@\verb`score_round_drawer`}
+
+
+
+
+\label{val:Server.timeout-underscoreon}\begin{ocamldoccode}
+val timeout_on : bool Pervasives.ref
+\end{ocamldoccode}
+\index{timeout-underscoreon@\verb`timeout_on`}
+
+
+
+
+\label{val:Server.round-underscorecanceled}\begin{ocamldoccode}
+val round_canceled : bool Pervasives.ref
+\end{ocamldoccode}
+\index{round-underscorecanceled@\verb`round_canceled`}
+
+
+
+
+\label{val:Server.cheat-underscorecounter}\begin{ocamldoccode}
+val cheat_counter : int Pervasives.ref
+\end{ocamldoccode}
+\index{cheat-underscorecounter@\verb`cheat_counter`}
+
+
+
+
+\label{val:Server.thread-underscoretimeout}\begin{ocamldoccode}
+val thread_timeout : Thread.t Pervasives.ref
+\end{ocamldoccode}
+\index{thread-underscoretimeout@\verb`thread_timeout`}
+
+
+
+
+\label{val:Server.trace}\begin{ocamldoccode}
+val trace : string -> unit
+\end{ocamldoccode}
+\index{trace@\verb`trace`}
+
+
+
+
+\label{val:Server.notify-underscoretimeout}\begin{ocamldoccode}
+val notify_timeout : unit -> unit
+\end{ocamldoccode}
+\index{notify-underscoretimeout@\verb`notify_timeout`}
+
+
+
+
+\label{val:Server.update-underscorevariables}\begin{ocamldoccode}
+val update_variables : unit -> unit
+\end{ocamldoccode}
+\index{update-underscorevariables@\verb`update_variables`}
+
+
+
+
+\label{val:Server.init-underscorevariables}\begin{ocamldoccode}
+val init_variables : unit -> unit
+\end{ocamldoccode}
+\index{init-underscorevariables@\verb`init_variables`}
+
+
+
+
+\label{val:Server.remove}\begin{ocamldoccode}
+val remove : 'a -> 'a list -> 'a list
+\end{ocamldoccode}
+\index{remove@\verb`remove`}
+
+
+
+
+\label{val:Server.read-underscorefile}\begin{ocamldoccode}
+val read_file : Pervasives.in_channel -> string list
+\end{ocamldoccode}
+\index{read-underscorefile@\verb`read_file`}
+
+
+
+
+\label{val:Server.init-underscoredict}\begin{ocamldoccode}
+val init_dict : unit -> string list
+\end{ocamldoccode}
+\index{init-underscoredict@\verb`init_dict`}
+
+
+
+
+\label{val:Server.unescaped}\begin{ocamldoccode}
+val unescaped : string -> string
+\end{ocamldoccode}
+\index{unescaped@\verb`unescaped`}
+
+
+
+
+\label{val:Server.escaped}\begin{ocamldoccode}
+val escaped : string -> string
+\end{ocamldoccode}
+\index{escaped@\verb`escaped`}
+
+
+
+
+\label{val:Server.exists-underscorein-underscoredb}\begin{ocamldoccode}
+val exists_in_db : string -> bool
+\end{ocamldoccode}
+\index{exists-underscorein-underscoredb@\verb`exists_in_db`}
+
+
+
+
+\label{val:Server.is-underscoreok}\begin{ocamldoccode}
+val is_ok : string -> string -> bool
+\end{ocamldoccode}
+\index{is-underscoreok@\verb`is_ok`}
+
+
+
+
+\label{val:Server.gen-underscoresalt}\begin{ocamldoccode}
+val gen_salt : int -> string
+\end{ocamldoccode}
+\index{gen-underscoresalt@\verb`gen_salt`}
+
+
+
+
+\label{val:Server.exists}\begin{ocamldoccode}
+val exists : string -> bool
+\end{ocamldoccode}
+\index{exists@\verb`exists`}
+
+
+
+
+\label{val:Server.generate-underscorename}\begin{ocamldoccode}
+val generate_name : string -> string
+\end{ocamldoccode}
+\index{generate-underscorename@\verb`generate_name`}
+
+
+
+
+\label{val:Server.register-underscorein-underscoredb}\begin{ocamldoccode}
+val register_in_db : string -> string -> unit
+\end{ocamldoccode}
+\index{register-underscorein-underscoredb@\verb`register_in_db`}
+
+
+
+
+\label{val:Server.update-underscorestatistics}\begin{ocamldoccode}
+val update_statistics : unit -> unit
+\end{ocamldoccode}
+\index{update-underscorestatistics@\verb`update_statistics`}
+
+
+
+
+\label{val:Server.choose-underscoreword}\begin{ocamldoccode}
+val choose_word : unit -> unit
+\end{ocamldoccode}
+\index{choose-underscoreword@\verb`choose_word`}
+
+
+
+
+\label{val:Server.my-underscoreinput-underscoreline}\begin{ocamldoccode}
+val my_input_line : Unix.file_descr -> string
+\end{ocamldoccode}
+\index{my-underscoreinput-underscoreline@\verb`my_input_line`}
+
+
+
+
+\label{val:Server.my-underscorenth}\begin{ocamldoccode}
+val my_nth : string -> int -> string
+\end{ocamldoccode}
+\index{my-underscorenth@\verb`my_nth`}
+
+
+
+
+\label{val:Server.notify-underscoreplayers}\begin{ocamldoccode}
+val notify_players : string -> string -> unit
+\end{ocamldoccode}
+\index{notify-underscoreplayers@\verb`notify_players`}
+
+
+
+
+\label{val:Server.notify-underscoreexit}\begin{ocamldoccode}
+val notify_exit : string -> unit
+\end{ocamldoccode}
+\index{notify-underscoreexit@\verb`notify_exit`}
+
+
+
+
+\label{val:Server.notify-underscoreguess}\begin{ocamldoccode}
+val notify_guess : string -> string -> unit
+\end{ocamldoccode}
+\index{notify-underscoreguess@\verb`notify_guess`}
+
+
+
+
+\label{val:Server.notify-underscoreword-underscorefound}\begin{ocamldoccode}
+val notify_word_found : string -> unit
+\end{ocamldoccode}
+\index{notify-underscoreword-underscorefound@\verb`notify_word_found`}
+
+
+
+
+\label{val:Server.notify-underscoreline}\begin{ocamldoccode}
+val notify_line : string -> unit
+\end{ocamldoccode}
+\index{notify-underscoreline@\verb`notify_line`}
+
+
+
+
+\label{val:Server.notify-underscorecheat}\begin{ocamldoccode}
+val notify_cheat : string -> unit
+\end{ocamldoccode}
+\index{notify-underscorecheat@\verb`notify_cheat`}
+
+
+
+
+\label{val:Server.notify-underscoretalk}\begin{ocamldoccode}
+val notify_talk : string -> string -> unit
+\end{ocamldoccode}
+\index{notify-underscoretalk@\verb`notify_talk`}
+
+
+
+
+\label{val:Server.send-underscoreconnected-underscorecommand}\begin{ocamldoccode}
+val send_connected_command : unit -> unit
+\end{ocamldoccode}
+\index{send-underscoreconnected-underscorecommand@\verb`send_connected_command`}
+
+
+
+
+\label{val:Server.send-underscorenew-underscoreround-underscorecommand}\begin{ocamldoccode}
+val send_new_round_command : string -> unit
+\end{ocamldoccode}
+\index{send-underscorenew-underscoreround-underscorecommand@\verb`send_new_round_command`}
+
+
+
+
+\label{val:Server.choose-underscoredrawer}\begin{ocamldoccode}
+val choose_drawer : unit -> int
+\end{ocamldoccode}
+\index{choose-underscoredrawer@\verb`choose_drawer`}
+
+
+
+
+\label{val:Server.send-underscorescore-underscoreround-underscorecommand}\begin{ocamldoccode}
+val send_score_round_command : unit -> unit
+\end{ocamldoccode}
+\index{send-underscorescore-underscoreround-underscorecommand@\verb`send_score_round_command`}
+
+
+
+
+\label{val:Server.send-underscoreend-underscoreround-underscorecommand}\begin{ocamldoccode}
+val send_end_round_command : unit -> unit
+\end{ocamldoccode}
+\index{send-underscoreend-underscoreround-underscorecommand@\verb`send_end_round_command`}
+
+
+
+
+\label{val:Server.reset-underscorescore-underscoreplayers}\begin{ocamldoccode}
+val reset_score_players : unit -> unit
+\end{ocamldoccode}
+\index{reset-underscorescore-underscoreplayers@\verb`reset_score_players`}
+
+
+
+
+\begin{ocamldoccode}
+{\tt{class player : }}{\tt{string -> Unix.file\_descr -> }}\end{ocamldoccode}
+\label{class:Server.player}\index{player@\verb`player`}
+
+\begin{ocamldocobjectend}
+
+
+\label{val:Server.player.connected}\begin{ocamldoccode}
+val mutable connected : bool
+\end{ocamldoccode}
+\index{connected@\verb`connected`}
+
+
+\label{val:Server.player.name}\begin{ocamldoccode}
+val mutable name : string
+\end{ocamldoccode}
+\index{name@\verb`name`}
+
+
+\label{val:Server.player.role}\begin{ocamldoccode}
+val mutable role : Server.role
+\end{ocamldoccode}
+\index{role@\verb`role`}
+
+
+\label{val:Server.player.s-underscoredescr}\begin{ocamldoccode}
+val s_descr : Unix.file_descr
+\end{ocamldoccode}
+\index{s-underscoredescr@\verb`s_descr`}
+
+
+\label{val:Server.player.score-underscoregame}\begin{ocamldoccode}
+val mutable score_game : int
+\end{ocamldoccode}
+\index{score-underscoregame@\verb`score_game`}
+
+
+\label{val:Server.player.score-underscoreround}\begin{ocamldoccode}
+val mutable score_round : int
+\end{ocamldoccode}
+\index{score-underscoreround@\verb`score_round`}
+
+
+\label{method:Server.player.get-underscorename}\begin{ocamldoccode}
+method get_name : unit -> string
+\end{ocamldoccode}
+\index{get-underscorename@\verb`get_name`}
+
+
+\label{method:Server.player.get-underscorerole}\begin{ocamldoccode}
+method get_role : unit -> Server.role
+\end{ocamldoccode}
+\index{get-underscorerole@\verb`get_role`}
+
+
+\label{method:Server.player.get-underscorescore-underscoregame}\begin{ocamldoccode}
+method get_score_game : unit -> int
+\end{ocamldoccode}
+\index{get-underscorescore-underscoregame@\verb`get_score_game`}
+
+
+\label{method:Server.player.get-underscorescore-underscoreround}\begin{ocamldoccode}
+method get_score_round : unit -> int
+\end{ocamldoccode}
+\index{get-underscorescore-underscoreround@\verb`get_score_round`}
+
+
+\label{method:Server.player.get-underscorestatus}\begin{ocamldoccode}
+method get_status : unit -> bool
+\end{ocamldoccode}
+\index{get-underscorestatus@\verb`get_status`}
+
+
+\label{method:Server.player.send-underscorecommand}\begin{ocamldoccode}
+method send_command : string -> unit
+\end{ocamldoccode}
+\index{send-underscorecommand@\verb`send_command`}
+
+
+\label{method:Server.player.set-underscorerole}\begin{ocamldoccode}
+method set_role : Server.role -> unit
+\end{ocamldoccode}
+\index{set-underscorerole@\verb`set_role`}
+
+
+\label{method:Server.player.set-underscorescore-underscoreround}\begin{ocamldoccode}
+method set_score_round : int -> unit
+\end{ocamldoccode}
+\index{set-underscorescore-underscoreround@\verb`set_score_round`}
+
+
+\label{method:Server.player.start-underscoregame}\begin{ocamldoccode}
+method start_game : unit -> unit
+\end{ocamldoccode}
+\index{start-underscoregame@\verb`start_game`}
+
+
+\label{method:Server.player.update-underscorescore-underscoregame}\begin{ocamldoccode}
+method update_score_game : unit
+\end{ocamldoccode}
+\index{update-underscorescore-underscoregame@\verb`update_score_game`}
+\end{ocamldocobjectend}
+
+
+
+
+
+
+\label{val:Server.welcome-underscoreplayer}\begin{ocamldoccode}
+val welcome_player : string -> Unix.file_descr -> unit
+\end{ocamldoccode}
+\index{welcome-underscoreplayer@\verb`welcome_player`}
+
+
+
+
+\label{val:Server.connection-underscoreplayer}\begin{ocamldoccode}
+val connection_player : Unix.file_descr * 'a -> unit
+\end{ocamldoccode}
+\index{connection-underscoreplayer@\verb`connection_player`}
+
+
+
+
+\begin{ocamldoccode}
+{\tt{class server : }}{\tt{int -> int -> }}\end{ocamldoccode}
+\label{class:Server.server}\index{server@\verb`server`}
+
+\begin{ocamldocobjectend}
+
+
+\label{val:Server.server.nb-underscorepending}\begin{ocamldoccode}
+val nb_pending : int
+\end{ocamldoccode}
+\index{nb-underscorepending@\verb`nb_pending`}
+
+
+\label{val:Server.server.port-underscorenum}\begin{ocamldoccode}
+val port_num : int
+\end{ocamldoccode}
+\index{port-underscorenum@\verb`port_num`}
+
+
+\label{val:Server.server.s-underscoredescr}\begin{ocamldoccode}
+val s_descr : Unix.file_descr
+\end{ocamldoccode}
+\index{s-underscoredescr@\verb`s_descr`}
+
+
+\label{method:Server.server.start-underscoregame}\begin{ocamldoccode}
+method start_game : unit -> unit
+\end{ocamldoccode}
+\index{start-underscoregame@\verb`start_game`}
+
+
+\label{method:Server.server.wait-underscoreconnections}\begin{ocamldoccode}
+method wait_connections : unit -> unit
+\end{ocamldoccode}
+\index{wait-underscoreconnections@\verb`wait_connections`}
+\end{ocamldocobjectend}
+
+
+
+
+
+
+\label{val:Server.read-underscoredb}\begin{ocamldoccode}
+val read_db : Pervasives.in_channel -> string
+\end{ocamldoccode}
+\index{read-underscoredb@\verb`read_db`}
+
+
+
+
+\label{val:Server.generate-underscoreresponse}\begin{ocamldoccode}
+val generate_response : string -> string
+\end{ocamldoccode}
+\index{generate-underscoreresponse@\verb`generate_response`}
+
+
+
+
+\label{val:Server.response}\begin{ocamldoccode}
+val response : Unix.file_descr * 'a -> unit
+\end{ocamldoccode}
+\index{response@\verb`response`}
+
+
+
+
+\begin{ocamldoccode}
+{\tt{class serverHTTP : }}{\tt{int -> int -> }}\end{ocamldoccode}
+\label{class:Server.serverHTTP}\index{serverHTTP@\verb`serverHTTP`}
+
+\begin{ocamldocobjectend}
+
+
+\label{val:Server.serverHTTP.nb-underscorepending}\begin{ocamldoccode}
+val nb_pending : int
+\end{ocamldoccode}
+\index{nb-underscorepending@\verb`nb_pending`}
+
+
+\label{val:Server.serverHTTP.port-underscorenum}\begin{ocamldoccode}
+val port_num : int
+\end{ocamldoccode}
+\index{port-underscorenum@\verb`port_num`}
+
+
+\label{val:Server.serverHTTP.s-underscoredescr}\begin{ocamldoccode}
+val s_descr : Unix.file_descr
+\end{ocamldoccode}
+\index{s-underscoredescr@\verb`s_descr`}
+
+
+\label{method:Server.serverHTTP.start}\begin{ocamldoccode}
+method start : unit -> unit
+\end{ocamldoccode}
+\index{start@\verb`start`}
+\end{ocamldocobjectend}
+
+
+
+
+
+
+\label{val:Server.main}\begin{ocamldoccode}
+val main : unit -> unit
+\end{ocamldoccode}
+\index{main@\verb`main`}
+
 
 \end{document}

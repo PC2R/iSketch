@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=pdflatex 2012.10.29)  28 NOV 2013 20:48
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=pdflatex 2012.10.29)  12 DEC 2013 17:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -76,22 +76,22 @@ File: t1cmtt.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./doc.aux) ) 
 Here is how much of TeX's memory you used:
- 608 strings out of 495030
- 6858 string characters out of 3180760
- 48404 words of memory out of 3000000
- 3851 multiletter control sequences out of 15000+200000
+ 611 strings out of 495030
+ 6929 string characters out of 3180760
+ 49404 words of memory out of 3000000
+ 3854 multiletter control sequences out of 15000+200000
  7662 words of font info for 21 fonts, out of 3000000 for 9000
  14 hyphenation exceptions out of 8191
- 21i,4n,20p,216b,113s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 21i,4n,20p,264b,114s stack positions out of 5000i,500n,10000p,200000b,50000s
  </home/theo/
 .texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1095.600pk> </home/theo/.texmf-var/f
 onts/pk/ljfour/jknappen/ec/ectt1440.600pk> </home/theo/.texmf-var/fonts/pk/ljfo
 ur/jknappen/ec/ectt1095.600pk> </home/theo/.texmf-var/fonts/pk/ljfour/jknappen/
 ec/ecbx1095.600pk> </home/theo/.texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1440.
 600pk>
-Output written on doc.pdf (1 page, 9698 bytes).
+Output written on doc.pdf (1 page, 29347 bytes).
 PDF statistics:
- 55 PDF objects out of 1000 (max. 8388607)
+ 125 PDF objects out of 1000 (max. 8388607)
  24 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
