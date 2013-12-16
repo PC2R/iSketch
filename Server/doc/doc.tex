@@ -617,18 +617,10 @@ val notify_players : string -> string -> unit
 \end{ocamldoccode}
 \index{notify-underscoreplayers@\verb`notify_players`}
 \begin{ocamldocdescription}
-notify\_players keyword name sends the keyword command (such as EXITED / GUESSED / WORD\_FOUND) to all players
+notify\_players keyword name sends the keyword command (such as EXITED or WORD\_FOUND) to all players
 
 
 \end{ocamldocdescription}
-
-
-
-
-\label{val:Server.notify-underscoreexit}\begin{ocamldoccode}
-val notify_exit : string -> unit
-\end{ocamldoccode}
-\index{notify-underscoreexit@\verb`notify_exit`}
 
 
 
@@ -637,14 +629,6 @@ val notify_exit : string -> unit
 val notify_guess : string -> string -> unit
 \end{ocamldoccode}
 \index{notify-underscoreguess@\verb`notify_guess`}
-
-
-
-
-\label{val:Server.notify-underscoreword-underscorefound}\begin{ocamldoccode}
-val notify_word_found : string -> unit
-\end{ocamldoccode}
-\index{notify-underscoreword-underscorefound@\verb`notify_word_found`}
 
 
 
@@ -874,15 +858,30 @@ val s_descr : Unix.file_descr
 method start_game : unit -> unit
 \end{ocamldoccode}
 \index{start-underscoregame@\verb`start_game`}
+\begin{ocamldocdescription}
+Method to start one game
+
+
+\end{ocamldocdescription}
 
 
 \label{method:Server.server.wait-underscoreconnections}\begin{ocamldoccode}
 method wait_connections : unit -> unit
 \end{ocamldoccode}
 \index{wait-underscoreconnections@\verb`wait_connections`}
+\begin{ocamldocdescription}
+Accept connections on the socket
+
+
+\end{ocamldocdescription}
 \end{ocamldocobjectend}
 
 
+\begin{ocamldocdescription}
+Class for iSketch server
+
+
+\end{ocamldocdescription}
 
 
 
@@ -891,6 +890,11 @@ method wait_connections : unit -> unit
 val read_db : Pervasives.in_channel -> string
 \end{ocamldoccode}
 \index{read-underscoredb@\verb`read_db`}
+\begin{ocamldocdescription}
+Read in the database the number of wins and defeats of every player
+
+
+\end{ocamldocdescription}
 
 
 
@@ -899,6 +903,11 @@ val read_db : Pervasives.in_channel -> string
 val generate_response : string -> string
 \end{ocamldoccode}
 \index{generate-underscoreresponse@\verb`generate_response`}
+\begin{ocamldocdescription}
+Generate the webpage to display with the current values of the database
+
+
+\end{ocamldocdescription}
 
 
 
@@ -907,6 +916,11 @@ val generate_response : string -> string
 val response : Unix.file_descr * 'a -> unit
 \end{ocamldoccode}
 \index{response@\verb`response`}
+\begin{ocamldocdescription}
+Calls the generate\_response function if a GET request is sent
+
+
+\end{ocamldocdescription}
 
 
 
@@ -943,6 +957,11 @@ method start : unit -> unit
 \end{ocamldocobjectend}
 
 
+\begin{ocamldocdescription}
+Class for HTTP server
+
+
+\end{ocamldocdescription}
 
 
 
