@@ -371,29 +371,17 @@ let my_nth s n =
   done;
   !string;;
 
-(* function for EXITED / GUESSED / WORD_FOUND *)
+(* function for EXITED / WORD_FOUND *)
 let notify_players keyword name =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
     player#send_command (keyword ^ "/" ^ name ^ "/\n");
   done;;
 
-let notify_exit name =
-  for i = 0 to (List.length !players - 1) do
-    let player = List.nth !players i in
-    player#send_command ("EXITED/" ^ name ^ "\n");
-  done;;
-
 let notify_guess word name =
   for i = 0 to (List.length !players - 1) do
     let player = List.nth !players i in
     player#send_command ("GUESSED/" ^ word ^ "/" ^ name ^ "/\n");
-  done;;
-
-let notify_word_found name = 
-  for i = 0 to (List.length !players - 1) do
-    let player = List.nth !players i in
-    player#send_command ("WORD_FOUND/" ^ name ^ "/\n");
   done;;
 
 let notify_line line =
@@ -513,8 +501,6 @@ object (self)
     ignore (Thread.create self#start_game ());
  
   method start_game () =
-    (* to do *)
-    (* wait every one before starting to send guess command *)
     while (true) do
       let command = my_input_line s_descr in
       let l = Str.split (Str.regexp "[/]") command in
@@ -523,7 +509,7 @@ object (self)
 		   let guessed_word = my_nth command 1 in
 		   if (unescaped guessed_word) = !word then
 		     begin
-		       notify_word_found name;
+		       notify_players "WORD_FOUND" name;
 		       score_round <- !score_round_finder;
 		       update_variables ()
 		     end
@@ -545,7 +531,7 @@ object (self)
       | "EXIT" -> let name = my_nth command 1 in
 		  connected <- false;
 		  decr players_connected;
-		  notify_exit name;
+		  notify_players "EXITED" name;
       | "CHEAT" -> let name = my_nth command 1 in
 		   cheat_counter := !cheat_counter + 1;
 		   trace ((unescaped name) ^ " has reported cheating behavior.");
@@ -580,9 +566,15 @@ object (self)
     score_round <- 0;
 
   method send_command result =
-    ignore (Unix.write s_descr result 0 (String.length result));
-    trace (String.sub result 0 (String.length result - 1)
-	   ^ " has been sent to " ^ name ^ ".");
+    if connected then
+      begin
+	ignore (Unix.write s_descr result 0 (String.length result));
+	trace (String.sub result 0 (String.length result - 1)
+	       ^ " has been sent to " ^ name ^ ".");
+      end
+    else
+      trace (String.sub result 0 (String.length result - 1)
+	       ^ " has not been sent to " ^ name ^ " because he is disconnected.");
 
 end;;
 
@@ -744,7 +736,6 @@ let rec read_db in_channel =
 		      result := !result ^ "\n</ul>\n</body>\n</html>";
 		      !result;;
 
-
 let generate_response protocol =
   let result = ref ("HTTP/" ^ protocol ^ " 200 OK\r\n" 
 	       ^ "Content-Type: text/html; charset=UTF-8\r\n\r\n" 
@@ -756,13 +747,12 @@ let generate_response protocol =
 	       ^ "<meta http-equiv=\"Refresh\" content=\"60\">\n"
 	       ^ "<title>Statistics of the game</title>\n"
 	       ^ "</head>\n") in
-  result := !result ^ "<body>\n<h1>Hello World !</h1>\n";
+  result := !result ^ "<body>\n<h1>Welcome to iSketch statistics !</h1>\n";
   result := !result ^ "<p>Players : </p>\n";
   let in_channel = open_in_gen[Open_creat] 0o666 registered_players in
   result := !result ^ (read_db in_channel);
   !result;;
 	 
-  
 let response (s_descr, sock_addr) =
   try
     let command = my_input_line s_descr in

@@ -138,14 +138,10 @@ val my_input_line : Unix.file_descr -> string
 (** my_nth s n returns the n-th element in the string s of the form element_0/element_1/.../element_n *)
 val my_nth : string -> int -> string
 
-(** notify_players keyword name sends the keyword command (such as EXITED / GUESSED / WORD_FOUND) to all players *)
+(** notify_players keyword name sends the keyword command (such as EXITED or WORD_FOUND) to all players *)
 val notify_players : string -> string -> unit
 
-val notify_exit : string -> unit
-
 val notify_guess : string -> string -> unit
-
-val notify_word_found : string -> unit
 
 val notify_line : string -> unit
 
@@ -191,6 +187,7 @@ val welcome_player : string -> Unix.file_descr -> unit
 
 val connection_player : Unix.file_descr * 'a -> unit
 
+(** Class for iSketch server *)
 class server :
   int ->
   int ->
@@ -198,16 +195,24 @@ class server :
     val nb_pending : int
     val port_num : int
     val s_descr : Unix.file_descr
+
+    (** Method to start one game *)
     method start_game : unit -> unit
+
+    (** Accept connections on the socket *)
     method wait_connections : unit -> unit
   end
 
+(** Read in the database the number of wins and defeats of every player *)
 val read_db : in_channel -> string
 
+(** Generate the webpage to display with the current values of the database *)
 val generate_response : string -> string
 
+(** Calls the generate_response function if a GET request is sent *)
 val response : Unix.file_descr * 'a -> unit
 
+(** Class for HTTP server *)
 class serverHTTP :
   int ->
   int ->
